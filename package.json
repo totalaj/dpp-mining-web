@@ -1,0 +1,29 @@
+{
+  "name": "dpp-mining-web",
+  "version": "1.0.0",
+  "description": "A web version and solver of the mining game found in the sinnoh underground in Pokémon Diamond, Pearl, and Platinum.",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/totalaj/dpp-mining-web.git"
+  },
+  "author": "Totalaj Krantz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/totalaj/dpp-mining-web/issues"
+  },
+  "homepage": "https://github.com/totalaj/dpp-mining-web#readme",
+  "devDependencies": {
+    "webpack": "^5.97.1",
+    "webpack-cli": "^5.1.4",
+    "html-webpack-plugin": "^5.6.3",
+    "typescript": "^5.7.2",
+    "ts-loader": "^9.5.1",
+    "url-loader": "^4.1.1",
+    "prettier": "^3.4.2"
+  }
+}
