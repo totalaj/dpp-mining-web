@@ -1,5 +1,6 @@
 import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
+import * as Noise from 'ts-perlin-simplex'
 
 class Cell {
     private background_sprite: Sprite
@@ -21,8 +22,8 @@ class Cell {
         this.element.style.gridRow = `${yPos}`
     }
 
-    public decrease() {
-        this.level = this._level - 1
+    public decrease(amount: number = 1) {
+        this.level = this._level - amount
     }
 
     private _level: number = 0
@@ -48,6 +49,19 @@ export class MiningGrid {
         this.sprite_sheet = new SpriteSheet(16, './assets/test_sheet.png')
         this.grid = this._parent.appendChild(document.createElement('div'))
         this.grid.id = 'mining-grid'
+        this.grid.style.borderColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+
+        const noise = new Noise.SimplexNoise()
+        const seed = Math.random()
+        function sample_noise(x: number, y: number): number {
+            let scale = 10
+            let noise_val = (noise.noise3d(x / scale, y / scale, seed) + 1 ) / 2
+            scale = 16
+            noise_val += noise.noise3d(x / scale, y / scale, seed) * 0.3
+            scale = 23
+            noise_val += noise.noise3d(x / scale, y / scale, seed) * 0.15
+            return Math.min(0.99, Math.max(0, noise_val))
+        }
 
         for (let xIndex = 0; xIndex < this.width; xIndex++) {
             this.cells.push([])
@@ -55,16 +69,13 @@ export class MiningGrid {
             for (let yIndex = 0; yIndex < this.height; yIndex++) {
                 this.cells[xIndex].push(new Cell(this.grid, this.sprite_sheet, xIndex+1, yIndex+1, (x,y) => this.clickedCell(x,y)))
                 let cell = this.cells[xIndex][yIndex]
-                cell.level = 2 + Math.floor((Math.random() * 3)) * 2
+                cell.level = 2 + (Math.floor((sample_noise(xIndex, yIndex) * 3)) * 2)
             }
         }
-
-        
-        console.log(this.cells)
     }
     
     clickedCell(xPos: number, yPos: number) {
-        this.cells[xPos]?.[yPos]?.decrease()
+        this.cells[xPos]?.[yPos]?.decrease(2)
         this.cells[xPos + 1]?.[yPos]?.decrease()
         this.cells[xPos - 1]?.[yPos]?.decrease()
         this.cells[xPos]?.[yPos + 1]?.decrease()

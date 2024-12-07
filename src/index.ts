@@ -1,11 +1,13 @@
-import { Sprite, SpriteSheet } from "./components/sprite";
-import { Vector2 } from "./math";
 import { MiningGrid } from "./simulator/board";
 
 function component() {
     const element = document.createElement('div');
-    
-    new MiningGrid(element)
+    element.style.display = 'flex'
+    element.style.flexWrap = 'wrap'
+
+    for (let index = 0; index < 16; index++) {
+      new MiningGrid(element)
+    }
     
     return element;
   }
