@@ -5,7 +5,10 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack"
+    "start": "webpack --mode=production && npm run copy-assets",
+    "open": "start dist/index.html",
+    "publish": "echo \"Run SFTP: Sync Local -> Remote\" && exit 1",
+    "copy-assets": "node -e \"require('fs').cpSync('./src/assets', './dist/assets', {recursive: true});\""
   },
   "repository": {
     "type": "git",
@@ -18,12 +21,13 @@
   },
   "homepage": "https://github.com/totalaj/dpp-mining-web#readme",
   "devDependencies": {
-    "webpack": "^5.97.1",
-    "webpack-cli": "^5.1.4",
+    "eslint": "^9.16.0",
     "html-webpack-plugin": "^5.6.3",
-    "typescript": "^5.7.2",
+    "prettier": "^3.4.2",
     "ts-loader": "^9.5.1",
+    "typescript": "^5.7.2",
     "url-loader": "^4.1.1",
-    "prettier": "^3.4.2"
+    "webpack": "^5.97.1",
+    "webpack-cli": "^5.1.4"
   }
 }
