@@ -1,7 +1,7 @@
 import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import * as Noise from 'ts-perlin-simplex'
-import { bedrock_objects, ContentType, evolution_stones, GridObject, large_spheres, national_fossils, shards, small_speheres } from "./objects"
+import { bedrock_objects, ContentType, evolution_stones, GridObject, large_spheres, national_fossils, shards, small_speheres, weather_stones } from "./objects"
 import { random_element } from "../utils/array_utils"
 
 const cell_scale = 3
@@ -97,7 +97,7 @@ export class MiningGrid {
             }
         }
 
-        shards.forEach((obj) => {
+        weather_stones.forEach((obj) => {
             this.try_add_object_at_random_valid_position(obj)
         })
 

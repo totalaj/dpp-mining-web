@@ -360,22 +360,47 @@ export const shards = [
     [true, true, true],
 ]),
     new GridObject(new Vector2(20, 18), new Vector2(22, 20), ContentType.ITEM,
-[ // Green Shard
+[ // Blue Shard
     [true, true, true],
     [true, true, true],
     [true, true, false],
 ]),
     new GridObject(new Vector2(23, 18), new Vector2(26, 20), ContentType.ITEM,
-[ // Green Shard
+[ // Yellow Shard
     [true, false, true, false],
     [true, true, true, false],
     [true, true, true, true],
 ]),
-
 ]
 
 export const weather_stones = [
 
+    new GridObject(new Vector2(13, 21), new Vector2(16, 23), ContentType.ITEM,
+[ // Heat Rock
+    [true, false, true, false],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(17, 21), new Vector2(19, 23), ContentType.ITEM,
+[ // Damp Rock
+    [true, true, true],
+    [true, true, true],
+    [true, false, true],
+]),
+    new GridObject(new Vector2(20, 21), new Vector2(23, 24), ContentType.ITEM,
+[ // Icy Rock
+    [false, true, true, false],
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, false, false, true],
+]),
+    new GridObject(new Vector2(24, 21), new Vector2(27, 24), ContentType.ITEM,
+[ // Smooth Rock
+    [false, false, true, false],
+    [true, true, true, false],
+    [false, true, true, true],
+    [false, true, false, false],
+]),
 ]
 
 export const items = [
