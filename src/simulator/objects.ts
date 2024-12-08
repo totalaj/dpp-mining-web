@@ -102,11 +102,64 @@ export const bedrock_objects = [
 ]
 
 export const small_speheres = [
-
+    new GridObject(new Vector2(13, 0), new Vector2(14, 1), ContentType.ITEM,
+[ // 2x2 small green sphere
+    [true, true],
+    [true, true],
+]),
+    new GridObject(new Vector2(15, 0), new Vector2(16, 1), ContentType.ITEM,
+[ // 2x2 small red sphere
+    [true, true],
+    [true, true],
+]),
+    new GridObject(new Vector2(17, 0), new Vector2(18, 1), ContentType.ITEM,
+[ // 2x2 small blue sphere
+    [true, true],
+    [true, true],
+]),
+    new GridObject(new Vector2(19, 0), new Vector2(20, 1), ContentType.ITEM,
+[ // 2x2 small diamond sphere
+    [true, true],
+    [true, true],
+]),
+    new GridObject(new Vector2(21, 0), new Vector2(22, 1), ContentType.ITEM,
+[ // 2x2 small pearl sphere
+    [true, true],
+    [true, true],
+]),
 ]
 
 export const large_spheres = [
-
+    new GridObject(new Vector2(13, 2), new Vector2(15, 4), ContentType.ITEM,
+[ // 3x3 large green sphere
+    [true, true, true],
+    [true, true, true],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(16, 2), new Vector2(18, 4), ContentType.ITEM,
+[ // 3x3 large red sphere
+    [true, true, true],
+    [true, true, true],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(19, 2), new Vector2(21, 4), ContentType.ITEM,
+[ // 3x3 large blue sphere
+    [true, true, true],
+    [true, true, true],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(22, 2), new Vector2(24, 4), ContentType.ITEM,
+[ // 3x3 large diamond sphere
+    [true, true, true],
+    [true, true, true],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(25, 2), new Vector2(27, 4), ContentType.ITEM,
+[ // 3x3 large pearl sphere
+    [true, true, true],
+    [true, true, true],
+    [true, true, true],
+]),
 ]
 
 export const regional_fossils = [
