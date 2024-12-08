@@ -18,3 +18,10 @@ A web version and solver of the mining game found in the sinnoh underground in P
 - [ ] Collection
     - [ ] Singleton collection, for plates
 - [ ] Version difference?
+
+Various ideas:
+- [ ] Options for turning off sound, screen shake
+- [ ] Calculated version difference based on IP or other user Identifier
+- [ ] Free play
+- [ ] Solver (find optimal moves)
+- [ ] In-depth research about original game
