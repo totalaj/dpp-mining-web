@@ -25,3 +25,4 @@ Various ideas:
 - [ ] Free play
 - [ ] Solver (find optimal moves)
 - [ ] In-depth research about original game
+- [ ] Web page styling (favicon, embedding image)
