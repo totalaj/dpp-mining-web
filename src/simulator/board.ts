@@ -38,9 +38,17 @@ class Cell {
     }
 
     public set_object(object: GridObject, sprite_position: Vector2) {
-            this.object_sprite = new Sprite(this.element, GridObject.object_sheet, sprite_position)
+        this.object_sprite = new Sprite(this.element, GridObject.object_sheet, sprite_position)
         this.object_sprite.element.style.scale = cell_scale.toString()
         this.content = object.content_type
+    }
+
+    public clear_object() {
+        if (this.object_sprite) {
+            this.element.removeChild(this.object_sprite.element)
+            this.object_sprite = undefined
+            this.content = ContentType.NOTHING
+        }
     }
     
     public decrease(amount: number = 1): HitResult {
@@ -68,11 +76,41 @@ export class MiningGrid {
     private readonly height = 10
     private readonly width = 13
 
+    public added_items: GridObject[] = []
+
     constructor(private _parent: HTMLDivElement) {
         this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png')
         this.grid = this._parent.appendChild(document.createElement('div'))
         this.grid.id = 'mining-grid'
 
+        for (let xIndex = 0; xIndex < this.width; xIndex++) {
+            this.cells.push([])
+            
+            for (let yIndex = 0; yIndex < this.height; yIndex++) {
+                this.cells[xIndex].push(new Cell(this.grid, this.sprite_sheet, xIndex+1, yIndex+1, (x,y) => this.clickedCell(x,y)))
+            }
+        }
+
+        this.setup_terrain()
+        this.populate_board()
+    }
+
+    public reset_board() {
+        this.clear_board()
+        this.setup_terrain()
+        this.populate_board()
+    }
+
+    private clear_board() {
+        for (let xIndex = 0; xIndex < this.width; xIndex++) {
+            for (let yIndex = 0; yIndex < this.height; yIndex++) {
+                const cell = this.cells[xIndex][yIndex]
+                cell.clear_object()
+            }
+        }
+    }
+
+    private setup_terrain() {
         const noise = new Noise.SimplexNoise()
         const seed = Math.random()
         function sample_noise(x: number, y: number): number {
@@ -85,22 +123,16 @@ export class MiningGrid {
             // Use 0.99 to prevent hitting the ceiling
             return Math.min(0.99, Math.max(0, noise_val))
         }
-
         for (let xIndex = 0; xIndex < this.width; xIndex++) {
-            this.cells.push([])
             
             for (let yIndex = 0; yIndex < this.height; yIndex++) {
-                this.cells[xIndex].push(new Cell(this.grid, this.sprite_sheet, xIndex+1, yIndex+1, (x,y) => this.clickedCell(x,y)))
                 const cell = this.cells[xIndex][yIndex]
                 cell.level = 2 + (Math.floor((sample_noise(xIndex, yIndex) * 3)) * 2)
-                cell.level = 0
             }
         }
-
-        this.populate_board()
     }
 
-    populate_board() {
+    private populate_board() {
         // Information source: https://bulbapedia.bulbagarden.net/wiki/Underground#Item_appearances
         // Chance is rolled out of total weight of all weights
         // 2-4 items can appear during a session
@@ -137,11 +169,11 @@ export class MiningGrid {
 
         let item_count = 2 + random_in_range(0, 2, true)
 
-        const added_items : GridObject[] = []
+        this.added_items = []
 
         for (let index = 0; index < item_count; index++) {
             // Filter out plates that have already been added
-            const disallowed_items = added_items.filter((item) => plates.includes(item))
+            const disallowed_items = this.added_items.filter((item) => plates.includes(item))
 
             let found_item: GridObject
             
@@ -149,7 +181,7 @@ export class MiningGrid {
                 found_item = random_item()
             } while (disallowed_items.includes(found_item))
 
-            added_items.push(found_item)
+            this.added_items.push(found_item)
 
             this.try_add_object_at_random_valid_position(found_item)
         }
@@ -161,7 +193,7 @@ export class MiningGrid {
         }
     }
 
-    get_object_positions(object: GridObject, position: Vector2) : Vector2[] {
+    private get_object_positions(object: GridObject, position: Vector2) : Vector2[] {
         const output: Vector2[] = []
         for (let xIndex = 0; xIndex < object.extents.x; xIndex++) {
             for (let yIndex = 0; yIndex < object.extents.y; yIndex++) {
@@ -173,7 +205,7 @@ export class MiningGrid {
         return output
     }
 
-    test_object_placement(object: GridObject, position: Vector2) : boolean {
+    private test_object_placement(object: GridObject, position: Vector2) : boolean {
         const positions = this.get_object_positions(object, position)
         for (let index = 0; index < positions.length; index++) {
             const pos = positions[index];
@@ -191,7 +223,7 @@ export class MiningGrid {
         return true
     }
 
-    get_all_valid_object_positions(object: GridObject) : Vector2[] {
+    private get_all_valid_object_positions(object: GridObject) : Vector2[] {
         const output: Vector2[] = []
         for (let xIndex = 0; xIndex < this.cells.length; xIndex++) {
             const cell_row = this.cells[xIndex];
@@ -205,7 +237,7 @@ export class MiningGrid {
         return output
     }
 
-    add_object_to_grid(object: GridObject, position: Vector2) : void {
+    private add_object_to_grid(object: GridObject, position: Vector2) : void {
         this.get_object_positions(object, position).forEach((pos) => {
             const local_object_position = pos.subtract(position)
             if (object.collision[local_object_position.y]?.[local_object_position.x]) {
@@ -218,7 +250,7 @@ export class MiningGrid {
         })
     }
 
-    public try_add_object_at_random_valid_position(object: GridObject) : boolean {
+    private try_add_object_at_random_valid_position(object: GridObject) : boolean {
         const valid_positions = this.get_all_valid_object_positions(object)
         
         if (valid_positions.length === 0) return false
@@ -228,9 +260,8 @@ export class MiningGrid {
         return true
     }
     
-    clickedCell(xPos: number, yPos: number) {
+    private clickedCell(xPos: number, yPos: number) {
         const targetCell = this.cells[xPos]?.[yPos]
-        console.log("Clicked", xPos, yPos, ContentType[targetCell.content])
         const result = targetCell.decrease(2)
         if (result === HitResult.BOTTOM && targetCell.content === ContentType.BEDROCK) {
             return
