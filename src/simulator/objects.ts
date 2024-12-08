@@ -482,5 +482,100 @@ export const items = [
 ]
 
 export const plates = [
-    
+    new GridObject(new Vector2(14, 32), new Vector2(17, 34), ContentType.ITEM,
+[ // Insect Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(18, 32), new Vector2(21, 34), ContentType.ITEM,
+[ // Dread Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(22, 32), new Vector2(25, 34), ContentType.ITEM,
+[ // Draco Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(26, 32), new Vector2(29, 34), ContentType.ITEM,
+[ // Zap Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(30, 32), new Vector2(33, 34), ContentType.ITEM,
+[ // Fist Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(34, 32), new Vector2(37, 34), ContentType.ITEM,
+[ // Flame Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(38, 32), new Vector2(41, 34), ContentType.ITEM,
+[ // Sky Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(42, 32), new Vector2(47, 34), ContentType.ITEM,
+[ // Spooky Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(14, 35), new Vector2(17, 37), ContentType.ITEM,
+[ // Meadow Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(18, 35), new Vector2(21, 37), ContentType.ITEM,
+[ // Earth Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(22, 35), new Vector2(25, 37), ContentType.ITEM,
+[ // Icicle Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(26, 35), new Vector2(29, 37), ContentType.ITEM,
+[ // Toxic Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(30, 35), new Vector2(33, 37), ContentType.ITEM,
+[ // Mind Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(34, 35), new Vector2(37, 37), ContentType.ITEM,
+[ // Stone Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(38, 35), new Vector2(41, 37), ContentType.ITEM,
+[ // Iron Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(42, 35), new Vector2(45, 37), ContentType.ITEM,
+[ // Splash Plate
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
 ]
