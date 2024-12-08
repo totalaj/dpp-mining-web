@@ -404,6 +404,80 @@ export const weather_stones = [
 ]
 
 export const items = [
+    new GridObject(new Vector2(13, 25), new Vector2(15, 27), ContentType.ITEM,
+[ // Revive
+    [false, true, false],
+    [true, true, true],
+    [false, true, false],
+]),
+    new GridObject(new Vector2(16, 25), new Vector2(18, 27), ContentType.ITEM,
+[ // Max Revive
+    [true, true, true],
+    [true, true, true],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(19, 25), new Vector2(21, 27), ContentType.ITEM,
+[ // Star Shard
+    [false, true, false],
+    [true, true, true],
+    [false, true, false],
+]),
+    new GridObject(new Vector2(22, 26), new Vector2(23, 27), ContentType.ITEM,
+[ // Heart Scale
+    [true, true],
+    [true, true],
+]),
+    new GridObject(new Vector2(14, 28), new Vector2(15, 29), ContentType.ITEM,
+[ // Hard Stone
+    [true, true],
+    [true, true],
+]),
+    new GridObject(new Vector2(16, 28), new Vector2(19, 29), ContentType.ITEM,
+[ // Everstone
+    [true, true, true, true],
+    [true, true, true, true],
+]),
+    new GridObject(new Vector2(20, 28), new Vector2(23, 31), ContentType.ITEM,
+[ // Light Clay
+    [true, false, true, false],
+    [true, true, true, false],
+    [true, true, true, true],
+    [false, true, false, true],
+]),
+    new GridObject(new Vector2(24, 28), new Vector2(26, 30), ContentType.ITEM,
+[ // Iron Ball
+    [true, true, true],
+    [true, true, true],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(27, 28), new Vector2(29, 30), ContentType.ITEM,
+[ // Oval Stone
+    [true, true, true],
+    [true, true, true],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(29, 18), new Vector2(31, 23), ContentType.ITEM,
+[ // Rare bone 0deg
+    [true, true, true],
+    [false, true, false],
+    [false, true, false],
+    [false, true, false],
+    [false, true, false],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(32, 21), new Vector2(37, 23), ContentType.ITEM,
+[ // Rare bone 90deg
+    [true, false, false, false, false, true],
+    [true, true, true, true, true, true],
+    [true, false, false, false, false, true],
+]),
+    new GridObject(new Vector2(38, 20), new Vector2(41, 23), ContentType.ITEM,
+[ // Odd Keystone
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+]),
 
 ]
 
