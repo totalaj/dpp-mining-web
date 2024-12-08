@@ -2,6 +2,8 @@ import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import * as Noise from 'ts-perlin-simplex'
 
+const cell_scale = 3
+
 class Cell {
     private background_sprite: Sprite
     private sprite: Sprite
@@ -10,12 +12,16 @@ class Cell {
     constructor(parent_element: HTMLDivElement, private _src: SpriteSheet, public xPos: number, public yPos: number, onClick: (x : number, y : number) => void) {
         this.element = parent_element.appendChild(document.createElement('div'))
         this.background_sprite = new Sprite(this.element, _src, new Vector2(1,0))
+        this.background_sprite.element.style.scale = cell_scale.toString()
         this.sprite = new Sprite(this.element, _src, new Vector2(0,0))
+        this.sprite.element.style.scale = cell_scale.toString()
         
         this.sprite.element.style.gridArea = '1 / 1'
         this.background_sprite.element.style.gridArea = '1 / 1'
 
         this.element.id = "mining-cell"
+        this.element.style.height = `${_src.tile_size * cell_scale}px`
+        this.element.style.width = `${_src.tile_size * cell_scale}px`
         
         this.element.onclick = (_) => onClick(xPos-1, yPos-1)
         this.element.style.gridColumn = `${xPos}`

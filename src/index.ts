@@ -5,7 +5,7 @@ function component() {
     element.style.display = 'flex'
     element.style.flexWrap = 'wrap'
 
-    for (let index = 0; index < 16; index++) {
+    for (let index = 0; index < 1; index++) {
       new MiningGrid(element)
     }
     
