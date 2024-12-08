@@ -1,4 +1,6 @@
 import { MiningGrid } from "./simulator/board";
+import { GridObject } from "./simulator/objects";
+import { create_sprite_debugger } from "./utils/sprite_debug";
 
 function component() {
     const element = document.createElement('div');
@@ -9,6 +11,8 @@ function component() {
       new MiningGrid(element)
     }
     
+    element.appendChild(create_sprite_debugger(GridObject.object_sheet, 16, 16))
+
     return element;
   }
   

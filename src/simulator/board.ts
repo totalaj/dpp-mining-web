@@ -30,13 +30,13 @@ class Cell {
         this.element.style.height = `${_src.tile_size * cell_scale}px`
         this.element.style.width = `${_src.tile_size * cell_scale}px`
         
-        this.element.onclick = (_) => onClick(xPos-1, yPos-1)
+        this.element.onclick = () => onClick(xPos-1, yPos-1)
         this.element.style.gridColumn = `${xPos}`
         this.element.style.gridRow = `${yPos}`
     }
 
     public set_object(object: GridObject, sprite_position: Vector2) {
-        this.object_sprite = new Sprite(this.element, GridObject.object_sheet, sprite_position)
+            this.object_sprite = new Sprite(this.element, GridObject.object_sheet, sprite_position)
         this.object_sprite.element.style.scale = cell_scale.toString()
         this.content = object.content_type
     }
@@ -90,20 +90,20 @@ export class MiningGrid {
             
             for (let yIndex = 0; yIndex < this.height; yIndex++) {
                 this.cells[xIndex].push(new Cell(this.grid, this.sprite_sheet, xIndex+1, yIndex+1, (x,y) => this.clickedCell(x,y)))
-                let cell = this.cells[xIndex][yIndex]
+                const cell = this.cells[xIndex][yIndex]
                 cell.level = 2 + (Math.floor((sample_noise(xIndex, yIndex) * 3)) * 2)
                 // cell.level = 0
             }
         }
 
-        console.log(this.try_add_object_at_random_valid_position(bedrock_objects[0]))
-        console.log(this.try_add_object_at_random_valid_position(bedrock_objects[0]))
-        console.log(this.try_add_object_at_random_valid_position(bedrock_objects[0]))
-        console.log(this.try_add_object_at_random_valid_position(bedrock_objects[0]))
+        bedrock_objects.forEach((obj) => {
+            this.try_add_object_at_random_valid_position(obj)
+        })
+
     }
 
     get_object_positions(object: GridObject, position: Vector2) : Vector2[] {
-        let output: Vector2[] = []
+        const output: Vector2[] = []
         for (let yIndex = 0; yIndex < object.extents.y; yIndex++) {
             for (let xIndex = 0; xIndex < object.extents.x; xIndex++) {
                 if (object.collision[yIndex]?.[xIndex]) {
@@ -133,7 +133,7 @@ export class MiningGrid {
     }
 
     get_all_valid_object_positions(object: GridObject) : Vector2[] {
-        let output: Vector2[] = []
+        const output: Vector2[] = []
         for (let yIndex = 0; yIndex < this.cells.length; yIndex++) {
             const cell_row = this.cells[yIndex];
             for (let xIndex = 0; xIndex < cell_row.length; xIndex++) {
@@ -154,7 +154,7 @@ export class MiningGrid {
             if (object.collision[local_object_position.y]?.[local_object_position.x]) {
 
                 const targetCell = this.cells[pos.x]?.[pos.y]
-                if (!!targetCell) {
+                if (targetCell) {
                     console.log("Adding tile at", pos)
                     targetCell.set_object(object, object.start_tile.add(local_object_position))
                 }
