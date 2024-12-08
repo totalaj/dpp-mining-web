@@ -1,8 +1,9 @@
 import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import * as Noise from 'ts-perlin-simplex'
-import { bedrock_objects, ContentType, evolution_stones, GridObject, items, large_spheres, national_fossils, plates, shards, small_speheres, weather_stones } from "./objects"
+import { bedrock_objects, ContentType, evolution_stones, fossils, GridObject, items, large_spheres, plates, shards, small_speheres, weather_stones } from "./objects"
 import { random_element } from "../utils/array_utils"
+import { random_in_range } from "../utils/random"
 
 const cell_scale = 3
 
@@ -71,7 +72,6 @@ export class MiningGrid {
         this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png')
         this.grid = this._parent.appendChild(document.createElement('div'))
         this.grid.id = 'mining-grid'
-        this.grid.style.borderColor = '#' + Math.floor(Math.random()*16777215).toString(16);
 
         const noise = new Noise.SimplexNoise()
         const seed = Math.random()
@@ -97,18 +97,68 @@ export class MiningGrid {
             }
         }
 
-        plates.forEach((obj) => {
-            this.try_add_object_at_random_valid_position(obj)
+        this.populate_board()
+    }
+
+    populate_board() {
+        // Information source: https://bulbapedia.bulbagarden.net/wiki/Underground#Item_appearances
+        // Chance is rolled out of total weight of all weights
+        // 2-4 items can appear during a session
+        // There are two binary factors deciding which rate items appear at
+        // - Version or Parity: Diamond or Pearl, or the Parity of the Trainer ID in Platinum
+        // - Pre or Post National Pokédex: Has the player received the National Pokédex?
+        // I'm not sure which is the best way to implement this currently, perhaps allowing choice of game
+        // otherwise taking some Device-specific value and going from there
+        // We assume a number is rolled from 2-4 which determines how many items will appear in the grid
+        // According to Bulbapedia, an item placement attempt is made. If it fails, a new item is rolled
+        // We're not going to do that, instead we're gonna get all valid positions and place in one of those at random
+        // Also, all items can appear any amount of times EXCEPT Plates. So we do a reroll if that happens
+
+        const all_items: GridObject[] = [...small_speheres, ...large_spheres, ...fossils, ...evolution_stones, ...shards, ...weather_stones, ...items, ...plates]
+        let total_chance = 0
+        all_items.forEach((item) => {
+            total_chance += item.rarity.get_rate()
         })
 
-        for (let index = 0; index < 4; index++) {
-            this.try_add_object_at_random_valid_position(random_element(Math.random() > 0.3 ? large_spheres : small_speheres))
+        function random_item() : GridObject {
+            const roll = Math.floor(Math.random() * total_chance)
+            let accumulation = 0
+
+            for (let index = 0; index < all_items.length; index++) {
+                const item = all_items[index];
+                accumulation += item.rarity.get_rate()
+                if (accumulation > roll) {
+                    return item
+                }
+            }
+
+            return all_items[0] // We should NEVER get here, in theory
         }
 
-        for (let index = 0; index < 6; index++) {
+        let item_count = 2 + random_in_range(0, 2, true)
+
+        const added_items : GridObject[] = []
+
+        for (let index = 0; index < item_count; index++) {
+            // Filter out plates that have already been added
+            const disallowed_items = added_items.filter((item) => plates.includes(item))
+
+            let found_item: GridObject
+            
+            do {
+                found_item = random_item()
+            } while (disallowed_items.includes(found_item))
+
+            added_items.push(found_item)
+
+            this.try_add_object_at_random_valid_position(found_item)
+        }
+
+        const bedrock_count = Math.floor(Math.pow(Math.random() * 8, 0.5)) + 4
+
+        for (let index = 0; index < bedrock_count; index++) {
             this.try_add_object_at_random_valid_position(random_element(bedrock_objects))
         }
-
     }
 
     get_object_positions(object: GridObject, position: Vector2) : Vector2[] {

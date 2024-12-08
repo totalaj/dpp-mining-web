@@ -3,6 +3,7 @@ A web version and solver of the mining game found in the sinnoh underground in P
 
 ### Todo:
 - [x] All available objects
+- [ ] Object distribution
 - [ ] Small and large hammer
 - [ ] Buttons for small and large hammer
 - [ ] Animations for hammer
@@ -12,7 +13,6 @@ A web version and solver of the mining game found in the sinnoh underground in P
 - [ ] Unearthing object
 - [ ] Announcing objects found (initial ping)
 - [ ] Listing objects unearched
-- [ ] Object distribution
 - [ ] Object Rarity in pool
 - [ ] Sound effects?
 - [ ] Collection
