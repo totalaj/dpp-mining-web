@@ -93,12 +93,12 @@ export class MiningGrid {
                 this.cells[xIndex].push(new Cell(this.grid, this.sprite_sheet, xIndex+1, yIndex+1, (x,y) => this.clickedCell(x,y)))
                 const cell = this.cells[xIndex][yIndex]
                 cell.level = 2 + (Math.floor((sample_noise(xIndex, yIndex) * 3)) * 2)
-                cell.level = 0
+                // cell.level = 0
             }
         }
 
         for (let index = 0; index < 4; index++) {
-            this.try_add_object_at_random_valid_position(random_element(large_spheres))
+            this.try_add_object_at_random_valid_position(random_element(Math.random() > 0.3 ? large_spheres : small_speheres))
         }
 
 
