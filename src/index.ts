@@ -11,7 +11,7 @@ function component() {
       new MiningGrid(element)
     }
     
-    // element.appendChild(create_sprite_debugger(GridObject.object_sheet, 32, 16))
+    element.appendChild(create_sprite_debugger(GridObject.object_sheet, 64, 32))
 
     return element;
   }
