@@ -347,6 +347,30 @@ export const evolution_stones = [
 ]
 
 export const shards = [
+    new GridObject(new Vector2(13, 18), new Vector2(16, 20), ContentType.ITEM,
+[ // Green Shard
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, false, true],
+]),
+    new GridObject(new Vector2(17, 18), new Vector2(19, 20), ContentType.ITEM,
+[ // Red Shard
+    [true, true, true],
+    [true, true, false],
+    [true, true, true],
+]),
+    new GridObject(new Vector2(20, 18), new Vector2(22, 20), ContentType.ITEM,
+[ // Green Shard
+    [true, true, true],
+    [true, true, true],
+    [true, true, false],
+]),
+    new GridObject(new Vector2(23, 18), new Vector2(26, 20), ContentType.ITEM,
+[ // Green Shard
+    [true, false, true, false],
+    [true, true, true, false],
+    [true, true, true, true],
+]),
 
 ]
 
