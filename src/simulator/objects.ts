@@ -520,7 +520,7 @@ export const items = [
     new GridObject(new Vector2(22, 26), new Vector2(23, 27), ContentType.ITEM,
     new Rarity(33, 33, 30, 30), "Heart Scale",
     [
-    [true, true],
+    [true, false],
     [true, true],
 ]),
     new GridObject(new Vector2(14, 28), new Vector2(15, 29), ContentType.ITEM,
