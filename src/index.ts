@@ -3,7 +3,7 @@ import { MiningGrid } from "./simulator/board";
 function component() {
     const element = document.createElement('div');
     element.id = 'main-content'
-    
+
     const grid = new MiningGrid(element)
 
     const lower_bar = element.appendChild(document.createElement('div'))
@@ -14,7 +14,6 @@ function component() {
 
     
     grid.on_game_end = () => {
-      console.log("On game end called")
       const all_found = grid.added_items.every((item) => item.has_been_found)
       
       let text = all_found ? "Everything was dug up!" : "The wall collapsed!"

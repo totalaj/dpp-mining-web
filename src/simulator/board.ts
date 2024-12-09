@@ -45,7 +45,7 @@ class Cell {
         this.element.style.height = `${_src.tile_size * cell_scale}px`
         this.element.style.width = `${_src.tile_size * cell_scale}px`
         
-        this.element.onclick = () => onClick(xPos-1, yPos-1)
+        this.element.onmousedown = () => onClick(xPos-1, yPos-1)
         this.element.style.gridColumn = `${xPos}`
         this.element.style.gridRow = `${yPos}`
     }
@@ -317,9 +317,7 @@ export class MiningGrid {
 
         if (something_newly_found) {   
             const all_found = this.added_items.every((item) => item.has_been_found)
-            console.log("All found?", all_found)
             if (all_found) {
-                console.log("Calling on_game_end")
                 this.game_over = true
                 this.on_game_end?.()
             }
