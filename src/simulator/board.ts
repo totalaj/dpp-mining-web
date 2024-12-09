@@ -12,6 +12,19 @@ enum HitResult {
     BOTTOM
 }
 
+enum HammerType {
+    LIGHT,
+    HEAVY
+}
+
+class ActiveObject {
+    public has_been_found: boolean = false
+
+    constructor(public object_ref: GridObject, public position: Vector2) {
+
+    }
+}
+
 class Cell {
     private background_sprite: Sprite
     private terrain_sprite: Sprite
@@ -50,9 +63,18 @@ class Cell {
             this.content = ContentType.NOTHING
         }
     }
+
+    public play_found_animation() {
+        if (!this.object_sprite) {
+            console.warn("Playing an animation for a non-existent object!")
+            return
+        }
+
+        this.object_sprite.element.classList.add("found")
+    }
     
     public decrease(amount: number = 1): HitResult {
-        this.level = this._level - amount
+        this.level = Math.max(this._level - amount, 0)
         // Hitting bottom after 
         return this._level === 0 ? HitResult.BOTTOM : HitResult.NORMAL
     }
@@ -75,8 +97,10 @@ export class MiningGrid {
     private cells: Array<Array<Cell>> = []
     private readonly height = 10
     private readonly width = 13
+    public on_game_end?: () => void
+    private game_over: boolean = false
 
-    public added_items: GridObject[] = []
+    public added_items: ActiveObject[] = []
 
     constructor(private _parent: HTMLDivElement) {
         this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png')
@@ -93,12 +117,14 @@ export class MiningGrid {
 
         this.setup_terrain()
         this.populate_board()
+        this.game_over = false
     }
 
     public reset_board() {
         this.clear_board()
         this.setup_terrain()
         this.populate_board()
+        this.game_over = false
     }
 
     private clear_board() {
@@ -128,6 +154,7 @@ export class MiningGrid {
             for (let yIndex = 0; yIndex < this.height; yIndex++) {
                 const cell = this.cells[xIndex][yIndex]
                 cell.level = 2 + (Math.floor((sample_noise(xIndex, yIndex) * 3)) * 2)
+                // cell.level = 0
             }
         }
     }
@@ -173,17 +200,18 @@ export class MiningGrid {
 
         for (let index = 0; index < item_count; index++) {
             // Filter out plates that have already been added
-            const disallowed_items = this.added_items.filter((item) => plates.includes(item))
+            const disallowed_items = this.added_items.filter((item) => plates.includes(item.object_ref))
 
             let found_item: GridObject
             
             do {
                 found_item = random_item()
-            } while (disallowed_items.includes(found_item))
+            } while (disallowed_items.some((item) => found_item === item.object_ref))
 
-            this.added_items.push(found_item)
-
-            this.try_add_object_at_random_valid_position(found_item)
+                const result = this.try_add_object_at_random_valid_position(found_item)
+                if (result) {
+                    this.added_items.push(new ActiveObject(found_item, result))
+                }
         }
 
         const bedrock_count = Math.floor(Math.pow(Math.random() * 8, 0.5)) + 4
@@ -250,18 +278,58 @@ export class MiningGrid {
         })
     }
 
-    private try_add_object_at_random_valid_position(object: GridObject) : boolean {
+    private try_add_object_at_random_valid_position(object: GridObject) : Vector2 | undefined {
         const valid_positions = this.get_all_valid_object_positions(object)
         
-        if (valid_positions.length === 0) return false
+        if (valid_positions.length === 0) return undefined
         const position = valid_positions[Math.floor(Math.random() * valid_positions.length)]
 
         this.add_object_to_grid(object, position)
-        return true
+        return position
     }
     
+    private check_items_found() {
+        let something_newly_found = false
+        this.added_items.forEach(item => {
+            if (!item.has_been_found) {
+                let positions = this.get_object_positions(item.object_ref, item.position)
+                let found = true
+                for (let index = 0; index < positions.length; index++) {
+                    const pos = positions[index]
+                    const targetCell = this.cells[pos.x][pos.y]
+                    if (targetCell.level > 0) {
+                        found = false
+                        break
+                    }
+                }
+
+                if (found) {
+                    something_newly_found = true
+                    item.has_been_found = true
+                    for (let index = 0; index < positions.length; index++) {
+                        const pos = positions[index]
+                        const targetCell = this.cells[pos.x][pos.y]
+                        targetCell.play_found_animation()
+                    }
+                }
+            }  
+        })
+
+        if (something_newly_found) {   
+            const all_found = this.added_items.every((item) => item.has_been_found)
+            console.log("All found?", all_found)
+            if (all_found) {
+                console.log("Calling on_game_end")
+                this.game_over = true
+                this.on_game_end?.()
+            }
+        }
+    }
+
     private clickedCell(xPos: number, yPos: number) {
-        const targetCell = this.cells[xPos]?.[yPos]
+        if (this.game_over) return
+
+        const targetCell = this.cells[xPos][yPos]
         const result = targetCell.decrease(2)
         if (result === HitResult.BOTTOM && targetCell.content === ContentType.BEDROCK) {
             return
@@ -271,5 +339,7 @@ export class MiningGrid {
         this.cells[xPos - 1]?.[yPos]?.decrease()
         this.cells[xPos]?.[yPos + 1]?.decrease()
         this.cells[xPos]?.[yPos - 1]?.decrease()
+
+        this.check_items_found()
     }
 }

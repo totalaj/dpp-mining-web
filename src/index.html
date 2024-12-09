@@ -54,6 +54,36 @@
       .sprite {
         image-rendering: pixelated;
       }
+
+      .sprite.found {
+        animation: found 0.45s steps(1, end) 0s 1 forwards;;
+      }
+
+      :root {
+        --bright: 1.2;
+        --dark: 0;
+      }
+      
+      @keyframes found {
+        0% {
+          filter: brightness(var(--bright))
+        }
+        20% {
+          filter: brightness(var(--dark))
+        }
+        40% {
+          filter: brightness(var(--bright))
+        }
+        60% {
+          filter: brightness(var(--dark))
+        }
+        80% {
+          filter: brightness(var(--bright))
+        }
+        100% {
+          filter: brightness(1)
+        }
+      }
     </style>
   </head>
   <body>
