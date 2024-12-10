@@ -4,6 +4,12 @@
     <meta charset="utf-8" />
     <title>DPP Mining</title>
     <style>
+
+      :root {
+        --bright: 1.2;
+        --dark: 0;
+      }
+
       p, a, h1, h2, h3, h4, h5, h6, div, dl, dt, hr, li, ol, a, b, bdi, mark, s, span, button  {
         font-family: 'Courier New', Courier, monospace;
       }
@@ -58,11 +64,6 @@
       .sprite.found {
         animation: found 0.45s steps(1, end) 0s 1 forwards;;
       }
-
-      :root {
-        --bright: 1.2;
-        --dark: 0;
-      }
       
       @keyframes found {
         0% {
@@ -83,6 +84,12 @@
         100% {
           filter: brightness(1)
         }
+      }
+
+      #hammer {
+        position: fixed;
+        z-index: 10;
+        pointer-events: none;
       }
     </style>
   </head>

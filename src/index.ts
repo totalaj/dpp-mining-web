@@ -1,4 +1,5 @@
 import { MiningGrid } from "./simulator/board";
+import { create_sprite_debugger } from "./utils/sprite_debug";
 
 function component() {
     const element = document.createElement('div');
@@ -35,6 +36,8 @@ function component() {
 
     notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
     
+    element.appendChild(create_sprite_debugger(grid['sprite_sheet'], 32, 16))
+
     return element;
   }
   

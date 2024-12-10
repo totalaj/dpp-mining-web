@@ -4,17 +4,12 @@ import * as Noise from 'ts-perlin-simplex'
 import { bedrock_objects, ContentType, evolution_stones, fossils, GridObject, items, large_spheres, plates, shards, small_speheres, weather_stones } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
+import { HammerType, play_hammer_animation } from "./hammer"
 
-const cell_scale = 3
 
 enum HitResult {
     NORMAL,
     BOTTOM
-}
-
-enum HammerType {
-    LIGHT,
-    HEAVY
 }
 
 class ActiveObject {
@@ -26,6 +21,7 @@ class ActiveObject {
 }
 
 class Cell {
+    public static readonly cell_scale = 3
     private background_sprite: Sprite
     private terrain_sprite: Sprite
     private object_sprite?: Sprite
@@ -34,26 +30,35 @@ class Cell {
 
     constructor(parent_element: HTMLDivElement, private _src: SpriteSheet, public xPos: number, public yPos: number, onClick: (x : number, y : number) => void) {
         this.element = parent_element.appendChild(document.createElement('div'))
-        this.background_sprite = new Sprite(this.element, _src, new Vector2(1,0))
-        this.background_sprite.element.style.scale = cell_scale.toString()
+        this.background_sprite = new Sprite(this.element, this._src, new Vector2(1,0))
         this.background_sprite.element.style.zIndex = '-1'
-        this.terrain_sprite = new Sprite(this.element, _src, new Vector2(0,0))
-        this.terrain_sprite.element.style.scale = cell_scale.toString()
+        this.terrain_sprite = new Sprite(this.element, this._src, new Vector2(0,0))
         this.terrain_sprite.element.style.zIndex = '1'
 
         this.element.id = "mining-cell"
-        this.element.style.height = `${_src.tile_size * cell_scale}px`
-        this.element.style.width = `${_src.tile_size * cell_scale}px`
         
         this.element.onmousedown = () => onClick(xPos-1, yPos-1)
         this.element.style.gridColumn = `${xPos}`
         this.element.style.gridRow = `${yPos}`
+
+        this.set_scale(Cell.cell_scale)
+    }
+
+    public set_scale(scale: number) {
+        this.element.style.height = `${this._src.tile_size * scale}px`
+        this.element.style.width = `${this._src.tile_size * scale}px`
+
+        this.terrain_sprite.set_scale(scale)
+        this.background_sprite.set_scale(scale)
+        if (this.object_sprite) {
+            this.object_sprite.set_scale(scale)
+        }
     }
 
     public set_object(object: GridObject, sprite_position: Vector2) {
         this.object_sprite = new Sprite(this.element, GridObject.object_sheet, sprite_position)
-        this.object_sprite.element.style.scale = cell_scale.toString()
         this.content = object.content_type
+        this.set_scale(Cell.cell_scale)
     }
 
     public clear_object() {
@@ -93,7 +98,7 @@ class Cell {
 
 export class MiningGrid {
     private sprite_sheet: SpriteSheet
-    private grid: HTMLDivElement
+    private grid_element: HTMLDivElement
     private cells: Array<Array<Cell>> = []
     private readonly height = 10
     private readonly width = 13
@@ -104,14 +109,14 @@ export class MiningGrid {
 
     constructor(private _parent: HTMLDivElement) {
         this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png')
-        this.grid = this._parent.appendChild(document.createElement('div'))
-        this.grid.id = 'mining-grid'
+        this.grid_element = this._parent.appendChild(document.createElement('div'))
+        this.grid_element.id = 'mining-grid'
 
         for (let xIndex = 0; xIndex < this.width; xIndex++) {
             this.cells.push([])
             
             for (let yIndex = 0; yIndex < this.height; yIndex++) {
-                this.cells[xIndex].push(new Cell(this.grid, this.sprite_sheet, xIndex+1, yIndex+1, (x,y) => this.clickedCell(x,y)))
+                this.cells[xIndex].push(new Cell(this.grid_element, this.sprite_sheet, xIndex+1, yIndex+1, (x,y) => this.clickedCell(x,y)))
             }
         }
 
@@ -324,10 +329,23 @@ export class MiningGrid {
         }
     }
 
+    private hammer_element?: HTMLElement
     private clickedCell(xPos: number, yPos: number) {
         if (this.game_over) return
-
         const targetCell = this.cells[xPos][yPos]
+        
+        if (this.hammer_element) {
+            this.hammer_element.remove()
+        }
+
+        this.hammer_element = play_hammer_animation(
+            this.grid_element,
+            this.sprite_sheet, 
+            new Vector2(xPos, yPos), 
+            Cell.cell_scale, 
+            HammerType.LIGHT, 
+            targetCell.content)
+
         const result = targetCell.decrease(2)
         if (result === HitResult.BOTTOM && targetCell.content === ContentType.BEDROCK) {
             return
