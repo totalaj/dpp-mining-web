@@ -22,21 +22,16 @@ export function play_hammer_animation(parent_element: HTMLElement, sheet: Sprite
         }
 
         if (hammer_state !== undefined) {
-            console.log("Hammer state")
             if (hammer_type === HammerType.LIGHT) {
                 if (hammer_state === 0) {
-                    console.log("Down light")
                     hammer.set_tile(new Vector2(3, 1), new Vector2(4, 2))
                 } else {
-                    console.log("Up light")
                     hammer.set_tile(new Vector2(1, 1), new Vector2(2, 2))
                 }
             } else {
                 if (hammer_state === 0) {
-                    console.log("Down heavy")
                     hammer.set_tile(new Vector2(3, 4), new Vector2(4, 5))
                 } else {
-                    console.log("Up heavy")
                     hammer.set_tile(new Vector2(1, 4), new Vector2(2, 5))
                 }
             }
