@@ -1,7 +1,15 @@
 import { Vector2 } from "../math";
 
 export class SpriteSheet {
-    constructor(public tile_size: number, public src: string) { }
+    public get tile_size () {
+        return this._tile_size * this._scale
+    }
+
+    public get sheet_size () {
+        return this._sheet_size.mul(this._scale)
+    }
+    
+    constructor(private _tile_size: number, public src: string, private _sheet_size: Vector2, private _scale: number) { }
 }
 
 export class Sprite {
@@ -22,7 +30,7 @@ export class Sprite {
     }
 
     public set_scale(scale: number) {
-        this.element.style.scale = scale.toString()
+        // this.element.style.scale = scale.toString()
     }
 
     public set_tile(start_tile: Vector2, end_tile?: Vector2): void {
@@ -39,5 +47,6 @@ export class Sprite {
         this.element.style.width = `${this._src.tile_size * size_in_tiles.x}px`
         this.element.style.height = `${this._src.tile_size * size_in_tiles.y}px`
         this.element.style.background = `url('${this._src.src}') -${offset_in_pixels.x}px -${offset_in_pixels.y}px`
+        this.element.style.backgroundSize = `${this._src.sheet_size.x}px ${this._src.sheet_size.y}px`
     }
 }

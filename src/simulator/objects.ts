@@ -46,7 +46,7 @@ class Rarity {
 }
 
 export class GridObject {
-    public static object_sheet = new SpriteSheet(16, './assets/object_sheet.png')
+    public static object_sheet = new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 3)
     public extents: Vector2
     
     // Use reverse indexing, (ie y,x rather than x,y) because of how data is inputed

@@ -121,7 +121,7 @@ export class MiningGrid {
         
         this.container_element = this._parent.appendChild(document.createElement('div'))
         
-        this.sprite_sheet = new SpriteSheet(tile_size, './assets/board_sheet.png')
+        this.sprite_sheet = new SpriteSheet(tile_size, './assets/board_sheet.png', new Vector2(512, 512), 3)
         this.background_sprite = new Sprite(this.container_element, this.sprite_sheet, new Vector2(5,9), new Vector2(21, 20))
         this.background_sprite.set_scale(Cell.cell_scale)
         this.background_sprite.element.style.translate = `${tile_size * 17.25}px ${tile_size * 18.25}px`
