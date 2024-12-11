@@ -24,17 +24,18 @@ export class Hammer {
     }
 
     private play_animation(container: HTMLElement, frames: AnimationFrame[], sprite_kinds: {from: Vector2, to: Vector2}[]) {
-        const hammer = new Sprite(container, this.sheet, new Vector2(0,0), new Vector2(0, 0))
+        const sprite = new Sprite(container, this.sheet, new Vector2(0,0), new Vector2(0, 0))
+        sprite.element.style.position = 'absolute'
 
         const set_animation = (translation_vector?: Vector2, frame?: number) => {
             if (translation_vector) {
                 const visual_offset = new Vector2(translation_vector.x, translation_vector.y).mul(this.sheet.tile_size)
-                hammer.element.style.translate = `${visual_offset.x}px ${visual_offset.y}px`
+                sprite.element.style.translate = `${visual_offset.x}px ${visual_offset.y}px`
             }
     
             if (frame !== undefined) {
                 const sprite_frame = (frame >= 0 && frame < sprite_kinds.length) ? sprite_kinds[frame] : {from: new Vector2(0, 0), to: new Vector2(0, 0)}
-                hammer.set_tile(sprite_frame.from, sprite_frame.to)
+                sprite.set_tile(sprite_frame.from, sprite_frame.to)
             }
         }
         
@@ -62,9 +63,9 @@ export class Hammer {
         const container_visual_translation = tile_offset.mul(this.tile_unit)
         this.container.style.translate = `${container_visual_translation.x}px ${container_visual_translation.y}px`
     
-        const lower_x = (6 / 8), lower_y = -(4/8)
-        const upper_x = 1 + (1 / 8), upper_y = -1
-        const animation_frames: AnimationFrame[] = [
+        const lower_x = 0, lower_y = -1
+        const upper_x = 0.5, upper_y = -1.5
+        const hammer_animation: AnimationFrame[] = [
             { frame: 0, translation: new Vector2(upper_x, upper_y) },
             { translation: new Vector2(lower_x, lower_y) },
             { },
@@ -77,8 +78,51 @@ export class Hammer {
             { translation: new Vector2(upper_x + 1, upper_y) },
             { },
         ]
+
+        const nothing = { from: new Vector2(0, 0), to: new Vector2(0, 0) }
+        const regular_spark = hammer_type === HammerType.LIGHT ? { from: new Vector2(5, 1), to: new Vector2(8, 4) } : { from: new Vector2(5, 5), to: new Vector2(8, 8) }
+        const spark_small_star = hammer_type === HammerType.LIGHT ? { from: new Vector2(9, 1), to: new Vector2(12, 4) } : { from: new Vector2(9, 5), to: new Vector2(12, 8) }
+        const small_star = { from: new Vector2(17, 1), to: new Vector2(20, 4) }
+        const spark_broken_star = hammer_type === HammerType.LIGHT ? { from: new Vector2(13, 1), to: new Vector2(16, 4) } : { from: new Vector2(13, 5), to: new Vector2(16, 8) }
+        const whiff_spark = { from: new Vector2(17, 5), to: new Vector2(20, 8) }
+
+        const sparks_frames = [
+            nothing,            // 0
+            regular_spark,      // 1
+            spark_small_star,   // 2
+            small_star,         // 3
+            spark_broken_star,  // 4
+            whiff_spark         // 5
+        ]
+
+        const sparks_translation = new Vector2(-1.5, -1.5)
+        const terrain_sparks_animation: AnimationFrame[] = [
+            { frame: 1, translation: sparks_translation },
+            { frame: 0 },
+            { frame: 1 },
+            { frame: 0 },
+            { frame: 1 },
+            { frame: 0 },
+        ]
+        const bedrock_sparks_animation: AnimationFrame[] = [
+            { frame: 5, translation: sparks_translation },
+            { frame: 0 },
+            { frame: 5 },
+            { frame: 0 },
+            { frame: 5 },
+            { frame: 0 },
+        ]
+
+        const item_sparks_animation: AnimationFrame[] = [
+            { frame: 2, translation: sparks_translation },
+            { frame: 3 },
+            { frame: 4 },
+            { frame: 0 },
+            { frame: 1 },
+            { frame: 0 },
+        ]
     
-        this.play_animation(this.container, animation_frames,
+        this.play_animation(this.container, hammer_animation,
             hammer_type === HammerType.LIGHT ? [
             {from: new Vector2(3, 1), to: new Vector2(4, 2)},
             {from: new Vector2(1, 1), to: new Vector2(2, 2)}
@@ -86,10 +130,23 @@ export class Hammer {
             {from: new Vector2(3, 4), to: new Vector2(4, 5)},
             {from: new Vector2(1, 4), to: new Vector2(2, 5)}
         ])
+
+        switch (content_type) {
+            case ContentType.NOTHING:
+                this.play_animation(this.container, terrain_sparks_animation, sparks_frames)
+                break;
+            case ContentType.BEDROCK:
+                this.play_animation(this.container, bedrock_sparks_animation, sparks_frames)
+                break;
+            case ContentType.ITEM:
+                this.play_animation(this.container, item_sparks_animation, sparks_frames)
+                break;
+        }
+
         
         this.removal_timeout = setTimeout(() => {
             this.container?.remove()
             this.container = undefined
-        }, this.frame_rate * (animation_frames.length + 1));
+        }, this.frame_rate * (hammer_animation.length + 1));
     }
 }
