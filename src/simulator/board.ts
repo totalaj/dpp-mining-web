@@ -108,6 +108,7 @@ export class MiningGrid {
     private cells: Array<Array<Cell>> = []
     private game_over: boolean = false
     private hammer: Hammer
+    private hammer_type: HammerType = HammerType.LIGHT
     
 
     constructor(private _parent: HTMLDivElement) {
@@ -135,6 +136,10 @@ export class MiningGrid {
         this.setup_terrain()
         this.populate_board()
         this.game_over = false
+    }
+
+    public set_hammer_type(hammer_type: HammerType) {
+        this.hammer_type = hammer_type
     }
 
     private clear_board() {
@@ -341,17 +346,29 @@ export class MiningGrid {
 
         this.hammer.play_hammer_animation(
             new Vector2(xPos, yPos), 
-            HammerType.LIGHT, 
+            this.hammer_type, 
             result === HitResult.BOTTOM ? targetCell.content : ContentType.NOTHING)
 
         if (result === HitResult.BOTTOM && targetCell.content === ContentType.BEDROCK) {
             return
         }
         
-        this.cells[xPos + 1]?.[yPos]?.decrease()
-        this.cells[xPos - 1]?.[yPos]?.decrease()
-        this.cells[xPos]?.[yPos + 1]?.decrease()
-        this.cells[xPos]?.[yPos - 1]?.decrease()
+        if (this.hammer_type === HammerType.LIGHT) {   
+            this.cells[xPos + 1]?.[yPos]?.decrease()
+            this.cells[xPos - 1]?.[yPos]?.decrease()
+            this.cells[xPos]?.[yPos + 1]?.decrease()
+            this.cells[xPos]?.[yPos - 1]?.decrease()
+        } else {
+            this.cells[xPos + 1]?.[yPos]?.decrease(2)
+            this.cells[xPos - 1]?.[yPos]?.decrease(2)
+            this.cells[xPos]?.[yPos + 1]?.decrease(2)
+            this.cells[xPos]?.[yPos - 1]?.decrease(2)
+            
+            this.cells[xPos + 1]?.[yPos + 1]?.decrease()
+            this.cells[xPos + 1]?.[yPos - 1]?.decrease()
+            this.cells[xPos - 1]?.[yPos + 1]?.decrease()
+            this.cells[xPos - 1]?.[yPos - 1]?.decrease()
+        }
 
         this.check_items_found()
     }
