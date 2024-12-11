@@ -1,4 +1,5 @@
-import { HammerType } from "./simulator/animations";
+import { SpriteSheet } from "./components/sprite";
+import { Vector2 } from "./math";
 import { MiningGrid } from "./simulator/board";
 import { create_sprite_debugger } from "./utils/sprite_debug";
 
@@ -37,7 +38,7 @@ function component() {
 
     notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
     
-    // element.appendChild(create_sprite_debugger(grid['sprite_sheet'], 32, 32))
+    // element.appendChild(create_sprite_debugger(new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 1), 32, 32))
 
     return element;
   }

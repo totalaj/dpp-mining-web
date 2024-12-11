@@ -29,10 +29,6 @@ export class Sprite {
         this.set_tile(this._start_tile, this._end_tile)
     }
 
-    public set_scale(scale: number) {
-        // this.element.style.scale = scale.toString()
-    }
-
     public set_tile(start_tile: Vector2, end_tile?: Vector2): void {
         this._start_tile = start_tile
         this._end_tile = end_tile ?? start_tile

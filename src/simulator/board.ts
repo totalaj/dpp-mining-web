@@ -6,6 +6,7 @@ import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
 import { Hammer, HammerType } from "./animations"
 import { HammerButton } from "./hammer_button"
+import { set_translation } from "../utils/dom_util"
 
 
 enum HitResult {
@@ -19,7 +20,6 @@ class ActiveObject {
 }
 
 class Cell {
-    public static readonly cell_scale = 3
     private background_sprite: Sprite
     private terrain_sprite: Sprite
     private object_sprite?: Sprite
@@ -43,25 +43,11 @@ class Cell {
         }
         this.element.style.gridColumn = `${xPos}`
         this.element.style.gridRow = `${yPos}`
-
-        this.set_scale(Cell.cell_scale)
-    }
-
-    public set_scale(scale: number) {
-        this.element.style.height = `${this._src.tile_size * scale}px`
-        this.element.style.width = `${this._src.tile_size * scale}px`
-
-        this.terrain_sprite.set_scale(scale)
-        this.background_sprite.set_scale(scale)
-        if (this.object_sprite) {
-            this.object_sprite.set_scale(scale)
-        }
     }
 
     public set_object(object: GridObject, sprite_position: Vector2) {
         this.object_sprite = new Sprite(this.element, GridObject.object_sheet, sprite_position)
         this.content = object.content_type
-        this.set_scale(Cell.cell_scale)
     }
 
     public clear_object() {
@@ -117,36 +103,44 @@ export class MiningGrid {
     
 
     constructor(private _parent: HTMLDivElement) {
-        const tile_size = 16
         
         this.container_element = this._parent.appendChild(document.createElement('div'))
         
-        this.sprite_sheet = new SpriteSheet(tile_size, './assets/board_sheet.png', new Vector2(512, 512), 3)
+        this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3)
+        const tile_size = this.sprite_sheet.tile_size
         this.background_sprite = new Sprite(this.container_element, this.sprite_sheet, new Vector2(5,9), new Vector2(21, 20))
-        this.background_sprite.set_scale(Cell.cell_scale)
-        this.background_sprite.element.style.translate = `${tile_size * 17.25}px ${tile_size * 18.25}px`
         this.background_sprite.element.style.zIndex = '-1'
-        this.background_sprite.element.style.position = 'relative'
 
-        const light_hammer_button = new HammerButton(this.container_element, this.sprite_sheet, HammerType.LIGHT,
-            (hammer_type) => {this.set_hammer_type(hammer_type); heavy_hammer_button.set_depressed() }
-        )
-        light_hammer_button.sprite.element.style.translate = `calc(16px* 3* 14.2) calc(16px* 3* 6.925)`
+        const light_hammer_button = new HammerButton(this.background_sprite.element, this.sprite_sheet, HammerType.LIGHT,
+            (hammer_type) => {
+                if (hammer_type !== this.hammer_type) {
+                    this.set_hammer_type(hammer_type)
+                    heavy_hammer_button.set_depressed() 
+                    return true
+                }
+                return false
+            })
         light_hammer_button.sprite.element.id = 'hammer-button'
-        light_hammer_button.sprite.set_scale(Cell.cell_scale)
         light_hammer_button.set_pressed()
+        set_translation(light_hammer_button.sprite.element, tile_size, 13 + (1 / 8), 7.5)
         
-        const heavy_hammer_button = new HammerButton(this.container_element, this.sprite_sheet, HammerType.HEAVY,
-            (hammer_type) => {this.set_hammer_type(hammer_type); light_hammer_button.set_depressed() }
-        )
-        heavy_hammer_button.sprite.element.style.translate = `calc(16px* 3* 14.2) calc(16px* 3* 2.425)`
+        const heavy_hammer_button = new HammerButton(this.background_sprite.element, this.sprite_sheet, HammerType.HEAVY,
+            (hammer_type) => {
+                if (hammer_type !== this.hammer_type) {
+                    this.set_hammer_type(hammer_type)
+                    light_hammer_button.set_depressed() 
+                    return true
+                }
+                return false
+            })
         heavy_hammer_button.sprite.element.id = 'hammer-button'
-        heavy_hammer_button.sprite.set_scale(Cell.cell_scale)
+        set_translation(heavy_hammer_button.sprite.element, tile_size, 13 + (1 / 8), 3)
         
-        this.grid_element = this.container_element.appendChild(document.createElement('div'))
+        this.grid_element = this.background_sprite.element.appendChild(document.createElement('div'))
         this.grid_element.id = 'mining-grid'
+        set_translation(this.grid_element, tile_size, 0, 2)
 
-        this.hammer = new Hammer(this.grid_element, this.sprite_sheet, Cell.cell_scale)
+        this.hammer = new Hammer(this.grid_element, this.sprite_sheet)
 
         for (let xIndex = 0; xIndex < this.width; xIndex++) {
             this.cells.push([])

@@ -19,8 +19,8 @@ export class Hammer {
     private tile_unit: number
     private removal_timeout?: any
 
-    constructor(private parent_element: HTMLElement, private sheet: SpriteSheet, private scale: number) {
-        this.tile_unit = sheet.tile_size * scale
+    constructor(private parent_element: HTMLElement, private sheet: SpriteSheet) {
+        this.tile_unit = sheet.tile_size
     }
 
     private play_animation(container: HTMLElement, frames: AnimationFrame[], sprite_kinds: {from: Vector2, to: Vector2}[]) {
@@ -59,7 +59,6 @@ export class Hammer {
         }
         this.container = this.parent_element.appendChild(document.createElement('div'))
         this.container.id = 'hammer'
-        this.container.style.scale = this.scale.toString()
         const container_visual_translation = tile_offset.mul(this.tile_unit)
         this.container.style.translate = `${container_visual_translation.x}px ${container_visual_translation.y}px`
     

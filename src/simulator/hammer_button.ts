@@ -13,7 +13,7 @@ export class HammerButton {
     private depressed_state: AnimationFrame
     private pressed_state: AnimationFrame
 
-    constructor(parent_element: HTMLElement, sheet: SpriteSheet, private hammer_type: HammerType, on_click: (hammer_type: HammerType) => void) {
+    constructor(parent_element: HTMLElement, sheet: SpriteSheet, private hammer_type: HammerType, on_click: (hammer_type: HammerType) => boolean) {
         this.sprite = new Sprite(parent_element, sheet, new Vector2(14, 22), new Vector2(16, 25))
 
         this.depressed_state = hammer_type === HammerType.LIGHT ? { from: new Vector2(14, 26), to: new Vector2(16, 29) } : { from: new Vector2(14, 22), to: new Vector2(16, 25) }
@@ -32,12 +32,14 @@ export class HammerButton {
         ]
 
         this.sprite.element.onmousedown = () => {
-            on_click(this.hammer_type)
-            animation.forEach((anim_frame, index) => {
-                setTimeout(() => {
-                    this.sprite.set_tile(anim_frame.from, anim_frame.to)
-                }, (1000 / 24) * index);
-            });
+            const result = on_click(this.hammer_type)
+            if (result) {
+                animation.forEach((anim_frame, index) => {
+                    setTimeout(() => {
+                        this.sprite.set_tile(anim_frame.from, anim_frame.to)
+                    }, (1000 / 24) * index);
+                });
+            }
         }
     } 
 
