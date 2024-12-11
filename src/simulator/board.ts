@@ -108,12 +108,12 @@ export class MiningGrid {
         
         this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3)
         const tile_size = this.sprite_sheet.tile_size
-        this.background_sprite = new Sprite(this.container_element, this.sprite_sheet, new Vector2(5,9), new Vector2(21, 20))
+        this.background_sprite = new Sprite(this.container_element, this.sprite_sheet, new Vector2(5,9), new Vector2(20, 20))
         this.background_sprite.element.style.zIndex = '-1'
 
         const light_hammer_button = new HammerButton(this.background_sprite.element, this.sprite_sheet, HammerType.LIGHT,
             (hammer_type) => {
-                if (hammer_type !== this.hammer_type) {
+                if (hammer_type !== this.hammer_type && !this.game_over) {
                     this.set_hammer_type(hammer_type)
                     heavy_hammer_button.set_depressed() 
                     return true
@@ -122,11 +122,11 @@ export class MiningGrid {
             })
         light_hammer_button.sprite.element.id = 'hammer-button'
         light_hammer_button.set_pressed()
-        set_translation(light_hammer_button.sprite.element, tile_size, 13 + (1 / 8), 7.5)
+        set_translation(light_hammer_button.sprite.element, tile_size, 13 + (1 / 8), 7 + (4 / 8))
         
         const heavy_hammer_button = new HammerButton(this.background_sprite.element, this.sprite_sheet, HammerType.HEAVY,
             (hammer_type) => {
-                if (hammer_type !== this.hammer_type) {
+                if (hammer_type !== this.hammer_type && !this.game_over) {
                     this.set_hammer_type(hammer_type)
                     light_hammer_button.set_depressed() 
                     return true

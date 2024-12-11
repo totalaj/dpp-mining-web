@@ -5,15 +5,15 @@ A web version and solver of the mining game found in the sinnoh underground in P
 - [x] All available objects
 - [x] Object distribution
 - [x] Object Rarity in pool
-- [ ] Small and large hammer
-- [ ] Buttons for small and large hammer
+- [x] Small and large hammer
+- [x] Buttons for small and large hammer
+- [~] Unearthing object
 - [ ] Health bar
-- [ ] Unearthing object
-- [ ] Listing objects unearthed
+- [~] Listing objects unearthed
 - [ ] Announcing objects found (initial ping)
 - [ ] Screen shake
-- [ ] Animations for hammer
-- [ ] Effect for hammers, hitting with big, hitting with small, and hitting bedrock
+- [~] Animations for hammer
+- [~] Effect for hammers, hitting with big, hitting with small, and hitting bedrock
 - [ ] Sound effects?
 - [ ] Collection
     - [ ] Singleton collection, for plates
