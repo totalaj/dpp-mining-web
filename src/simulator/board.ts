@@ -4,7 +4,7 @@ import * as Noise from 'ts-perlin-simplex'
 import { bedrock_objects, ContentType, evolution_stones, fossils, GridObject, items, large_spheres, plates, shards, small_speheres, weather_stones } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
-import { HammerType, play_hammer_animation } from "./hammer"
+import { Hammer, HammerType } from "./animations"
 
 
 enum HitResult {
@@ -97,20 +97,25 @@ class Cell {
 }
 
 export class MiningGrid {
+    public on_game_end?: () => void
+    public added_items: ActiveObject[] = []
+
+    private readonly height = 10
+    private readonly width = 13
+
     private sprite_sheet: SpriteSheet
     private grid_element: HTMLDivElement
     private cells: Array<Array<Cell>> = []
-    private readonly height = 10
-    private readonly width = 13
-    public on_game_end?: () => void
     private game_over: boolean = false
-
-    public added_items: ActiveObject[] = []
+    private hammer: Hammer
+    
 
     constructor(private _parent: HTMLDivElement) {
         this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png')
         this.grid_element = this._parent.appendChild(document.createElement('div'))
         this.grid_element.id = 'mining-grid'
+
+        this.hammer = new Hammer(this.grid_element, this.sprite_sheet, Cell.cell_scale)
 
         for (let xIndex = 0; xIndex < this.width; xIndex++) {
             this.cells.push([])
@@ -329,21 +334,13 @@ export class MiningGrid {
         }
     }
 
-    private hammer_element?: HTMLElement
     private clickedCell(xPos: number, yPos: number) {
         if (this.game_over) return
         const targetCell = this.cells[xPos][yPos]
         const result = targetCell.decrease(2)
-        
-        if (this.hammer_element) {
-            this.hammer_element.remove()
-        }
 
-        this.hammer_element = play_hammer_animation(
-            this.grid_element,
-            this.sprite_sheet, 
+        this.hammer.play_hammer_animation(
             new Vector2(xPos, yPos), 
-            Cell.cell_scale, 
             HammerType.LIGHT, 
             result === HitResult.BOTTOM ? targetCell.content : ContentType.NOTHING)
 
