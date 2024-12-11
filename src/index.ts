@@ -37,7 +37,7 @@ function component() {
 
     notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
     
-    element.appendChild(create_sprite_debugger(grid['sprite_sheet'], 32, 32))
+    // element.appendChild(create_sprite_debugger(grid['sprite_sheet'], 32, 32))
 
     return element;
   }
