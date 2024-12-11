@@ -5,6 +5,7 @@ import { bedrock_objects, ContentType, evolution_stones, fossils, GridObject, it
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
 import { Hammer, HammerType } from "./animations"
+import { HammerButton } from "./hammer_button"
 
 
 enum HitResult {
@@ -14,10 +15,7 @@ enum HitResult {
 
 class ActiveObject {
     public has_been_found: boolean = false
-
-    constructor(public object_ref: GridObject, public position: Vector2) {
-
-    }
+    constructor(public object_ref: GridObject, public position: Vector2) { }
 }
 
 class Cell {
@@ -37,7 +35,12 @@ class Cell {
 
         this.element.id = "mining-cell"
         
-        this.element.onmousedown = () => onClick(xPos-1, yPos-1)
+        if (this.element.ontouchstart) {
+            this.element.ontouchstart = () => onClick(xPos-1, yPos-1)
+        }
+        else {
+            this.element.onmousedown = () => onClick(xPos-1, yPos-1)
+        }
         this.element.style.gridColumn = `${xPos}`
         this.element.style.gridRow = `${yPos}`
 
@@ -103,8 +106,10 @@ export class MiningGrid {
     private readonly height = 10
     private readonly width = 13
 
+    private container_element: HTMLDivElement
     private sprite_sheet: SpriteSheet
     private grid_element: HTMLDivElement
+    private background_sprite: Sprite
     private cells: Array<Array<Cell>> = []
     private game_over: boolean = false
     private hammer: Hammer
@@ -112,8 +117,33 @@ export class MiningGrid {
     
 
     constructor(private _parent: HTMLDivElement) {
-        this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png')
-        this.grid_element = this._parent.appendChild(document.createElement('div'))
+        const tile_size = 16
+        
+        this.container_element = this._parent.appendChild(document.createElement('div'))
+        
+        this.sprite_sheet = new SpriteSheet(tile_size, './assets/board_sheet.png')
+        this.background_sprite = new Sprite(this.container_element, this.sprite_sheet, new Vector2(5,9), new Vector2(21, 20))
+        this.background_sprite.set_scale(Cell.cell_scale)
+        this.background_sprite.element.style.translate = `${tile_size * 17.25}px ${tile_size * 18.25}px`
+        this.background_sprite.element.style.zIndex = '-1'
+        this.background_sprite.element.style.position = 'relative'
+
+        const light_hammer_button = new HammerButton(this.container_element, this.sprite_sheet, HammerType.LIGHT,
+            (hammer_type) => {this.set_hammer_type(hammer_type); heavy_hammer_button.set_depressed() }
+        )
+        light_hammer_button.sprite.element.style.translate = `calc(16px* 3* 14.2) calc(16px* 3* 6.925)`
+        light_hammer_button.sprite.element.id = 'hammer-button'
+        light_hammer_button.sprite.set_scale(Cell.cell_scale)
+        light_hammer_button.set_pressed()
+        
+        const heavy_hammer_button = new HammerButton(this.container_element, this.sprite_sheet, HammerType.HEAVY,
+            (hammer_type) => {this.set_hammer_type(hammer_type); light_hammer_button.set_depressed() }
+        )
+        heavy_hammer_button.sprite.element.style.translate = `calc(16px* 3* 14.2) calc(16px* 3* 2.425)`
+        heavy_hammer_button.sprite.element.id = 'hammer-button'
+        heavy_hammer_button.sprite.set_scale(Cell.cell_scale)
+        
+        this.grid_element = this.container_element.appendChild(document.createElement('div'))
         this.grid_element.id = 'mining-grid'
 
         this.hammer = new Hammer(this.grid_element, this.sprite_sheet, Cell.cell_scale)
