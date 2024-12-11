@@ -333,6 +333,7 @@ export class MiningGrid {
     private clickedCell(xPos: number, yPos: number) {
         if (this.game_over) return
         const targetCell = this.cells[xPos][yPos]
+        const result = targetCell.decrease(2)
         
         if (this.hammer_element) {
             this.hammer_element.remove()
@@ -344,9 +345,8 @@ export class MiningGrid {
             new Vector2(xPos, yPos), 
             Cell.cell_scale, 
             HammerType.LIGHT, 
-            targetCell.content)
+            result === HitResult.BOTTOM ? targetCell.content : ContentType.NOTHING)
 
-        const result = targetCell.decrease(2)
         if (result === HitResult.BOTTOM && targetCell.content === ContentType.BEDROCK) {
             return
         }

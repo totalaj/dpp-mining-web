@@ -250,7 +250,7 @@ export const fossils = [
     [false, true, true, true, false],
 ]),
     new GridObject(new Vector2(27, 5), new Vector2(30, 8), ContentType.ITEM,
-    new Rarity(0, 0, 12 / 4, 4 / 4), "Helix Fossil 0deg", // 0deg
+    new Rarity(0, 0, 12 / 4, 4 / 4), "Helix Fossil", // 0deg
     [ // Divide rarity by 4 since there are 4 instances
     [false, true, true, true],
     [true, true, true, true],
@@ -258,7 +258,7 @@ export const fossils = [
     [true, true, true, false],
 ]),
     new GridObject(new Vector2(31, 5), new Vector2(34, 8), ContentType.ITEM,
-    new Rarity(0, 0, 12 / 4, 4 / 4), "Helix Fossil 90deg", // 90deg
+    new Rarity(0, 0, 12 / 4, 4 / 4), "Helix Fossil", // 90deg
     [
     [true, true, true, false],
     [true, true, true, true],
@@ -266,7 +266,7 @@ export const fossils = [
     [false, true, true, true],
 ]),
     new GridObject(new Vector2(35, 5), new Vector2(38, 8), ContentType.ITEM,
-    new Rarity(0, 0, 12 / 4, 4 / 4), "Helix Fossil 180deg", // 180deg
+    new Rarity(0, 0, 12 / 4, 4 / 4), "Helix Fossil", // 180deg
     [
     [false, true, true, true],
     [true, true, true, true],
@@ -274,7 +274,7 @@ export const fossils = [
     [true, true, true, false],
 ]),
     new GridObject(new Vector2(39, 5), new Vector2(42, 8), ContentType.ITEM,
-    new Rarity(0, 0, 12 / 4, 4 / 4), "Helix Fossil 270deg", // 270deg
+    new Rarity(0, 0, 12 / 4, 4 / 4), "Helix Fossil", // 270deg
     [
     [true, true, true, false],
     [true, true, true, true],
@@ -282,7 +282,7 @@ export const fossils = [
     [false, true, true, true],
 ]),
     new GridObject(new Vector2(43, 5), new Vector2(46, 8), ContentType.ITEM,
-    new Rarity(0, 0, 5 / 2, 5 / 2), "Old Amber 0deg", // 0deg
+    new Rarity(0, 0, 5 / 2, 5 / 2), "Old Amber", // 0deg
     [ // Divide rarity by 2 since there are 2 instances
     [false, true, true, true],
     [true, true, true, true],
@@ -290,7 +290,7 @@ export const fossils = [
     [true, true, true, false],
 ]),
     new GridObject(new Vector2(47, 5), new Vector2(50, 8), ContentType.ITEM,
-    new Rarity(0, 0, 5 / 2, 5 / 2), "Old Amber 90deg", // 90deg
+    new Rarity(0, 0, 5 / 2, 5 / 2), "Old Amber", // 90deg
     [
     [true, true, true, false],
     [true, true, true, true],
@@ -298,7 +298,7 @@ export const fossils = [
     [false, true, true, true],
 ]),
     new GridObject(new Vector2(13, 9), new Vector2(17, 13), ContentType.ITEM,
-    new Rarity(0, 0, 4 / 4, 12 / 4), "Root Fossil 0deg", // 0deg
+    new Rarity(0, 0, 4 / 4, 12 / 4), "Root Fossil", // 0deg
     [ // Divide rarity by 4 since there are 4 instances
     [true, true, true, true, false],
     [true, true, true, true, true],
@@ -307,7 +307,7 @@ export const fossils = [
     [false, false, true, true, false],
 ]),
     new GridObject(new Vector2(18, 9), new Vector2(22, 13), ContentType.ITEM,
-    new Rarity(0, 0, 4 / 4, 12 / 4), "Root Fossil 90deg", // 90deg
+    new Rarity(0, 0, 4 / 4, 12 / 4), "Root Fossil", // 90deg
     [
     [false, false, true, true, true],
     [false, false, true, true, true],
@@ -316,7 +316,7 @@ export const fossils = [
     [false, true, true, true, false],
 ]),
     new GridObject(new Vector2(23, 9), new Vector2(27, 13), ContentType.ITEM,
-    new Rarity(0, 0, 4 / 4, 12 / 4), "Root Fossil 180deg", // 180deg
+    new Rarity(0, 0, 4 / 4, 12 / 4), "Root Fossil", // 180deg
     [
     [false, true, true, false, false],
     [true, true, false, false, false],
@@ -325,7 +325,7 @@ export const fossils = [
     [false, true, true, true, true],
 ]),
     new GridObject(new Vector2(28, 9), new Vector2(32, 13), ContentType.ITEM,
-    new Rarity(0, 0, 4 / 4, 12 / 4), "Root Fossil 270deg", // 270deg
+    new Rarity(0, 0, 4 / 4, 12 / 4), "Root Fossil", // 270deg
     [
     [false, true, true, true, false],
     [true, true, true, true, true],
@@ -334,7 +334,7 @@ export const fossils = [
     [true, true, true, false, false],
 ]),
     new GridObject(new Vector2(33, 9), new Vector2(36, 13), ContentType.ITEM,
-    new Rarity(0, 0, 12 / 4, 4 / 4), "Claw Fossil 0deg", // 0deg
+    new Rarity(0, 0, 12 / 4, 4 / 4), "Claw Fossil", // 0deg
     [ // Divide rarity by 4 since there are 4 instances
     [false, false, true, true],
     [false, true, true, true],
@@ -343,7 +343,7 @@ export const fossils = [
     [true, true, false, false],
 ]),
     new GridObject(new Vector2(37, 10), new Vector2(41, 13), ContentType.ITEM,
-    new Rarity(0, 0, 12 / 4, 4 / 4), "Claw Fossil 90deg", // 90deg
+    new Rarity(0, 0, 12 / 4, 4 / 4), "Claw Fossil", // 90deg
     [
     [true, true, false, false, false],
     [true, true, true, true, false],
@@ -351,7 +351,7 @@ export const fossils = [
     [false, false, true, true, true],
 ]),
     new GridObject(new Vector2(42, 9), new Vector2(45, 13), ContentType.ITEM,
-    new Rarity(0, 0, 12 / 4, 4 / 4), "Claw Fossil 180deg", // 180deg
+    new Rarity(0, 0, 12 / 4, 4 / 4), "Claw Fossil", // 180deg
     [
     [false, false, true, true],
     [false, true, true, true],
@@ -360,7 +360,7 @@ export const fossils = [
     [true, true, false, false],
 ]),
     new GridObject(new Vector2(46, 10), new Vector2(50, 13), ContentType.ITEM,
-    new Rarity(0, 0, 12 / 4, 4 / 4), "Claw Fossil 270deg", // 270deg
+    new Rarity(0, 0, 12 / 4, 4 / 4), "Claw Fossil", // 270deg
     [
     [true, true, true, false, false],
     [true, true, true, true, false],
@@ -371,7 +371,7 @@ export const fossils = [
 
 export const evolution_stones = [
     new GridObject(new Vector2(13, 14), new Vector2(15, 17), ContentType.ITEM,
-    new Rarity(2 / 2, 4 / 2, 5 / 2, 30 / 2), "Leaf Stone 0deg", // 0deg
+    new Rarity(2 / 2, 4 / 2, 5 / 2, 30 / 2), "Leaf Stone", // 0deg
     [ // Divide rarity by 2 since there are 2 instances
     [false, true, false],
     [true, true, true],
@@ -379,7 +379,7 @@ export const evolution_stones = [
     [false, true, false],
 ]),
     new GridObject(new Vector2(16, 15), new Vector2(19, 17), ContentType.ITEM,
-    new Rarity(2 / 2, 4 / 2, 5 / 2, 30 / 2), "Leaf Stone 90deg", // 0deg
+    new Rarity(2 / 2, 4 / 2, 5 / 2, 30 / 2), "Leaf Stone", // 0deg
     [
     [false, true, true, false],
     [true, true, true, true],
@@ -407,14 +407,14 @@ export const evolution_stones = [
     [true, true, false],
 ]),
     new GridObject(new Vector2(29, 16), new Vector2(32, 17), ContentType.ITEM,
-    new Rarity(2 / 2, 4 / 2, 3 / 2, 15 / 2), "Moon stone 0deg", // 0deg
+    new Rarity(2 / 2, 4 / 2, 3 / 2, 15 / 2), "Moon stone", // 0deg
     [ // Divide rarity by 2 since there are 2 instances
     [false, true, true, true],
     [true, true, true, true],
     [true, true, true, false],
 ]),
     new GridObject(new Vector2(33, 14), new Vector2(34, 17), ContentType.ITEM,
-    new Rarity(2 / 2, 4 / 2, 3 / 2, 15 / 2), "Moon stone 90deg", // 90deg
+    new Rarity(2 / 2, 4 / 2, 3 / 2, 15 / 2), "Moon stone", // 90deg
     [
     [true, true, false],
     [true, true, true],
@@ -558,7 +558,7 @@ export const items = [
     [true, true, true],
 ]),
     new GridObject(new Vector2(29, 18), new Vector2(31, 23), ContentType.ITEM,
-    new Rarity(2 / 2, 2 / 2, 10 / 2, 10 / 2), "Rare bone 0deg", // 0deg
+    new Rarity(2 / 2, 2 / 2, 10 / 2, 10 / 2), "Rare Bone", // 0deg
     [ // Divide rarity by 2 since there are 2 instances
     [true, true, true],
     [false, true, false],
@@ -568,7 +568,7 @@ export const items = [
     [true, true, true],
 ]),
     new GridObject(new Vector2(32, 21), new Vector2(37, 23), ContentType.ITEM,
-    new Rarity(2 / 2, 2 / 2, 10 / 2, 10 / 2), "Rare bone 90deg", // 90deg
+    new Rarity(2 / 2, 2 / 2, 10 / 2, 10 / 2), "Rare Bone", // 90deg
     [
     [true, false, false, false, false, true],
     [true, true, true, true, true, true],

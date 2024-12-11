@@ -43,24 +43,24 @@ export function play_hammer_animation(parent_element: HTMLElement, sheet: Sprite
         hammer_state?: number // 0: down 1: up
     }
 
-    const lower_x = (6 / 8), lower_y = -2
-    const upper_x = 1 + (2 / 8), upper_y = -(2 + (4 / 8))
+    const lower_x = (6 / 8), lower_y = -(4/8)
+    const upper_x = 1 + (1 / 8), upper_y = -1
     const animation_frames: AnimationFrame[] = [
         { hammer_state: 0, translation: new Vector2(upper_x, upper_y) },
         { translation: new Vector2(lower_x, lower_y) },
         { },
-        { hammer_state: 1, translation: new Vector2(upper_x+ (6 / 8), upper_y) },
+        { hammer_state: 1, translation: new Vector2(upper_x+ (5 / 8), upper_y) },
         { },
-        { translation: new Vector2(upper_x + 1 + (1 / 8), upper_y) },
+        { translation: new Vector2(upper_x + 1, upper_y) },
         { },
-        { translation: new Vector2(upper_x + (6 / 8), upper_y) },
+        { translation: new Vector2(upper_x + (5 / 8), upper_y) },
         { },
-        { translation: new Vector2(upper_x + 1 + (1 / 8), upper_y) },
+        { translation: new Vector2(upper_x + 1, upper_y) },
         { },
     ]
 
     const frame_rate = 1000 / 24
-    // const frame_rate = 1000
+    // const frame_rate = 100
 
     animation_frames.forEach((frame, index) => {
         setTimeout(() => {
