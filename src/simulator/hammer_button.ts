@@ -20,14 +20,24 @@ export class HammerButton {
         this.pressed_state = hammer_type === HammerType.LIGHT ? { from: new Vector2(17, 26), to: new Vector2(19, 29) } : { from: new Vector2(17, 22), to: new Vector2(19, 25) }
 
         const animation = (hammer_type === HammerType.LIGHT) ? [
-
+            { from: new Vector2(5, 26), to: new Vector2(7, 29) },
+            { from: new Vector2(8, 26), to: new Vector2(10, 29) },
+            { from: new Vector2(11, 26), to: new Vector2(13, 29) },
+            this.pressed_state
         ] : [
-
+            { from: new Vector2(5, 22), to: new Vector2(7, 25) },
+            { from: new Vector2(8, 22), to: new Vector2(10, 25) },
+            { from: new Vector2(11, 22), to: new Vector2(13, 25) },
+            this.pressed_state
         ]
 
         this.sprite.element.onmousedown = () => {
             on_click(this.hammer_type)
-            this.set_pressed()
+            animation.forEach((anim_frame, index) => {
+                setTimeout(() => {
+                    this.sprite.set_tile(anim_frame.from, anim_frame.to)
+                }, (1000 / 24) * index);
+            });
         }
     } 
 
