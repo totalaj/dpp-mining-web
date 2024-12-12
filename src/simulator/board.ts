@@ -110,17 +110,67 @@ export class GameState {
 }
 
 class HealthBar {
-    private element: HTMLElement
+    public element: HTMLElement
+    private inner_element: HTMLElement
+    
+    private sprite_sheet: SpriteSheet
+
+    private readonly health_tile = {from: new Vector2(17, 0), to:new Vector2(21 - (1 / 5), 4)}
+    private readonly health_remainder_tiles = [
+        {from: new Vector2(13, 0), to:new Vector2(15, 4)},
+        {from: new Vector2(12, 5), to:new Vector2(15, 9)},
+        {from: new Vector2(11 + (2 / 5), 10), to:new Vector2(15, 14)},
+        {from: new Vector2(2 + (2 / 5), 0), to:new Vector2(7, 4)},
+        {from: new Vector2(1 + (3 / 5), 5), to:new Vector2(7, 9)},
+        {from: new Vector2(1, 10), to:new Vector2(7, 14)},
+    ]
+
+
+    private segments: Sprite[] = []
     
     constructor(parent_element: HTMLElement) {
+        this.sprite_sheet = new SpriteSheet(5, './assets/health_bar.png', new Vector2(128, 128), 3)
+        
         this.element = parent_element.appendChild(document.createElement('div'))
-        this.element.style.height = '100%'
-        this.element.id = 'health-bar'
+        this.element.style.position = 'absolute'
+        this.element.style.overflow = 'hidden'
+        this.inner_element = this.element.appendChild(document.createElement('div'))
+        this.inner_element.style.height = '100%'
+        this.inner_element.id = 'health-bar'
+        this.inner_element.style.translate = `${11 * this.sprite_sheet.scale}px -4px` // Oh this is disgusting
     }
 
     public set_health(health: number) {
-        const alpha = 1 - (health / GameState.max_health)
-         this.element.style.width = `${alpha * 100}%`
+        this.segments.forEach((sprite) => {
+            sprite.dispose()
+        })
+        this.segments.length = 0
+
+        
+        if (GameState.max_health === health) return // Clear bar when no damage taken
+        
+        // Bar appears to start at tile with index 3, so add 3. Then subtract since the first frame is at 1 hp lost
+        const damage_taken = GameState.max_health - health + 3 - 1
+
+        const health_to_tile_width = 6
+        
+        const tile_count = Math.floor(damage_taken / health_to_tile_width)
+        
+        for (let index = 0; index < tile_count; index++) {
+            this.segments.push(new Sprite(this.inner_element, this.sprite_sheet, this.health_tile.from, this.health_tile.to))            
+        }
+        
+        const remainder = Math.floor((damage_taken) % health_to_tile_width)
+        
+        const remainder_sprite = this.health_remainder_tiles[remainder]
+        console.log("Tile count ", tile_count, "Health", health, "DamageTaken", damage_taken, "Remainder", remainder)
+        
+        this.segments.push(new Sprite(this.inner_element, this.sprite_sheet, remainder_sprite.from, remainder_sprite.to))
+
+        this.segments.forEach((sprite) => {
+            // sprite.element.style.translate = `${(this.sprite_sheet.tile_size * 2)}px`
+        })
+        // this.element.style.width = `${alpha * 100}%`
     }
 }
 
@@ -199,12 +249,11 @@ export class MiningGrid {
         heavy_hammer_button.sprite.element.id = 'hammer-button'
         set_translation(heavy_hammer_button.sprite.element, tile_size, 13 + (1 / 8), 3)
         
-        const health_bar_container = this.background_sprite.element.appendChild(document.createElement('div'))
-        this.health_bar = new HealthBar(health_bar_container)
+        this.health_bar = new HealthBar(this.background_sprite.element)
 
-        health_bar_container.style.width = `${this.sprite_sheet.tile_size * 13}px`
-        health_bar_container.style.height = `${this.sprite_sheet.tile_size * 2}px`
-        health_bar_container.style.position = 'absolute'
+        this.health_bar.element.style.width = `${this.sprite_sheet.tile_size * 13}px`
+        this.health_bar.element.style.height = `${this.sprite_sheet.tile_size * 2}px`
+        this.health_bar.element.style.position = 'absolute'
 
         this.grid_element = this.background_sprite.element.appendChild(document.createElement('div'))
         this.grid_element.id = 'mining-grid'

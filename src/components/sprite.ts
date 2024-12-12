@@ -8,6 +8,10 @@ export class SpriteSheet {
     public get sheet_size () {
         return this._sheet_size.mul(this._scale)
     }
+
+    public get scale () {
+        return this._scale
+    }
     
     constructor(private _tile_size: number, public src: string, private _sheet_size: Vector2, private _scale: number) { }
 }
@@ -44,5 +48,9 @@ export class Sprite {
         this.element.style.height = `${this._src.tile_size * size_in_tiles.y}px`
         this.element.style.background = `url('${this._src.src}') -${offset_in_pixels.x}px -${offset_in_pixels.y}px`
         this.element.style.backgroundSize = `${this._src.sheet_size.x}px ${this._src.sheet_size.y}px`
+    }
+
+    public dispose() {
+        this.element.remove()
     }
 }
