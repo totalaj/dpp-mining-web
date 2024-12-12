@@ -87,12 +87,18 @@ class Cell {
 }
 
 export class GameState {
+    public static readonly max_health = 49
     is_over: boolean = false
     failed: boolean = false
-    health: number = 49
+    health: number = GameState.max_health
+
+    constructor(private health_bar: HealthBar) { 
+        health_bar.set_health(GameState.max_health)
+    }
 
     reduce_health(by: number) : boolean {
         this.health = this.health - by
+        this.health_bar.set_health(this.health)
         if (this.health > 0) {
             return true
         } else {
@@ -100,6 +106,21 @@ export class GameState {
             this.failed = true
             return false
         }
+    }
+}
+
+class HealthBar {
+    private element: HTMLElement
+    
+    constructor(parent_element: HTMLElement) {
+        this.element = parent_element.appendChild(document.createElement('div'))
+        this.element.style.height = '100%'
+        this.element.id = 'health-bar'
+    }
+
+    public set_health(health: number) {
+        const alpha = 1 - (health / GameState.max_health)
+         this.element.style.width = `${alpha * 100}%`
     }
 }
 
@@ -118,6 +139,7 @@ export class MiningGrid {
     private cells: Array<Array<Cell>> = []
     private hammer: Hammer
     private hammer_type: HammerType = HammerType.LIGHT
+    private health_bar: HealthBar
     private _transition_element?: HTMLElement | undefined
     private get transition_element(): HTMLElement | undefined {
         return this._transition_element
@@ -177,6 +199,13 @@ export class MiningGrid {
         heavy_hammer_button.sprite.element.id = 'hammer-button'
         set_translation(heavy_hammer_button.sprite.element, tile_size, 13 + (1 / 8), 3)
         
+        const health_bar_container = this.background_sprite.element.appendChild(document.createElement('div'))
+        this.health_bar = new HealthBar(health_bar_container)
+
+        health_bar_container.style.width = `${this.sprite_sheet.tile_size * 13}px`
+        health_bar_container.style.height = `${this.sprite_sheet.tile_size * 2}px`
+        health_bar_container.style.position = 'absolute'
+
         this.grid_element = this.background_sprite.element.appendChild(document.createElement('div'))
         this.grid_element.id = 'mining-grid'
         set_translation(this.grid_element, tile_size, 0, 2)
@@ -195,14 +224,14 @@ export class MiningGrid {
 
         this.setup_terrain()
         this.populate_board()
-        this.game_state = new GameState()
+        this.game_state = new GameState(this.health_bar)
     }
 
     public reset_board() {
         this.clear_board()
         this.setup_terrain()
         this.populate_board()
-        this.game_state = new GameState()
+        this.game_state = new GameState(this.health_bar)
         this.transition_element = circle_animation(this.background_sprite.element, false)
     }
 
