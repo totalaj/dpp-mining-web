@@ -23,4 +23,16 @@ export class Vector2 {
     public mul(multiplier: number) : Vector2 {
         return new Vector2(this.x * multiplier, this.y * multiplier)
     }
+
+    public magnitude() : number {
+        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2))
+    }
+
+    public normalize() : Vector2 {
+        const length = this.magnitude()
+        if (length === 0) {
+            return new Vector2(1,0)
+        }
+        return new Vector2(this.x / length, this.y / length)
+    }
 }

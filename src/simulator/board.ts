@@ -4,10 +4,11 @@ import * as Noise from 'ts-perlin-simplex'
 import { bedrock_objects, ContentType, evolution_stones, fossils, GridObject, items, large_spheres, plates, shards, small_speheres, weather_stones } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
-import { Hammer, HammerType } from "./animations"
+import { GLOBAL_FRAME_RATE, Hammer, HammerType } from "./animations"
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
-import { circle_animation, shutter_animation } from "../components/screen_transition"
+import { circle_animation, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
+
 
 
 enum HitResult {
@@ -162,7 +163,6 @@ class HealthBar {
         const remainder = Math.floor((damage_taken) % health_to_tile_width)
         
         const remainder_sprite = this.health_remainder_tiles[remainder]
-        console.log("Tile count ", tile_count, "Health", health, "DamageTaken", damage_taken, "Remainder", remainder)
         
         this.segments.push(new Sprite(this.inner_element, this.sprite_sheet, remainder_sprite.from, remainder_sprite.to))
     }
@@ -199,17 +199,27 @@ export class MiningGrid {
         this.game_over_internal = () => {
             on_game_end(this.game_state)
 
+            this.shake_timeouts.forEach((timeout: any) => {
+                clearTimeout(timeout)
+            });
+
+            const failed_transition_duration = 2000
+            if (this.game_state.failed) {
+                const screen_shake_duration = ((failed_transition_duration) / GLOBAL_FRAME_RATE) + SHUTTER_ANIMATION_FRAMES + 1
+                this.screen_shake(screen_shake_duration, 3)
+            }
+
             setTimeout(() => {
                 if (this.game_state.failed) {
                     this.transition_element = shutter_animation(this.background_sprite.element, true)
                 } else {
                     this.transition_element = circle_animation(this.background_sprite.element, true)
                 }
-            }, this.game_state.failed ? 2000 : 2500);
+            }, this.game_state.failed ? failed_transition_duration : 2500);
         }
 
         this.container_element = this._parent.appendChild(document.createElement('div'))
-        
+        this.container_element.style.overflow = 'hidden'
 
         this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3)
         const tile_size = this.sprite_sheet.tile_size
@@ -479,6 +489,34 @@ export class MiningGrid {
         }
     }
 
+    private shake_timeouts: any = []
+    private screen_shake(frame_duration: number, magnitude: number) {
+        const pixel_size = this.sprite_sheet.scale
+        
+        this.shake_timeouts.forEach((timeout: any) => {
+            clearTimeout(timeout)
+        })
+        this.shake_timeouts.length = 0
+
+        console.log("Starting screen shake, duration", frame_duration, "f magnitude", magnitude, "px")
+
+        for (let index = 0; index < frame_duration; index++) {
+            const timeout = setTimeout(() => {
+                let translation = new Vector2((Math.random() * 2) - 1, (Math.random() * 2) - 1)
+                translation = translation.normalize()
+                translation = translation.mul(pixel_size * magnitude)
+                this.background_sprite.element.style.transform = 
+                `translate(${Math.floor(translation.x)}px, ${Math.floor(translation.y)}px)`
+            }, index * GLOBAL_FRAME_RATE);
+            this.shake_timeouts.push(timeout)
+        }
+
+        const timeout = setTimeout(() => {
+            this.background_sprite.element.style.transform = 'translate(0, 0)'
+        }, frame_duration * GLOBAL_FRAME_RATE);
+        this.shake_timeouts.push(timeout)
+    }
+
     private clickedCell(xPos: number, yPos: number) {
         if (this.game_state.is_over) return
         const targetCell = this.cells[xPos][yPos]
@@ -510,10 +548,19 @@ export class MiningGrid {
             this.check_items_found()
         }
             
-            const health_result = this.game_state.reduce_health(this.hammer_type === HammerType.LIGHT ? 1 : 2)
+        const health_result = this.game_state.reduce_health(this.hammer_type === HammerType.LIGHT ? 1 : 2)
 
         if (!health_result) {
             this.game_over_internal()
+        } else if (!this.game_state.is_over) {
+            const damage_taken = GameState.max_health - this.game_state.health
+    
+            const shake_length = Math.floor((damage_taken / 5))
+            const shake_magnitude = (Math.floor(damage_taken / (this.hammer_type === HammerType.LIGHT ? 25 : 18))) + 1
+    
+            if (shake_length > 0) {
+                this.screen_shake(shake_length, shake_magnitude)
+            }
         }
     }
 }

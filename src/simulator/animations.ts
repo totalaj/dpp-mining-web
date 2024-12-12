@@ -2,6 +2,8 @@ import { Sprite, SpriteSheet } from "../components/sprite";
 import { Vector2 } from "../math";
 import { ContentType } from "./objects";
 
+export const GLOBAL_FRAME_RATE = (1000 / 24)
+
 export enum HammerType {
     LIGHT,
     HEAVY
@@ -13,8 +15,6 @@ type AnimationFrame = {
 }
 
 export class Hammer {
-    private readonly frame_rate = 1000 / 24
-
     private container?: HTMLElement
     private tile_unit: number
     private removal_timeout?: any
@@ -42,7 +42,7 @@ export class Hammer {
         frames.forEach((frame, index) => {
             setTimeout(() => {
                 set_animation(frame.translation, frame.frame)
-            }, this.frame_rate * index);
+            }, GLOBAL_FRAME_RATE * index);
         })
     
     
@@ -144,6 +144,6 @@ export class Hammer {
         this.removal_timeout = setTimeout(() => {
             this.container?.remove()
             this.container = undefined
-        }, this.frame_rate * (hammer_animation.length + 1));
+        }, GLOBAL_FRAME_RATE * (hammer_animation.length + 1));
     }
 }
