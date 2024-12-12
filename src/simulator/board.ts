@@ -97,7 +97,7 @@ export class GameState {
     }
 
     reduce_health(by: number) : boolean {
-        this.health = this.health - by
+        this.health = Math.max(0, this.health - by)
         this.health_bar.set_health(this.health)
         if (this.health > 0) {
             return true
@@ -145,7 +145,6 @@ class HealthBar {
             sprite.dispose()
         })
         this.segments.length = 0
-
         
         if (GameState.max_health === health) return // Clear bar when no damage taken
         
@@ -166,11 +165,6 @@ class HealthBar {
         console.log("Tile count ", tile_count, "Health", health, "DamageTaken", damage_taken, "Remainder", remainder)
         
         this.segments.push(new Sprite(this.inner_element, this.sprite_sheet, remainder_sprite.from, remainder_sprite.to))
-
-        this.segments.forEach((sprite) => {
-            // sprite.element.style.translate = `${(this.sprite_sheet.tile_size * 2)}px`
-        })
-        // this.element.style.width = `${alpha * 100}%`
     }
 }
 
