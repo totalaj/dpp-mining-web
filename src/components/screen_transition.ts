@@ -7,7 +7,7 @@ export function shutter_animation(parent_element: HTMLElement, direction: boolea
     top_rect.style.height = '50%'
     top_rect.style.width = '100%'
 
-    const frames = 16
+    const frames = 12
     for (let index = 0; index < frames; index++) {
         let alpha = index / (frames - 1)
         alpha = direction ? alpha : (1 - alpha)
@@ -29,11 +29,12 @@ export function circle_animation(parent_element: HTMLElement, direction: boolean
     top_rect.style.width = '100%'
     top_rect.style.pointerEvents = direction ? 'none' : 'initial'
 
-    const frames = 16
+    const frames = 6
     for (let index = 0; index < frames; index++) {
         let alpha = index / (frames - 1)
         alpha = !direction ? alpha : (1 - alpha)
         setTimeout(() => {
+            // top_rect.style.maskImage = `radial-gradient(circle, transparent ${alpha * 50}%, black ${alpha * 50}%)`
             top_rect.style.maskImage = `radial-gradient(circle, transparent ${alpha * 100}%, black ${alpha * 100}%)`
         }, index * (1000 / 24));
     }

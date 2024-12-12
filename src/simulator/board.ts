@@ -139,7 +139,7 @@ export class MiningGrid {
                 } else {
                     this.transition_element = circle_animation(this.background_sprite.element, true)
                 }
-            }, 1000);
+            }, this.game_state.failed ? 2000 : 2500);
         }
 
         this.container_element = this._parent.appendChild(document.createElement('div'))
