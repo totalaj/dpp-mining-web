@@ -1,6 +1,6 @@
 import { SpriteSheet } from "./components/sprite";
 import { Vector2 } from "./math";
-import { MiningGrid } from "./simulator/board";
+import { GameState, MiningGrid } from "./simulator/board";
 import { create_sprite_debugger } from "./utils/sprite_debug";
 
 function component() {
@@ -15,11 +15,8 @@ function component() {
     const notification_text = lower_bar.appendChild(document.createElement('p'))
     const reset_button = lower_bar.appendChild(document.createElement('button'))
     
-
-    grid.on_game_end = () => {
-      const all_found = grid.added_items.every((item) => item.has_been_found)
-      
-      let text = all_found ? "Everything was dug up!" : "The wall collapsed!"
+    grid.on_game_end = (game_state: GameState) => {      
+      let text = game_state.failed ? "The wall collapsed!" : "Everything was dug up!"
       
       grid.added_items.forEach((item) => {
         if (item.has_been_found) {

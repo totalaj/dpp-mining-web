@@ -85,8 +85,27 @@ class Cell {
 
 }
 
+export class GameState {
+    is_over: boolean = false
+    failed: boolean = false
+    health: number = 49
+
+    reduce_health(by: number) : boolean {
+        this.health = this.health - by
+        if (this.health > 0) {
+            return true
+        } else {
+            this.is_over = true
+            this.failed = true
+            return false
+        }
+    }
+}
+
 export class MiningGrid {
-    public on_game_end?: () => void
+    public game_state: GameState
+
+    public on_game_end?: (state: GameState) => void
     public added_items: ActiveObject[] = []
 
     private readonly height = 10
@@ -97,7 +116,6 @@ export class MiningGrid {
     private grid_element: HTMLDivElement
     private background_sprite: Sprite
     private cells: Array<Array<Cell>> = []
-    private game_over: boolean = false
     private hammer: Hammer
     private hammer_type: HammerType = HammerType.LIGHT
     
@@ -113,7 +131,7 @@ export class MiningGrid {
 
         const light_hammer_button = new HammerButton(this.background_sprite.element, this.sprite_sheet, HammerType.LIGHT,
             (hammer_type) => {
-                if (hammer_type !== this.hammer_type && !this.game_over) {
+                if (hammer_type !== this.hammer_type && !this.game_state.is_over) {
                     this.set_hammer_type(hammer_type)
                     heavy_hammer_button.set_depressed() 
                     return true
@@ -126,7 +144,7 @@ export class MiningGrid {
         
         const heavy_hammer_button = new HammerButton(this.background_sprite.element, this.sprite_sheet, HammerType.HEAVY,
             (hammer_type) => {
-                if (hammer_type !== this.hammer_type && !this.game_over) {
+                if (hammer_type !== this.hammer_type && !this.game_state) {
                     this.set_hammer_type(hammer_type)
                     light_hammer_button.set_depressed() 
                     return true
@@ -150,16 +168,18 @@ export class MiningGrid {
             }
         }
 
+
+
         this.setup_terrain()
         this.populate_board()
-        this.game_over = false
+        this.game_state = new GameState()
     }
 
     public reset_board() {
         this.clear_board()
         this.setup_terrain()
         this.populate_board()
-        this.game_over = false
+        this.game_state = new GameState()
     }
 
     public set_hammer_type(hammer_type: HammerType) {
@@ -357,14 +377,14 @@ export class MiningGrid {
         if (something_newly_found) {   
             const all_found = this.added_items.every((item) => item.has_been_found)
             if (all_found) {
-                this.game_over = true
-                this.on_game_end?.()
+                this.game_state.is_over = true
+                this.on_game_end?.(this.game_state)
             }
         }
     }
 
     private clickedCell(xPos: number, yPos: number) {
-        if (this.game_over) return
+        if (this.game_state.is_over) return
         const targetCell = this.cells[xPos][yPos]
         const result = targetCell.decrease(2)
 
@@ -395,5 +415,11 @@ export class MiningGrid {
         }
 
         this.check_items_found()
+
+        const health_result = this.game_state.reduce_health(this.hammer_type === HammerType.LIGHT ? 1 : 2)
+
+        if (!health_result) {
+            this.on_game_end?.(this.game_state)
+        }
     }
 }
