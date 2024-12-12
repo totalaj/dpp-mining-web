@@ -33,9 +33,28 @@ class Storable<T extends string | number | boolean> {
     }
 }
 
+function StorableDecorator<T extends string | number | boolean>() {
+    return function(target: any, propertyKey: string) { 
+      let value: T;
+      const getter = function() {
+        return value!;
+      };
+      const setter = function(newVal: T) {   
+        value = newVal 
+      }; 
+      Object.defineProperty(target!, propertyKey!, {
+        get: getter,
+        set: setter
+      }); 
+    }
+  }
+
 export class Settings {
 
-    private static _screen_shake: Storable<boolean> = new Storable(this, true)
+    @StorableDecorator()
+    public static freeplay = false
+
+    private static _screen_shake = new Storable<boolean>(this, true)
     static get screen_shake() {
         return this._screen_shake.value
     }
