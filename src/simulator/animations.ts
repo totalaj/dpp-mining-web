@@ -38,8 +38,6 @@ export class Hammer {
                 sprite.set_tile(sprite_frame.from, sprite_frame.to)
             }
         }
-        
-        // const frame_rate = 100
     
         frames.forEach((frame, index) => {
             setTimeout(() => {

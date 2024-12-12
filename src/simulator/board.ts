@@ -7,6 +7,7 @@ import { random_in_range } from "../utils/random"
 import { Hammer, HammerType } from "./animations"
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
+import { circle_animation, shutter_animation } from "../components/screen_transition"
 
 
 enum HitResult {
@@ -105,7 +106,6 @@ export class GameState {
 export class MiningGrid {
     public game_state: GameState
 
-    public on_game_end?: (state: GameState) => void
     public added_items: ActiveObject[] = []
 
     private readonly height = 10
@@ -118,16 +118,39 @@ export class MiningGrid {
     private cells: Array<Array<Cell>> = []
     private hammer: Hammer
     private hammer_type: HammerType = HammerType.LIGHT
-    
+    private _transition_element?: HTMLElement | undefined
+    private get transition_element(): HTMLElement | undefined {
+        return this._transition_element
+    }
+    private set transition_element(value: HTMLElement | undefined) {
+        if (this._transition_element) this._transition_element.remove()
+        this._transition_element = value
+    }
+    private game_over_internal: () => void
 
-    constructor(private _parent: HTMLDivElement) {
+    constructor(private _parent: HTMLDivElement, on_game_end: (state: GameState) => void) {
         
+        this.game_over_internal = () => {
+            on_game_end(this.game_state)
+
+            setTimeout(() => {
+                if (this.game_state.failed) {
+                    this.transition_element = shutter_animation(this.background_sprite.element, true)
+                } else {
+                    this.transition_element = circle_animation(this.background_sprite.element, true)
+                }
+            }, 1000);
+        }
+
         this.container_element = this._parent.appendChild(document.createElement('div'))
         
+
         this.sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3)
         const tile_size = this.sprite_sheet.tile_size
         this.background_sprite = new Sprite(this.container_element, this.sprite_sheet, new Vector2(5,9), new Vector2(20, 20))
         this.background_sprite.element.style.zIndex = '-1'
+
+        this.transition_element = circle_animation(this.background_sprite.element, false)
 
         const light_hammer_button = new HammerButton(this.background_sprite.element, this.sprite_sheet, HammerType.LIGHT,
             (hammer_type) => {
@@ -144,7 +167,7 @@ export class MiningGrid {
         
         const heavy_hammer_button = new HammerButton(this.background_sprite.element, this.sprite_sheet, HammerType.HEAVY,
             (hammer_type) => {
-                if (hammer_type !== this.hammer_type && !this.game_state) {
+                if (hammer_type !== this.hammer_type && !this.game_state.is_over) {
                     this.set_hammer_type(hammer_type)
                     light_hammer_button.set_depressed() 
                     return true
@@ -180,6 +203,7 @@ export class MiningGrid {
         this.setup_terrain()
         this.populate_board()
         this.game_state = new GameState()
+        this.transition_element = circle_animation(this.background_sprite.element, false)
     }
 
     public set_hammer_type(hammer_type: HammerType) {
@@ -378,7 +402,7 @@ export class MiningGrid {
             const all_found = this.added_items.every((item) => item.has_been_found)
             if (all_found) {
                 this.game_state.is_over = true
-                this.on_game_end?.(this.game_state)
+                this.game_over_internal()
             }
         }
     }
@@ -393,33 +417,31 @@ export class MiningGrid {
             this.hammer_type, 
             result === HitResult.BOTTOM ? targetCell.content : ContentType.NOTHING)
 
-        if (result === HitResult.BOTTOM && targetCell.content === ContentType.BEDROCK) {
-            return
-        }
-        
-        if (this.hammer_type === HammerType.LIGHT) {   
-            this.cells[xPos + 1]?.[yPos]?.decrease()
-            this.cells[xPos - 1]?.[yPos]?.decrease()
-            this.cells[xPos]?.[yPos + 1]?.decrease()
-            this.cells[xPos]?.[yPos - 1]?.decrease()
-        } else {
-            this.cells[xPos + 1]?.[yPos]?.decrease(2)
-            this.cells[xPos - 1]?.[yPos]?.decrease(2)
-            this.cells[xPos]?.[yPos + 1]?.decrease(2)
-            this.cells[xPos]?.[yPos - 1]?.decrease(2)
+        if (!(result === HitResult.BOTTOM && targetCell.content === ContentType.BEDROCK)) {
+            if (this.hammer_type === HammerType.LIGHT) {   
+                this.cells[xPos + 1]?.[yPos]?.decrease()
+                this.cells[xPos - 1]?.[yPos]?.decrease()
+                this.cells[xPos]?.[yPos + 1]?.decrease()
+                this.cells[xPos]?.[yPos - 1]?.decrease()
+            } else {
+                this.cells[xPos + 1]?.[yPos]?.decrease(2)
+                this.cells[xPos - 1]?.[yPos]?.decrease(2)
+                this.cells[xPos]?.[yPos + 1]?.decrease(2)
+                this.cells[xPos]?.[yPos - 1]?.decrease(2)
+                
+                this.cells[xPos + 1]?.[yPos + 1]?.decrease()
+                this.cells[xPos + 1]?.[yPos - 1]?.decrease()
+                this.cells[xPos - 1]?.[yPos + 1]?.decrease()
+                this.cells[xPos - 1]?.[yPos - 1]?.decrease()
+            }
             
-            this.cells[xPos + 1]?.[yPos + 1]?.decrease()
-            this.cells[xPos + 1]?.[yPos - 1]?.decrease()
-            this.cells[xPos - 1]?.[yPos + 1]?.decrease()
-            this.cells[xPos - 1]?.[yPos - 1]?.decrease()
+            this.check_items_found()
         }
-
-        this.check_items_found()
-
-        const health_result = this.game_state.reduce_health(this.hammer_type === HammerType.LIGHT ? 1 : 2)
+            
+            const health_result = this.game_state.reduce_health(this.hammer_type === HammerType.LIGHT ? 1 : 2)
 
         if (!health_result) {
-            this.on_game_end?.(this.game_state)
+            this.game_over_internal()
         }
     }
 }
