@@ -4,10 +4,8 @@ export function Saveable(key: string, default_value: SaveableValue) {
       let value: SaveableValue;
 
       const getter = function() {
-        console.log("Current value", value)
         if (!value) {
             const item = window.localStorage.getItem(key)
-            console.log("Item read as", item)
             if (item) {
                 const type = typeof default_value
                 if (type === 'boolean') {
@@ -17,10 +15,8 @@ export function Saveable(key: string, default_value: SaveableValue) {
                 } else {
                     value = item
                 }
-                console.log("Loaded value as", value)
             } else {
                 value = default_value
-                console.log("No saved value found! Setting default value:", value)
             }
         }
         return value
@@ -39,4 +35,34 @@ export function Saveable(key: string, default_value: SaveableValue) {
 export class Settings {
     @Saveable("Settings.freeplay", false)
     public static freeplay?: boolean
+
+    @Saveable("Settings.screen_shake", true)
+    public static screen_shake?: boolean
+}
+
+
+function create_boolean_input(parent_element: HTMLElement, default_value: boolean, text: string) : HTMLInputElement {
+    const element =  parent_element.appendChild(document.createElement('div'))
+    element.className = "setting"
+    element.id = "boolean-setting"
+
+    const input_element = element.appendChild(document.createElement('input'))
+    input_element.type = 'checkbox'
+    input_element.checked = default_value
+
+    const text_element = element.appendChild(document.createElement('p'))
+    text_element.innerText = text
+    return input_element
+}
+
+export function settings_element() : HTMLElement {
+    const settings_element = document.createElement('div')
+
+    const freeplay = create_boolean_input(settings_element, !!Settings.freeplay, "Freeplay")
+    freeplay.oninput = () => { Settings.freeplay = freeplay.checked }
+    
+    const screen_shake = create_boolean_input(settings_element, !!Settings.screen_shake, "Screen shake")
+    screen_shake.oninput = () => { Settings.screen_shake = screen_shake.checked }
+    
+    return settings_element
 }

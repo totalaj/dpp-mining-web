@@ -8,6 +8,7 @@ import { GLOBAL_FRAME_RATE, Hammer, HammerType } from "./animations"
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
+import { Settings } from "./settings"
 
 
 
@@ -491,6 +492,7 @@ export class MiningGrid {
 
     private shake_timeouts: any = []
     private screen_shake(frame_duration: number, magnitude: number) {
+        if (!Settings.screen_shake) return
         const pixel_size = this.sprite_sheet.scale
         
         this.shake_timeouts.forEach((timeout: any) => {

@@ -2,7 +2,7 @@ import { shutter_animation } from "./components/screen_transition";
 import { SpriteSheet } from "./components/sprite";
 import { Vector2 } from "./math";
 import { GameState, MiningGrid } from "./simulator/board";
-import { Settings } from "./simulator/settings";
+import { Settings, settings_element } from "./simulator/settings";
 import { create_sprite_debugger } from "./utils/sprite_debug";
 
 function component() {
@@ -36,6 +36,8 @@ function component() {
     notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
 
     // element.appendChild(create_sprite_debugger(new SpriteSheet(5, './assets/health_bar.png', new Vector2(128, 128), 3), 24, 20))
+
+    element.appendChild(settings_element())
 
     return element;
   }
