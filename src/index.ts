@@ -2,9 +2,15 @@ import { shutter_animation } from "./components/screen_transition";
 import { SpriteSheet } from "./components/sprite";
 import { Vector2 } from "./math";
 import { GameState, MiningGrid } from "./simulator/board";
+import { Settings } from "./simulator/settings";
 import { create_sprite_debugger } from "./utils/sprite_debug";
 
 function component() {
+
+  console.log(Settings.all.freeplay, Settings.all.screen_shake)
+
+  Settings.all.freeplay = true
+  Settings.all.screen_shake = false
     const element = document.createElement('div');
     element.id = 'main-content'
 
