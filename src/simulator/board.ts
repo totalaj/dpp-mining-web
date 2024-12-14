@@ -9,6 +9,7 @@ import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
 import { Settings } from "./settings"
+import { Collection } from "./collection"
 
 enum HitResult {
     NORMAL,
@@ -195,7 +196,14 @@ export class MiningGrid {
 
     constructor(private _parent: HTMLDivElement, on_game_end: (state: GameState) => void) {
         this._game_over_internal = (): void => {
+            console.log("Game over internal", this.game_state)
             on_game_end(this.game_state)
+
+            this.added_items.forEach((item) => {
+                if (item.has_been_found) {
+                    Collection.add_item(item.object_ref)
+                }
+            })
 
             this._shake_timeouts.forEach((timeout: NodeJS.Timeout) => {
                 clearTimeout(timeout)
@@ -498,8 +506,6 @@ export class MiningGrid {
         })
         this._shake_timeouts.length = 0
 
-        console.log("Starting screen shake, duration", frame_duration, "f magnitude", magnitude, "px")
-
         for (let index = 0; index < frame_duration; index++) {
             const timeout = setTimeout(() => {
                 let translation = new Vector2((Math.random() * 2) - 1, (Math.random() * 2) - 1)
@@ -550,19 +556,21 @@ export class MiningGrid {
             this.check_items_found()
         }
 
-        const health_result = this.game_state.reduce_health(this._hammer_type === HammerType.LIGHT ? 1 : 2)
+        if (!this.game_state.is_over) {
+            const health_result = this.game_state.reduce_health(this._hammer_type === HammerType.LIGHT ? 1 : 2)
 
-        if (!health_result) {
-            this._game_over_internal()
-        }
-        else if (!this.game_state.is_over) {
-            const damage_taken = GameState.MAX_HEALTH - this.game_state.health
+            if (!health_result) {
+                this._game_over_internal()
+            }
+            else {
+                const damage_taken = GameState.MAX_HEALTH - this.game_state.health
 
-            const shake_length = Math.floor((damage_taken / 5))
-            const shake_magnitude = (Math.floor(damage_taken / (this._hammer_type === HammerType.LIGHT ? 25 : 18))) + 1
+                const shake_length = Math.floor((damage_taken / 5))
+                const shake_magnitude = (Math.floor(damage_taken / (this._hammer_type === HammerType.LIGHT ? 25 : 18))) + 1
 
-            if (shake_length > 0) {
-                this.screen_shake(shake_length, shake_magnitude)
+                if (shake_length > 0) {
+                    this.screen_shake(shake_length, shake_magnitude)
+                }
             }
         }
     }
