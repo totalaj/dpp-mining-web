@@ -1,7 +1,7 @@
 type SaveableValue = boolean | string | number
 export function Saveable(key: string, default_value: SaveableValue) {
     return function(target: any, propertyKey: string) { 
-      let value: SaveableValue;
+      let value: SaveableValue
 
       const getter = function() {
         if (!value) {
@@ -20,15 +20,15 @@ export function Saveable(key: string, default_value: SaveableValue) {
             }
         }
         return value
-      };
+      }
       const setter = function(newVal: SaveableValue) {   
         value = newVal
         window.localStorage.setItem(key, value.toString())
-      }; 
+      } 
       Object.defineProperty(target, propertyKey, {
         get: getter,
         set: setter
-      }); 
+      }) 
     }
   }
 

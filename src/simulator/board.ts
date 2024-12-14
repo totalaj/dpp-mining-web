@@ -202,7 +202,7 @@ export class MiningGrid {
 
             this.shake_timeouts.forEach((timeout: any) => {
                 clearTimeout(timeout)
-            });
+            })
 
             const failed_transition_duration = 2000
             if (this.game_state.failed) {
@@ -216,7 +216,7 @@ export class MiningGrid {
                 } else {
                     this.transition_element = circle_animation(this.background_sprite.element, true)
                 }
-            }, this.game_state.failed ? failed_transition_duration : 2500);
+            }, this.game_state.failed ? failed_transition_duration : 2500)
         }
 
         this.container_element = this._parent.appendChild(document.createElement('div'))
@@ -350,7 +350,7 @@ export class MiningGrid {
             let accumulation = 0
 
             for (let index = 0; index < all_items.length; index++) {
-                const item = all_items[index];
+                const item = all_items[index]
                 accumulation += item.rarity.get_rate()
                 if (accumulation > roll) {
                     return item
@@ -360,7 +360,7 @@ export class MiningGrid {
             return all_items[0] // We should NEVER get here, in theory
         }
 
-        let item_count = 2 + random_in_range(0, 2, true)
+        const item_count = 2 + random_in_range(0, 2, true)
 
         this.added_items = []
 
@@ -402,7 +402,7 @@ export class MiningGrid {
     private test_object_placement(object: GridObject, position: Vector2) : boolean {
         const positions = this.get_object_positions(object, position)
         for (let index = 0; index < positions.length; index++) {
-            const pos = positions[index];
+            const pos = positions[index]
          
             const targetCell = this.cells[pos.x]?.[pos.y]
             if (!targetCell) {
@@ -420,9 +420,9 @@ export class MiningGrid {
     private get_all_valid_object_positions(object: GridObject) : Vector2[] {
         const output: Vector2[] = []
         for (let xIndex = 0; xIndex < this.cells.length; xIndex++) {
-            const cell_row = this.cells[xIndex];
+            const cell_row = this.cells[xIndex]
             for (let yIndex = 0; yIndex < cell_row.length; yIndex++) {
-                const cell = cell_row[yIndex];
+                const cell = cell_row[yIndex]
                 if (this.test_object_placement(object, new Vector2(xIndex, yIndex))) {
                     output.push(new Vector2(xIndex, yIndex))
                 }
@@ -458,7 +458,7 @@ export class MiningGrid {
         let something_newly_found = false
         this.added_items.forEach(item => {
             if (!item.has_been_found) {
-                let positions = this.get_object_positions(item.object_ref, item.position)
+                const positions = this.get_object_positions(item.object_ref, item.position)
                 let found = true
                 for (let index = 0; index < positions.length; index++) {
                     const pos = positions[index]
@@ -509,13 +509,13 @@ export class MiningGrid {
                 translation = translation.mul(pixel_size * magnitude)
                 this.background_sprite.element.style.transform = 
                 `translate(${Math.floor(translation.x)}px, ${Math.floor(translation.y)}px)`
-            }, index * GLOBAL_FRAME_RATE);
+            }, index * GLOBAL_FRAME_RATE)
             this.shake_timeouts.push(timeout)
         }
 
         const timeout = setTimeout(() => {
             this.background_sprite.element.style.transform = 'translate(0, 0)'
-        }, frame_duration * GLOBAL_FRAME_RATE);
+        }, frame_duration * GLOBAL_FRAME_RATE)
         this.shake_timeouts.push(timeout)
     }
 

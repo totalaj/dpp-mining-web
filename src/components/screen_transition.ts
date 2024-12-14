@@ -15,7 +15,7 @@ export function shutter_animation(parent_element: HTMLElement, direction: boolea
         alpha = direction ? alpha : (1 - alpha)
         setTimeout(() => {
             top_rect.style.height = `${alpha * 100}%`
-        }, index * GLOBAL_FRAME_RATE);
+        }, index * GLOBAL_FRAME_RATE)
     }
 
     return element
@@ -38,12 +38,12 @@ export function circle_animation(parent_element: HTMLElement, direction: boolean
         setTimeout(() => {
             // top_rect.style.maskImage = `radial-gradient(circle, transparent ${alpha * 50}%, black ${alpha * 50}%)`
             top_rect.style.maskImage = `radial-gradient(circle, transparent ${alpha * 100}%, black ${alpha * 100}%)`
-        }, index * GLOBAL_FRAME_RATE);
+        }, index * GLOBAL_FRAME_RATE)
     }
 
     setTimeout(() => {
         top_rect.style.pointerEvents = direction ? 'initial' : 'none'
-    }, frames * (1000/24));
+    }, frames * (1000/24))
 
     return element
 }

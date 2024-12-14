@@ -1,5 +1,5 @@
-import { Sprite, SpriteSheet } from "../components/sprite";
-import { Vector2 } from "../math";
+import { Sprite, SpriteSheet } from "../components/sprite"
+import { Vector2 } from "../math"
 
 export function create_sprite_debugger(sheet: SpriteSheet, xTiles: number, yTiles: number) : HTMLElement {
     const sprite_debugger = document.createElement('div')
@@ -10,7 +10,7 @@ export function create_sprite_debugger(sheet: SpriteSheet, xTiles: number, yTile
     const pos_list = sprite_debugger.appendChild(document.createElement('div'))
     const text = pos_list.appendChild(document.createElement('p'))
     text.style.fontFamily = 'monospace'
-    var x = 0
+    const x = 0
     for (let xIndex = 0; xIndex < xTiles; xIndex++) {
         for (let yIndex = 0; yIndex < yTiles; yIndex++) {
             const sprite = new Sprite(sprite_helper, sheet, new Vector2(xIndex, yIndex))  

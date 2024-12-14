@@ -1,6 +1,6 @@
-import { Sprite, SpriteSheet } from "../components/sprite";
-import { Vector2 } from "../math";
-import { ContentType } from "./objects";
+import { Sprite, SpriteSheet } from "../components/sprite"
+import { Vector2 } from "../math"
+import { ContentType } from "./objects"
 
 export const GLOBAL_FRAME_RATE = (1000 / 24)
 
@@ -42,7 +42,7 @@ export class Hammer {
         frames.forEach((frame, index) => {
             setTimeout(() => {
                 set_animation(frame.translation, frame.frame)
-            }, GLOBAL_FRAME_RATE * index);
+            }, GLOBAL_FRAME_RATE * index)
         })
     
     
@@ -131,19 +131,19 @@ export class Hammer {
         switch (content_type) {
             case ContentType.NOTHING:
                 this.play_animation(this.container, terrain_sparks_animation, sparks_frames)
-                break;
+                break
             case ContentType.BEDROCK:
                 this.play_animation(this.container, bedrock_sparks_animation, sparks_frames)
-                break;
+                break
             case ContentType.ITEM:
                 this.play_animation(this.container, item_sparks_animation, sparks_frames)
-                break;
+                break
         }
 
         
         this.removal_timeout = setTimeout(() => {
             this.container?.remove()
             this.container = undefined
-        }, GLOBAL_FRAME_RATE * (hammer_animation.length + 1));
+        }, GLOBAL_FRAME_RATE * (hammer_animation.length + 1))
     }
 }

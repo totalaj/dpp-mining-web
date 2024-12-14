@@ -1,5 +1,5 @@
-import { SpriteSheet } from "../components/sprite";
-import { Vector2 } from "../math";
+import { SpriteSheet } from "../components/sprite"
+import { Vector2 } from "../math"
 
 export enum ContentType {
     NOTHING = 0,

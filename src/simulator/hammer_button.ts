@@ -1,6 +1,6 @@
-import { Sprite, SpriteSheet } from "../components/sprite";
-import { Vector2 } from "../math";
-import { GLOBAL_FRAME_RATE, HammerType } from "./animations";
+import { Sprite, SpriteSheet } from "../components/sprite"
+import { Vector2 } from "../math"
+import { GLOBAL_FRAME_RATE, HammerType } from "./animations"
 
 type AnimationFrame = {
     from: Vector2,
@@ -37,8 +37,8 @@ export class HammerButton {
                 animation.forEach((anim_frame, index) => {
                     setTimeout(() => {
                         this.sprite.set_tile(anim_frame.from, anim_frame.to)
-                    }, GLOBAL_FRAME_RATE * index);
-                });
+                    }, GLOBAL_FRAME_RATE * index)
+                })
             }
         }
     } 

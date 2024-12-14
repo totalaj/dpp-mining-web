@@ -1,12 +1,12 @@
-import { shutter_animation } from "./components/screen_transition";
-import { SpriteSheet } from "./components/sprite";
-import { Vector2 } from "./math";
-import { GameState, MiningGrid } from "./simulator/board";
-import { Settings, settings_element } from "./simulator/settings";
-import { create_sprite_debugger } from "./utils/sprite_debug";
+import { shutter_animation } from "./components/screen_transition"
+import { SpriteSheet } from "./components/sprite"
+import { Vector2 } from "./math"
+import { GameState, MiningGrid } from "./simulator/board"
+import { Settings, settings_element } from "./simulator/settings"
+import { create_sprite_debugger } from "./utils/sprite_debug"
 
 function component() {
-    const element = document.createElement('div');
+    const element = document.createElement('div')
     element.id = 'main-content'
 
     const grid = new MiningGrid(element, (game_state: GameState) => {      
@@ -39,7 +39,7 @@ function component() {
 
     element.appendChild(settings_element())
 
-    return element;
+    return element
   }
   
-document.body.appendChild(component());
+document.body.appendChild(component())
