@@ -7,7 +7,7 @@ import {
     PLATES,
     SHARDS,
     SMALL_SPHERES,
-    WEATHER_STONES,
+    WEATHER_STONES
 } from "./objects"
 
 export class Collection {
@@ -27,7 +27,7 @@ export class Collection {
             ...SHARDS,
             ...WEATHER_STONES,
             ...ITEMS,
-            ...PLATES,
+            ...PLATES
         ]
     }
 
@@ -40,10 +40,9 @@ export class Collection {
     }
 
     public static get_item_count(object: GridObject): number {
-        if (this._loaded_values.has(object.name))
-            return this._loaded_values.get(object.name)!
-        const loaded_value =
-            window.localStorage.getItem(this.item_key(object)) ?? "0"
+        if (this._loaded_values.has(object.name)) return this._loaded_values.get(object.name)!
+        const loaded_value
+            = window.localStorage.getItem(this.item_key(object)) ?? "0"
         const count = Number.parseInt(loaded_value)
         this._loaded_values.set(object.name, count)
         return count
@@ -53,7 +52,7 @@ export class Collection {
         const all_items = this.get_all_items()
         const entries: [GridObject, number][] = []
         all_items.forEach((item) => {
-            entries.push([item, this.get_item_count(item)])
+            entries.push([ item, this.get_item_count(item) ])
         })
 
         return entries

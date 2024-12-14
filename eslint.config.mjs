@@ -109,7 +109,8 @@ export default [
       "@stylistic/keyword-spacing": "warn",
       "@stylistic/no-mixed-spaces-and-tabs": "warn",
       "@stylistic/space-before-blocks": "warn",
-      "@stylistic/switch-colon-spacing": "warn"
+      "@stylistic/switch-colon-spacing": "warn",
+      "@stylistic/spaced-comment": ["warn", "always"]
     }
   }
 ]

@@ -1,7 +1,7 @@
 import { GLOBAL_FRAME_RATE } from "../simulator/animations"
 
 export const SHUTTER_ANIMATION_FRAMES = 12
-export function shutter_animation(parent_element: HTMLElement, direction: boolean) : HTMLElement {
+export function shutter_animation(parent_element: HTMLElement, direction: boolean): HTMLElement {
     const element = parent_element.appendChild(document.createElement('div'))
     element.id = 'overlay'
     const top_rect = element.appendChild(document.createElement('div'))
@@ -21,7 +21,7 @@ export function shutter_animation(parent_element: HTMLElement, direction: boolea
     return element
 }
 
-export function circle_animation(parent_element: HTMLElement, direction: boolean) : HTMLElement {
+export function circle_animation(parent_element: HTMLElement, direction: boolean): HTMLElement {
     const element = parent_element.appendChild(document.createElement('div'))
     element.id = 'overlay'
     const top_rect = element.appendChild(document.createElement('div'))
@@ -43,7 +43,7 @@ export function circle_animation(parent_element: HTMLElement, direction: boolean
 
     setTimeout(() => {
         top_rect.style.pointerEvents = direction ? 'initial' : 'none'
-    }, frames * (1000/24))
+    }, frames * GLOBAL_FRAME_RATE)
 
     return element
 }

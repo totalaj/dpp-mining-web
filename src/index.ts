@@ -8,16 +8,16 @@ function component(): HTMLDivElement {
     const element = document.createElement('div')
     element.id = 'main-content'
 
-    const grid = new MiningGrid(element, (game_state: GameState) => {      
-      let text = game_state.failed ? "The wall collapsed!" : "Everything was dug up!"
-      
-      grid.added_items.forEach((item) => {
-        if (item.has_been_found) {
-          text += `<br>You obtained a ${item.object_ref.name}!`
-        }
-      })
+    const grid = new MiningGrid(element, (game_state: GameState) => {
+        let text = game_state.failed ? "The wall collapsed!" : "Everything was dug up!"
 
-      notification_text.innerHTML = text
+        grid.added_items.forEach((item) => {
+            if (item.has_been_found) {
+                text += `<br>You obtained a ${item.object_ref.name}!`
+            }
+        })
+
+        notification_text.innerHTML = text
     })
 
     const lower_bar = element.appendChild(document.createElement('div'))
@@ -25,11 +25,11 @@ function component(): HTMLDivElement {
 
     const notification_text = lower_bar.appendChild(document.createElement('p'))
     const reset_button = lower_bar.appendChild(document.createElement('button'))
-    
+
     reset_button.innerText = "New board"
     reset_button.onclick = (): void => {
-      grid.reset_board()
-      notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
+        grid.reset_board()
+        notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
     }
 
     notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
@@ -39,6 +39,6 @@ function component(): HTMLDivElement {
     element.appendChild(create_settings_element())
 
     return element
-  }
-  
+}
+
 document.body.appendChild(component())

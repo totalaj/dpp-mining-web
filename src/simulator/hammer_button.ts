@@ -8,7 +8,6 @@ type AnimationFrame = {
 }
 
 export class HammerButton {
-    
     public sprite: Sprite
     private _depressed_state: AnimationFrame
     private _pressed_state: AnimationFrame
@@ -41,7 +40,7 @@ export class HammerButton {
                 })
             }
         }
-    } 
+    }
 
     public set_depressed(): void {
         this.sprite.set_tile(this._depressed_state.from, this._depressed_state.to)
