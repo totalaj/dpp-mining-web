@@ -12,6 +12,7 @@
         "experimentalDecorators": true
     },
     "include": [
-        "./src/**/*"
+        "./src/**/*",
+        "./eslint.config.mjs"
     ]
 }
