@@ -1,11 +1,10 @@
-import { shutter_animation } from "./components/screen_transition"
-import { SpriteSheet } from "./components/sprite"
-import { Vector2 } from "./math"
+
 import { GameState, MiningGrid } from "./simulator/board"
-import { Settings, settings_element } from "./simulator/settings"
+import { create_settings_element } from "./simulator/settings"
+// eslint-disable-next-line
 import { create_sprite_debugger } from "./utils/sprite_debug"
 
-function component() {
+function component(): HTMLDivElement {
     const element = document.createElement('div')
     element.id = 'main-content'
 
@@ -28,7 +27,7 @@ function component() {
     const reset_button = lower_bar.appendChild(document.createElement('button'))
     
     reset_button.innerText = "New board"
-    reset_button.onclick = () => {
+    reset_button.onclick = (): void => {
       grid.reset_board()
       notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
     }
@@ -37,7 +36,7 @@ function component() {
 
     // element.appendChild(create_sprite_debugger(new SpriteSheet(5, './assets/health_bar.png', new Vector2(128, 128), 3), 24, 20))
 
-    element.appendChild(settings_element())
+    element.appendChild(create_settings_element())
 
     return element
   }

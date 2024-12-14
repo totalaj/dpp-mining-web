@@ -15,21 +15,21 @@ type AnimationFrame = {
 }
 
 export class Hammer {
-    private container?: HTMLElement
-    private tile_unit: number
-    private removal_timeout?: any
+    private _container?: HTMLElement
+    private _tile_unit: number
+    private _removal_timeout?: NodeJS.Timeout
 
-    constructor(private parent_element: HTMLElement, private sheet: SpriteSheet) {
-        this.tile_unit = sheet.tile_size
+    constructor(private _parent_element: HTMLElement, private _sheet: SpriteSheet) {
+        this._tile_unit = _sheet.tile_size
     }
 
-    private play_animation(container: HTMLElement, frames: AnimationFrame[], sprite_kinds: {from: Vector2, to: Vector2}[]) {
-        const sprite = new Sprite(container, this.sheet, new Vector2(0,0), new Vector2(0, 0))
+    private play_animation(container: HTMLElement, frames: AnimationFrame[], sprite_kinds: {from: Vector2, to: Vector2}[]): void {
+        const sprite = new Sprite(container, this._sheet, new Vector2(0,0), new Vector2(0, 0))
         sprite.element.style.position = 'absolute'
 
-        const set_animation = (translation_vector?: Vector2, frame?: number) => {
+        const set_animation = (translation_vector?: Vector2, frame?: number): void => {
             if (translation_vector) {
-                const visual_offset = new Vector2(translation_vector.x, translation_vector.y).mul(this.sheet.tile_size)
+                const visual_offset = new Vector2(translation_vector.x, translation_vector.y).mul(this._sheet.tile_size)
                 sprite.element.style.translate = `${visual_offset.x}px ${visual_offset.y}px`
             }
     
@@ -50,15 +50,15 @@ export class Hammer {
         set_animation(frames[0].translation, frames[0].frame)
     }
 
-    public play_hammer_animation(tile_offset: Vector2, hammer_type: HammerType, content_type: ContentType) {
-        if (this.container) {
-            this.container.remove()
-            clearTimeout(this.removal_timeout)
+    public play_hammer_animation(tile_offset: Vector2, hammer_type: HammerType, content_type: ContentType): void {
+        if (this._container) {
+            this._container.remove()
+            clearTimeout(this._removal_timeout)
         }
-        this.container = this.parent_element.appendChild(document.createElement('div'))
-        this.container.id = 'hammer'
-        const container_visual_translation = tile_offset.mul(this.tile_unit)
-        this.container.style.translate = `${container_visual_translation.x}px ${container_visual_translation.y}px`
+        this._container = this._parent_element.appendChild(document.createElement('div'))
+        this._container.id = 'hammer'
+        const container_visual_translation = tile_offset.mul(this._tile_unit)
+        this._container.style.translate = `${container_visual_translation.x}px ${container_visual_translation.y}px`
     
         const lower_x = 0, lower_y = -1
         const upper_x = 0.5, upper_y = -1.5
@@ -119,7 +119,7 @@ export class Hammer {
             { frame: 0 },
         ]
     
-        this.play_animation(this.container, hammer_animation,
+        this.play_animation(this._container, hammer_animation,
             hammer_type === HammerType.LIGHT ? [
             {from: new Vector2(3, 1), to: new Vector2(4, 2)},
             {from: new Vector2(1, 1), to: new Vector2(2, 2)}
@@ -130,20 +130,22 @@ export class Hammer {
 
         switch (content_type) {
             case ContentType.NOTHING:
-                this.play_animation(this.container, terrain_sparks_animation, sparks_frames)
+                this.play_animation(this._container, terrain_sparks_animation, sparks_frames)
                 break
             case ContentType.BEDROCK:
-                this.play_animation(this.container, bedrock_sparks_animation, sparks_frames)
+                this.play_animation(this._container, bedrock_sparks_animation, sparks_frames)
                 break
             case ContentType.ITEM:
-                this.play_animation(this.container, item_sparks_animation, sparks_frames)
+                this.play_animation(this._container, item_sparks_animation, sparks_frames)
+                break
+            default:
                 break
         }
 
         
-        this.removal_timeout = setTimeout(() => {
-            this.container?.remove()
-            this.container = undefined
+        this._removal_timeout = setTimeout(() => {
+            this._container?.remove()
+            this._container = undefined
         }, GLOBAL_FRAME_RATE * (hammer_animation.length + 1))
     }
 }

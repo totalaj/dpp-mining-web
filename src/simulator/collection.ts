@@ -1,33 +1,33 @@
 import {
-    evolution_stones,
-    fossils,
+    EVOLUTION_STONES,
+    FOSSILS,
     GridObject,
-    items,
-    large_spheres,
-    plates,
-    shards,
-    small_speheres,
-    weather_stones,
+    ITEMS,
+    LARGE_SPHERES,
+    PLATES,
+    SHARDS,
+    SMALL_SPHERES,
+    WEATHER_STONES,
 } from "./objects"
 
 export class Collection {
-    private static loaded_values: Map<string, number> = new Map()
+    private static _loaded_values: Map<string, number> = new Map()
 
     public static on_object_count_changed?: (
         object: GridObject,
         count: number,
     ) => void
 
-    public static get all_items(): GridObject[] {
+    public static get_all_items(): GridObject[] {
         return [
-            ...small_speheres,
-            ...large_spheres,
-            ...fossils,
-            ...evolution_stones,
-            ...shards,
-            ...weather_stones,
-            ...items,
-            ...plates,
+            ...SMALL_SPHERES,
+            ...LARGE_SPHERES,
+            ...FOSSILS,
+            ...EVOLUTION_STONES,
+            ...SHARDS,
+            ...WEATHER_STONES,
+            ...ITEMS,
+            ...PLATES,
         ]
     }
 
@@ -35,24 +35,24 @@ export class Collection {
         return "Collection." + object.name
     }
 
-    private static set_item_count(object: GridObject, count: number) {
+    private static set_item_count(object: GridObject, count: number): void {
         window.localStorage.setItem(this.item_key(object), count.toString())
     }
 
     public static get_item_count(object: GridObject): number {
-        if (this.loaded_values.has(object.name))
-            return this.loaded_values.get(object.name)!
+        if (this._loaded_values.has(object.name))
+            return this._loaded_values.get(object.name)!
         const loaded_value =
             window.localStorage.getItem(this.item_key(object)) ?? "0"
         const count = Number.parseInt(loaded_value)
-        this.loaded_values.set(object.name, count)
+        this._loaded_values.set(object.name, count)
         return count
     }
 
     public static load_all_items(): [GridObject, number][] {
-        const items = this.all_items
+        const all_items = this.get_all_items()
         const entries: [GridObject, number][] = []
-        items.forEach((item) => {
+        all_items.forEach((item) => {
             entries.push([item, this.get_item_count(item)])
         })
 

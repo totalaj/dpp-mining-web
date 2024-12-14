@@ -26,32 +26,50 @@ export default [
         "default-case-last": "error",
         "eqeqeq": "error",
         "no-empty": "error",
-        "no-empty-function": "error",
+        "no-empty-function": ["warn", { "allow": ["constructors"]}],
         "no-shadow": "warn",
         "no-var": "error",
         "prefer-const": "error",
         "consistent-return": "warn",
+        "no-useless-constructor": "off",
         "@typescript-eslint/explicit-function-return-type": "error",
         "@typescript-eslint/consistent-type-exports": "warn",
         "@typescript-eslint/dot-notation": "warn",
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unnecessary-condition": "warn",
         "@typescript-eslint/no-empty-function": "warn",
-        "@typescript-eslint/explicit-member-accessibility": "warn",
+        "@typescript-eslint/explicit-member-accessibility": ["warn", { "overrides": {"constructors": "no-public"}}],
         "@typescript-eslint/naming-convention": ["warn",
         {
           "selector": "default",
           "format": ["snake_case"]
         },
         {
-          "selector": "memberLike",
+          "selector": "import",
+          "format": ["PascalCase"]
+        },
+        {
+          "selector": ["property", "parameterProperty"],
           "modifiers": ["private"],
           "format": ["snake_case"],
           "leadingUnderscore": "require"
         },
         {
+          "selector": "variable",
+          "modifiers": ["global"],
+          "format": ["UPPER_CASE"]
+        },
+        {
+          "selector": "enumMember",
+          "format": ["UPPER_CASE"]
+        },
+        {
           "selector": ["class", "typeLike"],
           "format": ["PascalCase"]
+        },
+        {
+          "selector": ["classProperty"],
+          "modifiers": ["readonly"],
+          "format": ["UPPER_CASE"],
         }
         ]
     }}

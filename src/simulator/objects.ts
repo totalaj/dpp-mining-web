@@ -24,7 +24,7 @@ class Rarity {
 
     }
     
-    get_rate(version?: GameVersion) : number {
+    public get_rate(version?: GameVersion) : number {
         if (version !== undefined) {
             switch (version) {
                 case GameVersion.PRE_DEX_DIAMOND:
@@ -58,7 +58,7 @@ export class GridObject {
     }
 }
 
-export const bedrock_objects = [
+export const BEDROCK_OBJECTS = [
     new GridObject(new Vector2(1, 0), new Vector2(1, 3), ContentType.BEDROCK,
     new Rarity(0, 0, 0, 0), "4-tall I",
     [
@@ -153,7 +153,7 @@ export const bedrock_objects = [
 ])
 ]
 
-export const small_speheres = [
+export const SMALL_SPHERES = [
     new GridObject(new Vector2(13, 0), new Vector2(14, 1), ContentType.ITEM,
     new Rarity(150, 150, 107, 107), "Small Green Sphere",
     [
@@ -186,7 +186,7 @@ export const small_speheres = [
 ]),
 ]
 
-export const large_spheres = [
+export const LARGE_SPHERES = [
     new GridObject(new Vector2(13, 2), new Vector2(15, 4), ContentType.ITEM,
     new Rarity(75, 75, 53, 53), "Large Green Sphere",
     [
@@ -224,7 +224,7 @@ export const large_spheres = [
 ]),
 ]
 
-export const fossils = [
+export const FOSSILS = [
     new GridObject(new Vector2(13, 5), new Vector2(16, 8), ContentType.ITEM,
     new Rarity(25, 0, 12, 0), "Skull Fossil",
     [
@@ -369,7 +369,7 @@ export const fossils = [
 ]),
 ]
 
-export const evolution_stones = [
+export const EVOLUTION_STONES = [
     new GridObject(new Vector2(13, 14), new Vector2(15, 17), ContentType.ITEM,
     new Rarity(2 / 2, 4 / 2, 5 / 2, 30 / 2), "Leaf Stone", // 0deg
     [ // Divide rarity by 2 since there are 2 instances
@@ -430,7 +430,7 @@ export const evolution_stones = [
 ]),
 ]
 
-export const shards = [
+export const SHARDS = [
     new GridObject(new Vector2(13, 18), new Vector2(16, 20), ContentType.ITEM,
     new Rarity(13, 13, 17, 17), "Green Shard",
     [
@@ -461,7 +461,7 @@ export const shards = [
 ]),
 ]
 
-export const weather_stones = [
+export const WEATHER_STONES = [
 
     new GridObject(new Vector2(13, 21), new Vector2(16, 23), ContentType.ITEM,
     new Rarity(2, 1, 11, 5), "Heat Rock",
@@ -495,7 +495,7 @@ export const weather_stones = [
 ]),
 ]
 
-export const items = [
+export const ITEMS = [
     new GridObject(new Vector2(13, 25), new Vector2(15, 27), ContentType.ITEM,
     new Rarity(8, 8, 10, 10), "Revive",
     [
@@ -585,7 +585,7 @@ export const items = [
 
 ]
 
-export const plates = [
+export const PLATES = [
     new GridObject(new Vector2(14, 32), new Vector2(17, 34), ContentType.ITEM,
     new Rarity(1, 1, 1, 1), "Insect Plate",
     [

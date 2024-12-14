@@ -1,15 +1,15 @@
 import { Vector2 } from "../math"
 
 export class SpriteSheet {
-    public get tile_size () {
+    public get tile_size (): number {
         return this._tile_size * this._scale
     }
 
-    public get sheet_size () {
+    public get sheet_size (): Vector2 {
         return this._sheet_size.mul(this._scale)
     }
 
-    public get scale () {
+    public get scale (): number {
         return this._scale
     }
     
@@ -17,7 +17,7 @@ export class SpriteSheet {
 }
 
 export class Sprite {
-    element: HTMLElement
+    public element: HTMLElement
     
     private _start_tile: Vector2
     private _end_tile: Vector2
@@ -50,7 +50,7 @@ export class Sprite {
         this.element.style.backgroundSize = `${this._src.sheet_size.x}px ${this._src.sheet_size.y}px`
     }
 
-    public dispose() {
+    public dispose(): void {
         this.element.remove()
     }
 }

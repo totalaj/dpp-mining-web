@@ -1,34 +1,35 @@
 type SaveableValue = boolean | string | number
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export function Saveable(key: string, default_value: SaveableValue) {
-    return function(target: any, propertyKey: string) { 
+    return (target: any, property_key: string): void => {
       let value: SaveableValue
 
-      const getter = function() {
+      const getter = (): SaveableValue => {
         if (!value) {
-            const item = window.localStorage.getItem(key)
-            if (item) {
-                const type = typeof default_value
-                if (type === 'boolean') {
-                    value = item === "true"
-                } else if (type === 'number') {
-                    value = Number.parseFloat(item)
-                } else {
-                    value = item
-                }
+          const item = window.localStorage.getItem(key)
+          if (item) {
+            const type = typeof default_value
+            if (type === 'boolean') {
+              value = item === "true"
+            } else if (type === 'number') {
+              value = Number.parseFloat(item)
             } else {
-                value = default_value
+              value = item
             }
+          } else {
+            value = default_value
+          }
         }
         return value
       }
-      const setter = function(newVal: SaveableValue) {   
-        value = newVal
+      const setter = (new_val: SaveableValue): void => {
+        value = new_val
         window.localStorage.setItem(key, value.toString())
-      } 
-      Object.defineProperty(target, propertyKey, {
+      }
+      Object.defineProperty(target, property_key, {
         get: getter,
         set: setter
-      }) 
+      })
     }
   }
 
@@ -55,14 +56,14 @@ function create_boolean_input(parent_element: HTMLElement, default_value: boolea
     return input_element
 }
 
-export function settings_element() : HTMLElement {
+export function create_settings_element() : HTMLElement {
     const settings_element = document.createElement('div')
 
     const freeplay = create_boolean_input(settings_element, !!Settings.freeplay, "Freeplay")
-    freeplay.oninput = () => { Settings.freeplay = freeplay.checked }
+    freeplay.oninput = (): void => { Settings.freeplay = freeplay.checked }
     
     const screen_shake = create_boolean_input(settings_element, !!Settings.screen_shake, "Screen shake")
-    screen_shake.oninput = () => { Settings.screen_shake = screen_shake.checked }
+    screen_shake.oninput = (): void => { Settings.screen_shake = screen_shake.checked }
     
     return settings_element
 }
