@@ -45,6 +45,7 @@ class Rarity {
     }
 }
 
+export type Genus = 'a' | 'an'
 export class GridObject {
     public static object_sheet = new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 3)
     public extents: Vector2
@@ -52,7 +53,7 @@ export class GridObject {
     // Use reverse indexing, (ie y,x rather than x,y) because of how data is inputed
     public collision: Array<Array<boolean>>
 
-    constructor(public start_tile: Vector2, public end_tile: Vector2, public content_type: ContentType, public rarity: Rarity, public name: string, collision: Array<Array<boolean>>) {
+    constructor(public start_tile: Vector2, public end_tile: Vector2, public content_type: ContentType, public rarity: Rarity, public name: string, collision: Array<Array<boolean>>, public genus: Genus = 'a') {
         this.extents = end_tile.subtract(start_tile).add(new Vector2(1, 1))
         this.collision = collision
     }
@@ -301,7 +302,7 @@ export const FOSSILS = [
             [ false, true, true, true, false ],
             [ true, true, true, true, true ],
             [ false, true, true, true, false ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(22, 5), new Vector2(26, 8), ContentType.ITEM,
@@ -361,7 +362,7 @@ export const FOSSILS = [
             [ true, true, true, true ],
             [ true, true, true, true ],
             [ true, true, true, false ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(47, 5), new Vector2(50, 8), ContentType.ITEM,
@@ -371,7 +372,7 @@ export const FOSSILS = [
             [ true, true, true, true ],
             [ true, true, true, true ],
             [ false, true, true, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(13, 9), new Vector2(17, 13), ContentType.ITEM,
@@ -604,7 +605,7 @@ export const WEATHER_STONES = [
             [ true, true, true, true ],
             [ true, true, true, true ],
             [ true, false, false, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(24, 21), new Vector2(27, 24), ContentType.ITEM,
@@ -668,7 +669,7 @@ export const ITEMS = [
         [
             [ true, true, true, true ],
             [ true, true, true, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(20, 28), new Vector2(23, 31), ContentType.ITEM,
@@ -687,7 +688,7 @@ export const ITEMS = [
             [ true, true, true ],
             [ true, true, true ],
             [ true, true, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(27, 28), new Vector2(29, 30), ContentType.ITEM,
@@ -696,7 +697,7 @@ export const ITEMS = [
             [ true, true, true ],
             [ true, true, true ],
             [ true, true, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(29, 18), new Vector2(31, 23), ContentType.ITEM,
@@ -727,7 +728,7 @@ export const ITEMS = [
             [ true, true, true, true ],
             [ true, true, true, true ],
             [ true, true, true, true ]
-        ]
+        ], 'an'
     )
 
 ]
@@ -740,7 +741,7 @@ export const PLATES = [
             [ true, true, true, true ],
             [ true, true, true, true ],
             [ true, true, true, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(18, 32), new Vector2(21, 34), ContentType.ITEM,
@@ -821,7 +822,7 @@ export const PLATES = [
             [ true, true, true, true ],
             [ true, true, true, true ],
             [ true, true, true, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(22, 35), new Vector2(25, 37), ContentType.ITEM,
@@ -830,7 +831,7 @@ export const PLATES = [
             [ true, true, true, true ],
             [ true, true, true, true ],
             [ true, true, true, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(26, 35), new Vector2(29, 37), ContentType.ITEM,
@@ -866,7 +867,7 @@ export const PLATES = [
             [ true, true, true, true ],
             [ true, true, true, true ],
             [ true, true, true, true ]
-        ]
+        ], 'an'
     ),
     new GridObject(
         new Vector2(42, 35), new Vector2(45, 37), ContentType.ITEM,

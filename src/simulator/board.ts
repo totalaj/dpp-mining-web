@@ -225,7 +225,7 @@ export class MiningGrid {
             this.added_items.forEach((item) => {
                 if (item.has_been_found) {
                     Collection.add_item(item.object_ref)
-                    item_obtained_messages.push(`You obtained a ${item.object_ref.name}!`)
+                    item_obtained_messages.push(`You obtained ${item.object_ref.genus} ${item.object_ref.name}!`)
                 }
             })
             this.clear_screen_shakes()
