@@ -4,7 +4,7 @@ import * as Noise from 'ts-perlin-simplex'
 import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
-import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, TextAnimation } from "./animations"
+import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark, TextAnimation } from "./animations"
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
@@ -228,7 +228,6 @@ export class MiningGrid {
                     item_obtained_messages.push(`You obtained a ${item.object_ref.name}!`)
                 }
             })
-
             this.clear_screen_shakes()
 
             const failed_transition_duration = 2000
@@ -573,6 +572,24 @@ export class MiningGrid {
                         const target_cell = this._cells[pos.x][pos.y]
                         target_cell.play_found_animation()
                     }
+
+                    // Play three spark animations
+                    // First animation starts at frame 4
+                    // Second at 9, third at 13
+                    const start_frames: number[] = [ 4, 9, 13 ]
+
+                    start_frames.forEach((frame) => {
+                        setTimeout(() => {
+                            // Play a spark within the bounds of the found item
+                            const spark_element = play_item_found_spark(this._grid_element, this._sprite_sheet)
+                            const offset = random_element(positions)
+                            offset.x -= 0.5
+                            offset.y -= 0.5
+                            offset.x += Math.floor(random_in_range(-8, 8, true)) / 16
+                            offset.y += Math.floor(random_in_range(-8, 8, true)) / 16
+                            set_translation(spark_element, this._sprite_sheet.tile_size, offset.x, offset.y)
+                        }, GLOBAL_FRAME_RATE * frame)
+                    })
                 }
             }
         })

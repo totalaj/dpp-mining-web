@@ -188,3 +188,39 @@ export function animate_text(element: HTMLElement, text: string): TextAnimation 
 
     return return_value
 }
+
+export function play_item_found_spark(parent_element: HTMLElement, sprite_sheet: SpriteSheet): HTMLElement {
+    // Spark animation
+    /** 22 x 2
+        23 x 3
+
+        18 x 2
+        19 x 3
+
+        24 x 2
+        25 x 3
+*/
+
+    const frames: { from: Vector2, to: Vector2 }[] = [
+        { from: new Vector2(22, 2), to: new Vector2(23, 3) },
+        { from: new Vector2(18, 2), to: new Vector2(19, 3) },
+        { from: new Vector2(24, 2), to: new Vector2(25, 3) },
+        { from: new Vector2(0, 0), to: new Vector2(0, 0) }
+    ]
+
+    const sprite = new Sprite(parent_element, sprite_sheet, new Vector2(0, 0), new Vector2(0, 0))
+    sprite.element.style.position = 'absolute'
+    sprite.element.id = 'item-spark'
+
+    frames.forEach((frame, index) => {
+        setTimeout(() => {
+            sprite.set_tile(frame.from, frame.to)
+        }, index * GLOBAL_FRAME_RATE)
+    })
+
+    setTimeout(() => {
+        sprite.dispose()
+    }, frames.length * GLOBAL_FRAME_RATE)
+
+    return sprite.element
+}

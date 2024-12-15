@@ -30,7 +30,7 @@ function component(): HTMLDivElement {
         text.innerHTML = '&zwnj;'
     }
 
-    element.appendChild(create_sprite_debugger(new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3), 32, 32))
+    // element.appendChild(create_sprite_debugger(new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3), 32, 32))
     grid.reset_board()
     return element
 }
