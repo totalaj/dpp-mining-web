@@ -15,6 +15,8 @@ Additionally:
 
 ![Collection screenshot](/img/collection_screenshot.png)
 - A shared probability pool, combining all drop chances
+- An extra textbox to show how many items were detected
+- Tweaked timings and interactability for quality of life
 
 ### Todo:
 - [x] All available objects
