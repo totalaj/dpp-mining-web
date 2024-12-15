@@ -179,6 +179,7 @@ export class Collection {
         }
 
         element.style.background = background_style
+        element.style.backgroundSize = "100% 4000px"
 
         const create_section = (objects: GridObject[], section_title: string): void => {
             const section = new CollectionSection(
