@@ -7,22 +7,22 @@ A web version and solver of the mining game found in the sinnoh underground in P
 - [x] Object Rarity in pool
 - [x] Small and large hammer
 - [x] Buttons for small and large hammer
+- [x] Screen shake
+- [x] Health bar
+- [x] Effect for hammers, hitting with big, hitting with small, and hitting bedrock
+- [x] Animations for hammer
 - [~] Unearthing object
-- [ ] Health bar
 - [~] Listing objects unearthed
-- [ ] Announcing objects found (initial ping)
-- [ ] Screen shake
-- [~] Animations for hammer
-- [~] Effect for hammers, hitting with big, hitting with small, and hitting bedrock
+- [~] Announcing objects found (initial ping)
 - [ ] Sound effects?
 - [ ] Collection
     - [ ] Singleton collection, for plates
 - [ ] Version difference?
 
 Various ideas:
-- [ ] Options for turning off sound, screen shake
+- [~] Options for turning off sound, screen shake
 - [ ] Calculated version difference based on IP or other user Identifier
-- [ ] Free play
+- [~] Free play
 - [ ] Solver (find optimal moves)
 - [ ] In-depth research about original game
 - [ ] Web page styling (favicon, embedding image)
