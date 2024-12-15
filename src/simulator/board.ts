@@ -271,7 +271,7 @@ export class MiningGrid {
         const light_hammer_button = new HammerButton(
             this._background_sprite.element, this._sprite_sheet, HammerType.LIGHT,
             (hammer_type) => {
-                if (hammer_type !== this._hammer_type && !this.game_state.is_over) {
+                if (!this.game_state.is_over) {
                     this.set_hammer_type(hammer_type)
                     heavy_hammer_button.set_depressed()
                     return true
@@ -286,7 +286,7 @@ export class MiningGrid {
         const heavy_hammer_button = new HammerButton(
             this._background_sprite.element, this._sprite_sheet, HammerType.HEAVY,
             (hammer_type) => {
-                if (hammer_type !== this._hammer_type && !this.game_state.is_over) {
+                if (!this.game_state.is_over) {
                     this.set_hammer_type(hammer_type)
                     light_hammer_button.set_depressed()
                     return true
