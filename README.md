@@ -1,5 +1,8 @@
-# dpp-mining-web
-A web version and solver of the mining game found in the sinnoh underground in Pokémon Diamond, Pearl, and Platinum.
+# DPP Mining
+A web version of the mining game found in the Sinnoh underground in Pokémon Diamond, Pearl, and Platinum.
+
+## [Play it now!](https://krantzdev.com/dpp-mining/)
+The game is available now at https://krantzdev.com/dpp-mining/
 
 ### Todo:
 - [x] All available objects
@@ -11,18 +14,18 @@ A web version and solver of the mining game found in the sinnoh underground in P
 - [x] Health bar
 - [x] Effect for hammers, hitting with big, hitting with small, and hitting bedrock
 - [x] Animations for hammer
-- [~] Unearthing object
-- [~] Listing objects unearthed
-- [~] Announcing objects found (initial ping)
+- [x] Unearthing object
+- [ ] Listing objects unearthed
+- [ ] Announcing objects found (initial ping)
 - [ ] Sound effects?
-- [ ] Collection
+- [x] Collection
     - [ ] Singleton collection, for plates
 - [ ] Version difference?
 
 Various ideas:
-- [~] Options for turning off sound, screen shake
+- [ ] Options for turning off sound, screen shake
 - [ ] Calculated version difference based on IP or other user Identifier
-- [~] Free play
+- [ ] Free play
 - [ ] Solver (find optimal moves)
 - [ ] In-depth research about original game
 - [ ] Web page styling (favicon, embedding image)
