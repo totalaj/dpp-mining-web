@@ -72,3 +72,7 @@ But the sparks are different
 3. "Whiff" spark
 4. Nothing
 5. "Whiff" spark
+
+### Credits
+
+The FontStruction “Pokémon DP Pro” (https://fontstruct.com/fontstructions/show/404271) by “crystalwalrein” is licensed under a Creative Commons Attribution Share Alike license (http://creativecommons.org/licenses/by-sa/3.0/).

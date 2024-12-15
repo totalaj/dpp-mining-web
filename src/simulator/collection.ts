@@ -1,3 +1,5 @@
+import { Sprite, SpriteSheet } from "../components/sprite"
+import { Vector2 } from "../math"
 import {
     EVOLUTION_STONES,
     FOSSILS,
@@ -7,24 +9,88 @@ import {
     PLATES,
     SHARDS,
     SMALL_SPHERES,
+    trim_duplicates,
     WEATHER_STONES
 } from "./objects"
 
-type CollectionEntry = number
+type CollectionEntry = [GridObject, number]
+
+class CollectionSection {
+    private _title: HTMLElement
+    private _section: HTMLElement
+
+    constructor(
+        objects: GridObject[], section_title: string, sprite_sheet: SpriteSheet, parent_element: HTMLElement,
+        register_collection_element: (name: string, element: CollectionElement) => void
+    ) {
+        this._title = parent_element.appendChild(document.createElement('h3'))
+        this._title.innerText = section_title
+
+        this._section = parent_element.appendChild(document.createElement('div'))
+        this._section.id = 'collection-section'
+
+        const loaded_items = Collection.load_items(objects)
+        loaded_items.forEach((item): void => {
+            const collection_element = new CollectionElement(item[0], sprite_sheet, this._section)
+            register_collection_element(item[0].name, collection_element)
+            collection_element.update_style(item)
+        })
+
+        this.update_visibility(loaded_items.some((entry) => entry[1] > 0))
+    }
+
+    public update_visibility(visible: boolean): void {
+        this._title.style.display = visible ? "" : "none"
+        this._section.style.display = visible ? "" : "none"
+    }
+}
+
+class CollectionElement {
+    public element: HTMLElement
+    private _name_element: HTMLElement
+    private _number_element: HTMLElement
+    private _sprite: Sprite
+    constructor(item: GridObject, sprite_sheet: SpriteSheet, parent_element: HTMLElement) {
+        this.element = parent_element.appendChild(document.createElement('div'))
+        this.element.id = "collection-item"
+
+        this._sprite = new Sprite(this.element, sprite_sheet, item.start_tile, item.end_tile)
+        this._sprite.element.id = "collection-sprite"
+
+        this._name_element = this.element.appendChild(document.createElement('p'))
+        this._name_element.id = "collection-text"
+        this._name_element.className = "inverted-text"
+
+        this._number_element = this.element.appendChild(document.createElement('p'))
+        this._number_element.id = "collection-text"
+        this._number_element.className = "inverted-text"
+    }
+
+    public update_style(entry: CollectionEntry): void {
+        this._name_element.innerText = entry[0].name
+        this._number_element.innerHTML = "×" + entry[1].toString()
+        this._number_element.style.fontSize = "1.2em"
+        this.element.style.display = entry[1] > 0 ? "" : "none"
+    }
+}
 
 export class Collection {
     private static _loaded_values: Map<string, number> = new Map()
-    private static _object_element_map: Map<string, HTMLElement> = new Map()
+    private static _object_element_map: Map<string, CollectionElement> = new Map()
+    private static _object_section_map: [GridObject[], CollectionSection][] = []
+    private static _item_sheet: SpriteSheet = new SpriteSheet(16, "./assets/object_sheet.png", new Vector2(1024, 1024), 1)
 
-    public static on_object_count_changed(object: GridObject, count: number): void {
+    private static on_object_count_changed(object: GridObject, count: number): void {
         console.log("Object change hook", object, count)
         const element = this._object_element_map.get(object.name)!
-        this.style_element([ object, count ], element)
+        element.update_style([ object, count ])
+        this._object_section_map.filter((objects) => objects[0].includes(object)).forEach((section) => {
+            section[1].update_visibility(true)
+        })
     }
 
     public static get_all_items(): GridObject[] {
-        const existing_names = new Set<string>()
-        return [
+        return trim_duplicates([
             ...SMALL_SPHERES,
             ...LARGE_SPHERES,
             ...FOSSILS,
@@ -33,11 +99,7 @@ export class Collection {
             ...WEATHER_STONES,
             ...ITEMS,
             ...PLATES
-        ].filter((object) => {
-            if (existing_names.has(object.name)) return false
-            existing_names.add(object.name)
-            return true
-        })
+        ])
     }
 
     private static item_key(object: GridObject): string {
@@ -59,10 +121,13 @@ export class Collection {
         return count
     }
 
-    public static load_all_items(): [GridObject, number][] {
-        const all_items = this.get_all_items()
-        const entries: [GridObject, number][] = []
-        all_items.forEach((item) => {
+    public static load_all_items(): CollectionEntry[] {
+        return this.load_items(this.get_all_items())
+    }
+
+    public static load_items(items: GridObject[]): CollectionEntry[] {
+        const entries: CollectionEntry[] = []
+        items.forEach((item) => {
             entries.push([ item, this.get_item_count(item) ])
         })
 
@@ -76,21 +141,26 @@ export class Collection {
         return new_count
     }
 
-    private static style_element(entry: [GridObject, CollectionEntry], element: HTMLElement): void {
-        element.id = 'collection-item'
-        element.innerText = entry[0].name + ": " + entry[1]
-        element.style.display = entry[1] > 0 ? "unset" : "none"
-    }
-
     public static create_collection_element(): HTMLElement {
         const element = document.createElement('div')
         element.id = 'collection'
-        const all_items = this.load_all_items()
-        all_items.forEach((item): void => {
-            const item_element = element.appendChild(document.createElement('p'))
-            this._object_element_map.set(item[0].name, item_element)
-            this.style_element(item, item_element)
-        })
+
+        const create_section = (objects: GridObject[], section_title: string): void => {
+            const section = new CollectionSection(
+                trim_duplicates(objects), section_title, this._item_sheet, element,
+                (new_name, new_element) => this._object_element_map.set(new_name, new_element)
+            )
+            this._object_section_map.push([ objects, section ])
+        }
+
+        create_section([ ...SMALL_SPHERES, ...LARGE_SPHERES ], "Spheres")
+        create_section(FOSSILS, "Fossils")
+        create_section(EVOLUTION_STONES, "Evolution Stones")
+        create_section(SHARDS, "Shards")
+        create_section(WEATHER_STONES, "Weather stones")
+        create_section(ITEMS, "Items")
+        create_section(PLATES, "Plates")
+
         return element
     }
 }

@@ -1,146 +1,203 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>DPP Mining</title>
-    <link rel="icon" type="image/x-icon" href="./assets/favicon.png">
-    <style>
 
-      :root {
-        --bright: 1.2;
-        --dark: 0;
-      }
+<head>
+  <meta charset="utf-8" />
+  <title>DPP Mining</title>
+  <link rel="icon" type="image/x-icon" href="./assets/favicon.png">
+  <style>
+    @font-face {
+      font-family: DPP;
+      src: url('./assets/font/pokemon-dp-pro.ttf');
+      size-adjust: 150%;
+    }
 
-      p, a, h1, h2, h3, h4, h5, h6, div, dl, dt, hr, li, ol, a, b, bdi, mark, s, span, button  {
-        font-family: 'Courier New', Courier, monospace;
-      }
+    :root {
+      --bright: 1.2;
+      --dark: 0;
+    }
 
-      button {
-        width: fit-content;
-      }
+    p,
+    a,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    div,
+    dl,
+    dt,
+    hr,
+    li,
+    ol,
+    a,
+    b,
+    bdi,
+    mark,
+    s,
+    span,
+    button {
+      font-family: DPP;
+      font-weight: normal;
+      text-shadow: 2px 2px 0px lightgray;
+      color: darkslategray;
+    }
 
-      .horizontal-spread {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        padding: 1em;
-      }
+    .inverted-text {
+      text-shadow: 2px 2px 0px darkslategray;
+      color: lightgray;
+    }
 
-      #main-content {
-        display: flex;
-        flex-direction: column;
-        justify-self: center;
-        width: fit-content;
-        margin: auto;
-      }
+    button {
+      width: fit-content;
+      height: fit-content;
+    }
 
-      #mining-grid {
-        display: grid;
-        width: fit-content;
-        height: fit-content;
-        position: absolute;
-      }
+    .horizontal-spread {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      padding: 1em;
+    }
 
-      #mining-cell {
-        display: grid;
-        align-content: center;
-        justify-content: center;
-      }
+    #main-content {
+      display: flex;
+      flex-direction: column;
+      justify-self: center;
+      width: fit-content;
+      margin: auto;
+    }
 
-      #mining-cell:hover {
-        filter: brightness(1.25) contrast(1.5);
-      }
+    #mining-grid {
+      display: grid;
+      width: fit-content;
+      height: fit-content;
+      position: absolute;
+    }
 
-      #mining-cell .sprite {
-        grid-area: 1 / 1;
-      }
+    #mining-cell {
+      display: grid;
+      align-content: center;
+      justify-content: center;
+    }
 
-      .sprite {
-        image-rendering: pixelated;
-      }
+    #mining-cell:hover {
+      filter: brightness(1.25) contrast(1.5);
+    }
 
-      .sprite.found {
-        animation: found 0.45s steps(1, end) 0s 1 forwards;;
-      }
-      
-      @keyframes found {
-        0% {
-          filter: brightness(var(--bright))
-        }
-        20% {
-          filter: brightness(var(--dark))
-        }
-        40% {
-          filter: brightness(var(--bright))
-        }
-        60% {
-          filter: brightness(var(--dark))
-        }
-        80% {
-          filter: brightness(var(--bright))
-        }
-        100% {
-          filter: brightness(1)
-        }
-      }
+    #mining-cell .sprite {
+      grid-area: 1 / 1;
+    }
 
-      #hammer {
-        position: absolute;
-        z-index: 10;
-        pointer-events: none;
-      }
+    .sprite {
+      image-rendering: pixelated;
+    }
 
-      #hammer-button {
-        position: absolute;
-      }
+    .sprite.found {
+      animation: found 0.45s steps(1, end) 0s 1 forwards;
+      ;
+    }
 
-      #overlay {        
-        width: 100%;
-        height: 100%;
-        float: inline-end;
-        display: inline;
-        position: relative;
-        z-index: 2;
-        pointer-events: none;
-      }
-
-      #overlay * {
-        pointer-events: all;
+    @keyframes found {
+      0% {
+        filter: brightness(var(--bright))
       }
 
-      .overlay-element {
-        position: absolute;
+      20% {
+        filter: brightness(var(--dark))
       }
 
-      #health-bar {
-        position: absolute;
-        display: flex;
-        flex-direction: row-reverse;
-        align-items: center;
-        width: fit-content;
-        right: 0;
+      40% {
+        filter: brightness(var(--bright))
       }
 
-      .setting {
-        display: flex;
-        flex-direction: row;
-      }
-      
-      #collection {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        width: 700px;
+      60% {
+        filter: brightness(var(--dark))
       }
 
-      #collection-item {
-        padding: 0%;
-        margin: 0 1em 0 0;
+      80% {
+        filter: brightness(var(--bright))
       }
 
-    </style>
-  </head>
-  <body>
-    <h1 style="text-align: center;">Diamond, Pearl, and Platinum underground mining game simulator</h1>
-  </body>
+      100% {
+        filter: brightness(1)
+      }
+    }
+
+    #hammer {
+      position: absolute;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #hammer-button {
+      position: absolute;
+    }
+
+    #overlay {
+      width: 100%;
+      height: 100%;
+      float: inline-end;
+      display: inline;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #overlay * {
+      pointer-events: all;
+    }
+
+    .overlay-element {
+      position: absolute;
+    }
+
+    #health-bar {
+      position: absolute;
+      display: flex;
+      flex-direction: row-reverse;
+      align-items: center;
+      width: fit-content;
+      right: 0;
+    }
+
+    .setting {
+      display: flex;
+      flex-direction: row;
+    }
+
+    #collection {}
+
+    #collection-section {
+      display: flex;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 700px;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    #collection-item {
+      padding: 8px;
+      margin: 0 1em 0 0;
+      display: flex;
+      flex-direction: row;
+      background: cadetblue;
+      align-items: center;
+      border-style: solid;
+    }
+
+    #collection-sprite {}
+
+    #collection-text {
+      margin-right: 1em;
+    }
+  </style>
+</head>
+
+<body>
+  <h1 style="text-align: center;">Diamond, Pearl, and Platinum underground mining game simulator</h1>
+</body>
+
 </html>

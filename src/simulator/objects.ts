@@ -58,6 +58,16 @@ export class GridObject {
     }
 }
 
+// Remove duplicates by name
+export function trim_duplicates(objects: GridObject[]): GridObject[] {
+    const existing_names = new Set<string>()
+    return objects.filter((object) => {
+        if (existing_names.has(object.name)) return false
+        existing_names.add(object.name)
+        return true
+    })
+}
+
 export const BEDROCK_OBJECTS = [
     new GridObject(
         new Vector2(1, 0), new Vector2(1, 3), ContentType.BEDROCK,
