@@ -1,8 +1,20 @@
 # DPP Mining
 A web version of the mining game found in the Sinnoh underground in Pokémon Diamond, Pearl, and Platinum.
 
+![Mining screenshot](/img/mining_screenshot.png)
+
 ## [Play it now!](https://krantzdev.com/dpp-mining/)
 The game is available now at https://krantzdev.com/dpp-mining/
+
+### Features
+
+- Everything that appears in the original mining game in the DS games
+
+Additionally:
+- A collection
+
+![Collection screenshot](/img/collection_screenshot.png)
+- A shared probability pool, combining all drop chances
 
 ### Todo:
 - [x] All available objects
