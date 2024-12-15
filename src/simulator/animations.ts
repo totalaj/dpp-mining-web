@@ -151,3 +151,37 @@ export class Hammer {
         }, GLOBAL_FRAME_RATE * (hammer_animation.length + 1))
     }
 }
+
+type TextAnimation = { skip: () => void, on_complete?: () => void, completed: boolean }
+export function animate_text(element: HTMLElement, text: string): TextAnimation {
+    const local_framerate = GLOBAL_FRAME_RATE / 2
+    const timeouts: NodeJS.Timeout[] = []
+    for (let index = 0; index < text.length; index++) {
+        const timeout = setTimeout(() => {
+            element.innerText = text.slice(0, index + 1)
+        }, local_framerate * index)
+        timeouts.push(timeout)
+    }
+    const return_value: TextAnimation = {
+        skip: (): void => {
+            timeouts.forEach((timeout) => {
+                clearTimeout(timeout)
+            })
+            final()
+        },
+        on_complete: undefined,
+        completed: false
+    }
+
+    const final = (): void => {
+        element.innerText = text
+        if (!return_value.completed) return_value.on_complete?.()
+    }
+
+    const final_timeout = setTimeout(() => {
+        final()
+    }, local_framerate * text.length)
+    timeouts.push(final_timeout)
+
+    return return_value
+}

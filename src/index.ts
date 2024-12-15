@@ -1,4 +1,5 @@
 
+import { animate_text } from "./simulator/animations"
 import { GameState, MiningGrid } from "./simulator/board"
 import { Collection } from "./simulator/collection"
 import { create_settings_element } from "./simulator/settings"
@@ -14,11 +15,11 @@ function component(): HTMLDivElement {
 
         grid.added_items.forEach((item) => {
             if (item.has_been_found) {
-                text += `<br>You obtained a ${item.object_ref.name}!`
+                text += `\nYou obtained a ${item.object_ref.name}!`
             }
         })
 
-        notification_text.innerHTML = text
+        animate_text(notification_text, text)
     })
 
     const lower_bar = element.appendChild(document.createElement('div'))
@@ -30,10 +31,10 @@ function component(): HTMLDivElement {
     reset_button.innerText = "New board"
     reset_button.onclick = (): void => {
         grid.reset_board()
-        notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
+        animate_text(notification_text, `Something pinged in the wall!\n${grid.added_items.length} confirmed!`)
     }
 
-    notification_text.innerHTML = `Something pinged in the wall!<br>${grid.added_items.length} confirmed!`
+    animate_text(notification_text, `Something pinged in the wall!\n${grid.added_items.length} confirmed!`)
 
     // element.appendChild(create_sprite_debugger(new SpriteSheet(5, './assets/health_bar.png', new Vector2(128, 128), 3), 24, 20))
 
