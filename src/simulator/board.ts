@@ -424,13 +424,19 @@ export class MiningGrid {
 
         for (let index = 0; index < item_count; index++) {
             // Filter out plates that have already been added
-            const disallowed_items = this.added_items.filter((item) => PLATES.includes(item.object_ref))
+            const disallowed_items: GridObject[] = [
+                ...this.added_items.filter((item) => PLATES.includes(item.object_ref)).map((item) => item.object_ref), // No duplicate of plates
+                ...PLATES.filter((item) => Collection.get_item_count(item) > 0) // No already found plates
+            ]
+
+            console.log("Disallowed items", disallowed_items)
 
             let found_item: GridObject
 
             do {
                 found_item = random_item()
-            } while (disallowed_items.some((item) => found_item === item.object_ref))
+                console.log("Disallowed?", found_item.name, disallowed_items.includes(found_item))
+            } while (disallowed_items.some((item) => found_item === item))
 
             const result = this.try_add_object_at_random_valid_position(found_item)
             if (result) {
