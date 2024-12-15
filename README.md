@@ -15,11 +15,11 @@ The game is available now at https://krantzdev.com/dpp-mining/
 - [x] Effect for hammers, hitting with big, hitting with small, and hitting bedrock
 - [x] Animations for hammer
 - [x] Unearthing object
-- [ ] Listing objects unearthed
-- [ ] Announcing objects found (initial ping)
+- [x] Listing objects unearthed
+- [x] Announcing objects found (initial ping)
 - [ ] Sound effects?
 - [x] Collection
-    - [ ] Singleton collection, for plates
+    - [x] Singleton collection, for plates
 - [ ] Version difference?
 
 Various ideas:
