@@ -63,6 +63,10 @@
       color: var(--text-dark);
     }
 
+    body {
+      margin: 0;
+    }
+
     .inverted-text {
       text-shadow: 1px 1px 0px var(--text-invert-shadow), 2px 2px 0px var(--text-invert-shadow);
       color: var(--text-invert);
@@ -186,7 +190,9 @@
       flex-direction: row;
     }
 
-    #collection {}
+    #collection {
+      padding: 4em 20%;
+    }
 
     #collection-section {
       display: flex;
@@ -211,6 +217,13 @@
 
     #collection-text {
       margin-right: 1em;
+    }
+
+    .collection-title {
+      background: var(--background-color-invert);
+      width: fit-content;
+      height: fit-content;
+      padding: 4px 32px 4px 4px;
     }
   </style>
 </head>

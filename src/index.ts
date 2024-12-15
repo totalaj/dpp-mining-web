@@ -40,9 +40,8 @@ function component(): HTMLDivElement {
 
     element.appendChild(create_settings_element())
 
-    element.appendChild(Collection.create_collection_element())
-
     return element
 }
 
 document.body.appendChild(component())
+document.body.appendChild(Collection.create_collection_element())

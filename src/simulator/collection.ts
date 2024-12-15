@@ -25,6 +25,7 @@ class CollectionSection {
     ) {
         this._title = parent_element.appendChild(document.createElement('h3'))
         this._title.innerText = section_title
+        this._title.className = "collection-title inverted-text"
 
         this._section = parent_element.appendChild(document.createElement('div'))
         this._section.id = 'collection-section'
@@ -145,6 +146,40 @@ export class Collection {
         const element = document.createElement('div')
         element.id = 'collection'
 
+        const title = element.appendChild(document.createElement('h2'))
+        title.innerText = "Collection"
+
+        // Style background
+        const colors = [
+            "#D6C6BD",
+            "#D6C6BD",
+            "#C6B5AD",
+            "#8C7B73",
+            "#847363",
+            "#635A4A",
+            "#5A4A42",
+            "#5A4A42",
+            "#634A39",
+            "#634A39",
+            "#4A3929",
+            "#4A3929",
+            "#4A3929",
+            "#392918",
+            "#392918",
+            "#392918",
+            "#392918"
+        ]
+
+        let background_style = 'linear-gradient(to bottom'
+        for (let index = 0; index < colors.length; index++) {
+            const color = colors[index]
+            const prev_alpha = (index) / colors.length
+            const alpha = (index + 1) / colors.length
+            background_style += `, ${color} ${Math.floor(prev_alpha * 100)}% ${Math.floor(alpha * 100)}%`
+        }
+
+        element.style.background = background_style
+
         const create_section = (objects: GridObject[], section_title: string): void => {
             const section = new CollectionSection(
                 trim_duplicates(objects), section_title, this._item_sheet, element,
@@ -154,11 +189,11 @@ export class Collection {
         }
 
         create_section([ ...SMALL_SPHERES, ...LARGE_SPHERES ], "Spheres")
-        create_section(FOSSILS, "Fossils")
-        create_section(EVOLUTION_STONES, "Evolution Stones")
-        create_section(SHARDS, "Shards")
-        create_section(WEATHER_STONES, "Weather stones")
         create_section(ITEMS, "Items")
+        create_section(EVOLUTION_STONES, "Evolution Stones")
+        create_section(WEATHER_STONES, "Weather stones")
+        create_section(FOSSILS, "Fossils")
+        create_section(SHARDS, "Shards")
         create_section(PLATES, "Plates")
 
         return element
