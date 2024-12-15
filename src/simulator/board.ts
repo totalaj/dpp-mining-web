@@ -193,6 +193,7 @@ export class MiningGrid {
         this._transition_element = value
     }
     private _game_over_internal: () => void
+    private _game_over_timeout?: NodeJS.Timeout
 
     constructor(private _parent: HTMLDivElement, on_game_end: (state: GameState) => void) {
         this._game_over_internal = (): void => {
@@ -205,9 +206,7 @@ export class MiningGrid {
                 }
             })
 
-            this._shake_timeouts.forEach((timeout: NodeJS.Timeout) => {
-                clearTimeout(timeout)
-            })
+            this.clear_screen_shakes()
 
             const failed_transition_duration = 2000
             if (this.game_state.failed) {
@@ -215,7 +214,7 @@ export class MiningGrid {
                 this.screen_shake(screen_shake_duration, 3)
             }
 
-            setTimeout(() => {
+            this._game_over_timeout = setTimeout(() => {
                 if (this.game_state.failed) {
                     this.transition_element = shutter_animation(this._background_sprite.element, true)
                 }
@@ -290,7 +289,16 @@ export class MiningGrid {
         this.game_state = new GameState(this._health_bar)
     }
 
+    private clear_screen_shakes(): void {
+        this._shake_timeouts.forEach((timeout: NodeJS.Timeout) => {
+            clearTimeout(timeout)
+        })
+        this._shake_timeouts.length = 0
+    }
+
     public reset_board(): void {
+        clearTimeout(this._game_over_timeout)
+        this.clear_screen_shakes()
         this.clear_board()
         this.setup_terrain()
         this.populate_board()
