@@ -23,6 +23,8 @@
       --text-dark-shadow: #ADBDBD;
       --text-invert: #FFFFFF;
       --text-invert-shadow: #AE9EBE;
+      --text-highlight: #FFFF73;
+      --text-highlight-shadow: #393939
     }
 
     p,
@@ -275,6 +277,11 @@
       font-size: 2em;
       pointer-events: none;
       user-select: none;
+    }
+
+    .highlight {
+      text-shadow: 1px 1px 0px var(--text-highlight-shadow), 2px 2px 0px var(--text-highlight-shadow);
+      color: var(--text-highlight);
     }
   </style>
 </head>

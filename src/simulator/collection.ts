@@ -20,27 +20,35 @@ class CollectionSection {
     private _section: HTMLElement
 
     constructor(
-        objects: GridObject[], section_title: string, sprite_sheet: SpriteSheet, parent_element: HTMLElement,
+        private _objects: GridObject[], private _section_title: string, sprite_sheet: SpriteSheet, parent_element: HTMLElement,
         register_collection_element: (name: string, element: CollectionElement) => void
     ) {
         this._title = parent_element.appendChild(document.createElement('h3'))
-        this._title.innerText = section_title
         this._title.className = "collection-title inverted-text"
 
         this._section = parent_element.appendChild(document.createElement('div'))
         this._section.id = 'collection-section'
 
-        const loaded_items = Collection.load_items(objects)
+        const loaded_items = Collection.load_items(this._objects)
         loaded_items.forEach((item): void => {
             const collection_element = new CollectionElement(item[0], sprite_sheet, this._section)
             register_collection_element(item[0].name, collection_element)
             collection_element.update_style(item)
         })
 
-        this.update_visibility(loaded_items.some((entry) => entry[1] > 0))
+        this.update_style(loaded_items.some((entry) => entry[1] > 0))
     }
 
-    public update_visibility(visible: boolean): void {
+    public update_style(visible: boolean): void {
+        let count = 0
+        this._objects.forEach((object) => {
+            if (Collection.get_item_count(object) > 0) {
+                count++
+            }
+        })
+
+        this._title.innerText = `${this._section_title} (${count}/${this._objects.length})`
+        if (count === this._objects.length) this._title.className = "collection-title highlight"
         this._title.style.display = visible ? "" : "none"
         this._section.style.display = visible ? "" : "none"
     }
@@ -86,7 +94,7 @@ export class Collection {
         const element = this._object_element_map.get(object.name)!
         element.update_style([ object, count ])
         this._object_section_map.filter((objects) => objects[0].includes(object)).forEach((section) => {
-            section[1].update_visibility(true)
+            section[1].update_style(true)
         })
     }
 
