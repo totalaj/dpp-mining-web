@@ -15,6 +15,14 @@
     :root {
       --bright: 1.2;
       --dark: 0;
+      --background-color: #FFFFFF;
+      --background-color-invert: #382859;
+      --text-color: #52525A;
+      --text-shadow: #A5A5AD;
+      --text-dark: #101821;
+      --text-dark-shadow: #ADBDBD;
+      --text-invert: #FFFFFF;
+      --text-invert-shadow: #AE9EBE;
     }
 
     p,
@@ -40,13 +48,24 @@
     button {
       font-family: DPP;
       font-weight: normal;
-      text-shadow: 2px 2px 0px lightgray;
-      color: darkslategray;
+      text-shadow: 1px 1px 0px var(--text-shadow), 2px 2px 0px var(--text-shadow);
+      color: var(--text-color);
+    }
+
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      text-shadow: 1px 1px 0px var(--text-dark-shadow), 2px 2px 0px var(--text-dark-shadow);
+      color: var(--text-dark);
     }
 
     .inverted-text {
-      text-shadow: 2px 2px 0px darkslategray;
-      color: lightgray;
+      text-shadow: 1px 1px 0px var(--text-invert-shadow), 2px 2px 0px var(--text-invert-shadow);
+      color: var(--text-invert);
     }
 
     button {
@@ -183,7 +202,7 @@
       margin: 0 1em 0 0;
       display: flex;
       flex-direction: row;
-      background: cadetblue;
+      background: var(--background-color-invert);
       align-items: center;
       border-style: solid;
     }
