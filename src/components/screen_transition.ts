@@ -7,7 +7,7 @@ export function shutter_animation(parent_element: HTMLElement, direction: boolea
     const top_rect = element.appendChild(document.createElement('div'))
     top_rect.className = "overlay-element"
     top_rect.style.background = 'black'
-    top_rect.style.height = '50%'
+    top_rect.style.height = `${direction ? 0 : 100}%`
     top_rect.style.width = '100%'
 
     for (let index = 0; index < SHUTTER_ANIMATION_FRAMES; index++) {
@@ -31,6 +31,7 @@ export function circle_animation(parent_element: HTMLElement, direction: boolean
     top_rect.style.height = '100%'
     top_rect.style.width = '100%'
     top_rect.style.pointerEvents = direction ? 'none' : 'initial'
+    top_rect.style.maskImage = `radial-gradient(circle, transparent ${direction ? 100 : 0}%, black ${direction ? 100 : 0}%)`
 
     for (let index = 0; index < CIRCLE_ANIMATION_FRAMES; index++) {
         let alpha = index / (CIRCLE_ANIMATION_FRAMES - 1)
