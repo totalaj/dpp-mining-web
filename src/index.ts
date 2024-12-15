@@ -1,9 +1,10 @@
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { animate_text } from "./simulator/animations"
 import { GameState, MiningGrid } from "./simulator/board"
 import { Collection } from "./simulator/collection"
 import { create_settings_element } from "./simulator/settings"
-// eslint-disable-next-line
+import { Vector2 } from "./math"
+import { SpriteSheet } from "./components/sprite"
 import { create_sprite_debugger } from "./utils/sprite_debug"
 
 function component(): HTMLDivElement {
@@ -36,12 +37,12 @@ function component(): HTMLDivElement {
 
     animate_text(notification_text, `Something pinged in the wall!\n${grid.added_items.length} confirmed!`)
 
-    // element.appendChild(create_sprite_debugger(new SpriteSheet(5, './assets/health_bar.png', new Vector2(128, 128), 3), 24, 20))
+    // element.appendChild(create_sprite_debugger(new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 1), 64, 64))
 
-    element.appendChild(create_settings_element())
 
     return element
 }
 
 document.body.appendChild(component())
-document.body.appendChild(Collection.create_collection_element())
+const COLLECTION = document.body.appendChild(Collection.create_collection_element())
+COLLECTION.appendChild(create_settings_element())

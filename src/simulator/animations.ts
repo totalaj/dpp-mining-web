@@ -152,7 +152,7 @@ export class Hammer {
     }
 }
 
-type TextAnimation = { skip: () => void, on_complete?: () => void, completed: boolean }
+export type TextAnimation = { skip: () => void, on_complete?: () => void, completed: boolean }
 export function animate_text(element: HTMLElement, text: string): TextAnimation {
     const local_framerate = GLOBAL_FRAME_RATE / 2
     const timeouts: NodeJS.Timeout[] = []
@@ -175,7 +175,10 @@ export function animate_text(element: HTMLElement, text: string): TextAnimation 
 
     const final = (): void => {
         element.innerText = text
-        if (!return_value.completed) return_value.on_complete?.()
+        if (!return_value.completed) {
+            return_value.completed = true
+            return_value.on_complete?.()
+        }
     }
 
     const final_timeout = setTimeout(() => {

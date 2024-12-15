@@ -4,7 +4,7 @@ import * as Noise from 'ts-perlin-simplex'
 import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
-import { GLOBAL_FRAME_RATE, Hammer, HammerType } from "./animations"
+import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, TextAnimation } from "./animations"
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
@@ -165,6 +165,25 @@ class HealthBar {
         const remainder_sprite = this.HEALTH_REMAINDER_TILES[remainder]
 
         this._segments.push(new Sprite(this._inner_element, this._sprite_sheet, remainder_sprite.from, remainder_sprite.to))
+    }
+}
+
+class MessageBox {
+    public animated_text: TextAnimation
+    private _sprite: Sprite
+
+    constructor(parent_element: HTMLElement, text: string) {
+        this._sprite = new Sprite(parent_element, GridObject.object_sheet, new Vector2(14, 39), new Vector2(29, 41))
+        set_translation(this._sprite.element, GridObject.object_sheet.tile_size, 0, 9)
+        const text_element = this._sprite.element.appendChild(document.createElement('div'))
+        text_element.id = 'message-text'
+        text_element.className = 'inverted-text'
+        set_translation(text_element, GridObject.object_sheet.tile_size, 1, (2 / 8))
+        this.animated_text = animate_text(text_element, text)
+    }
+
+    public dispose(): void {
+        this._sprite.dispose()
     }
 }
 
@@ -396,11 +415,46 @@ export class MiningGrid {
             }
         }
 
+        this.display_messages([ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
+
         const bedrock_count = Math.floor(Math.pow(Math.random() * 8, 0.5)) + 4
 
         for (let index = 0; index < bedrock_count; index++) {
             this.try_add_object_at_random_valid_position(random_element(BEDROCK_OBJECTS))
         }
+    }
+
+    private display_messages(messages: string[], instant: boolean = false): void {
+        const overlay = this._background_sprite.element.appendChild(document.createElement('div'))
+        overlay.style.zIndex = '10'
+        overlay.id = 'message-overlay'
+        let current_message: MessageBox | undefined = undefined
+        overlay.onclick = (): void => {
+            console.log("Click")
+            if (current_message) {
+                if (current_message.animated_text.completed) {
+                    next_message()
+                }
+                else {
+                    console.log("Skipping")
+                    current_message.animated_text.skip()
+                }
+            }
+        }
+        let index = 0
+        function next_message(): void {
+            console.log("Starting message", index)
+            if (index >= messages.length) {
+                overlay.remove()
+            }
+            else {
+                if (current_message) current_message.dispose()
+                current_message = new MessageBox(overlay, messages[index])
+                if (instant) current_message.animated_text.skip()
+                index += 1
+            }
+        }
+        next_message()
     }
 
     private get_object_positions(object: GridObject, position: Vector2): Vector2[] {
