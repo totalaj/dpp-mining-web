@@ -65,6 +65,19 @@
 
     body {
       margin: 0;
+      background-image: url("./assets/DS.png");
+      background-position-x: center;
+      background-size: calc(1920px* 1.4) calc(1080px* 1.4);
+      background-position-y: -307px;
+    }
+
+    .title {
+      text-align: center;
+      background: white;
+      border-style: outset;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .inverted-text {
@@ -82,6 +95,8 @@
       flex-direction: row;
       justify-content: space-evenly;
       padding: 1em;
+      margin-top: 1em;
+      margin-bottom: 3em;
     }
 
     #main-content {
@@ -164,7 +179,7 @@
       height: 100%;
       float: inline-end;
       display: inline;
-      position: relative;
+      position: absolute;
       z-index: 2;
       pointer-events: none;
     }
@@ -259,7 +274,7 @@
 </head>
 
 <body>
-  <h1 style="text-align: center;">Diamond, Pearl, and Platinum underground mining game simulator</h1>
+  <h1 style="text-align: center;" class="title">Diamond, Pearl, and Platinum underground mining game simulator</h1>
 </body>
 
 </html>

@@ -513,7 +513,6 @@ export const EVOLUTION_STONES = [
         new Rarity(2 / 2, 4 / 2, 3 / 2, 15 / 2), "Moon stone", // 0deg
         [ // Divide rarity by 2 since there are 2 instances
             [ false, true, true, true ],
-            [ true, true, true, true ],
             [ true, true, true, false ]
         ]
     ),

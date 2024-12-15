@@ -308,6 +308,13 @@ export class MiningGrid {
         this._grid_element.id = 'mining-grid'
         set_translation(this._grid_element, tile_size, 0, 2)
 
+        const shadow_overlay = this._background_sprite.element.appendChild(document.createElement('div'))
+        shadow_overlay.id = "overlay"
+        shadow_overlay.style.zIndex = '15'
+        shadow_overlay.style.boxShadow = 'inset 0 0 5em 1px rgb(0 0 0 / 78%), inset 0 0 1em 4px rgb(0 0 0)'
+        shadow_overlay.style.width = this._background_sprite.element.style.width
+        shadow_overlay.style.height = this._background_sprite.element.style.height
+
         this._hammer = new Hammer(this._grid_element, this._sprite_sheet)
 
         for (let x_index = 0; x_index < this.WIDTH; x_index++) {
@@ -318,7 +325,7 @@ export class MiningGrid {
             }
         }
 
-        // Setup dummy
+        // Setup dummy state
         this.game_state = new GameState(this._health_bar)
     }
 
@@ -337,6 +344,8 @@ export class MiningGrid {
         this.populate_board()
         this.game_state = new GameState(this._health_bar)
         this.transition_element = circle_animation(this._background_sprite.element, false)
+        this.transition_element.style.width = this._background_sprite.element.style.width
+        this.transition_element.style.height = this._background_sprite.element.style.height
         this.on_game_start?.(this.added_items)
     }
 
