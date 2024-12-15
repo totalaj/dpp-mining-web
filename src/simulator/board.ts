@@ -7,7 +7,7 @@ import { random_in_range } from "../utils/random"
 import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, TextAnimation } from "./animations"
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
-import { circle_animation, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
+import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
 import { Settings } from "./settings"
 import { Collection } from "./collection"
 
@@ -16,7 +16,7 @@ enum HitResult {
     BOTTOM
 }
 
-class ActiveObject {
+export class ActiveObject {
     public has_been_found: boolean = false
     constructor(public object_ref: GridObject, public position: Vector2) { }
 }
@@ -191,6 +191,8 @@ export class MiningGrid {
     public game_state: GameState
 
     public added_items: ActiveObject[] = []
+    public on_game_end?: (game_state: GameState) => void
+    public on_game_start?: (objects: ActiveObject[]) => void
 
     private readonly HEIGHT = 10
     private readonly WIDTH = 13
@@ -214,14 +216,16 @@ export class MiningGrid {
     private _game_over_internal: () => void
     private _game_over_timeout?: NodeJS.Timeout
 
-    constructor(private _parent: HTMLDivElement, on_game_end: (state: GameState) => void) {
+    constructor(private _parent: HTMLDivElement) {
         this._game_over_internal = (): void => {
             console.log("Game over internal", this.game_state)
-            on_game_end(this.game_state)
+            this.on_game_end?.(this.game_state)
 
+            const item_obtained_messages: string[] = []
             this.added_items.forEach((item) => {
                 if (item.has_been_found) {
                     Collection.add_item(item.object_ref)
+                    item_obtained_messages.push(`You obtained a ${item.object_ref.name}!`)
                 }
             })
 
@@ -231,16 +235,28 @@ export class MiningGrid {
             if (this.game_state.failed) {
                 const screen_shake_duration = ((failed_transition_duration) / GLOBAL_FRAME_RATE) + SHUTTER_ANIMATION_FRAMES + 1
                 this.screen_shake(screen_shake_duration, 3)
-            }
 
-            this._game_over_timeout = setTimeout(() => {
-                if (this.game_state.failed) {
+                this._game_over_timeout = setTimeout(() => {
                     this.transition_element = shutter_animation(this._background_sprite.element, true)
-                }
-                else {
-                    this.transition_element = circle_animation(this._background_sprite.element, true)
-                }
-            }, this.game_state.failed ? failed_transition_duration : 2500)
+                    setTimeout(() => {
+                        this.display_messages([ "The wall collapsed!", ...item_obtained_messages ]).on_completed = (): void => {
+                            setTimeout(() => {
+                                this.reset_board()
+                            }, 8 * GLOBAL_FRAME_RATE)
+                        }
+                    }, SHUTTER_ANIMATION_FRAMES * GLOBAL_FRAME_RATE)
+                }, failed_transition_duration)
+            }
+            else {
+                this._game_over_timeout = setTimeout(() => {
+                    this.display_messages([ "Everything was dug up!", ...item_obtained_messages ]).on_completed = (): void => {
+                        this.transition_element = circle_animation(this._background_sprite.element, true)
+                        setTimeout(() => {
+                            this.reset_board()
+                        }, (CIRCLE_ANIMATION_FRAMES + 8) * GLOBAL_FRAME_RATE)
+                    }
+                }, 1000)
+            }
         }
 
         this._container_element = this._parent.appendChild(document.createElement('div'))
@@ -302,9 +318,7 @@ export class MiningGrid {
             }
         }
 
-
-        this.setup_terrain()
-        this.populate_board()
+        // Setup dummy
         this.game_state = new GameState(this._health_bar)
     }
 
@@ -323,6 +337,7 @@ export class MiningGrid {
         this.populate_board()
         this.game_state = new GameState(this._health_bar)
         this.transition_element = circle_animation(this._background_sprite.element, false)
+        this.on_game_start?.(this.added_items)
     }
 
     public set_hammer_type(hammer_type: HammerType): void {
@@ -424,7 +439,8 @@ export class MiningGrid {
         }
     }
 
-    private display_messages(messages: string[], instant: boolean = false): void {
+    private display_messages(messages: string[], instant: boolean = false): { on_completed?: () => void } {
+        const return_value: { on_completed?: () => void } = { on_completed: undefined }
         const overlay = this._background_sprite.element.appendChild(document.createElement('div'))
         overlay.style.zIndex = '10'
         overlay.id = 'message-overlay'
@@ -445,6 +461,7 @@ export class MiningGrid {
         function next_message(): void {
             console.log("Starting message", index)
             if (index >= messages.length) {
+                return_value.on_completed?.()
                 overlay.remove()
             }
             else {
@@ -455,6 +472,8 @@ export class MiningGrid {
             }
         }
         next_message()
+
+        return return_value
     }
 
     private get_object_positions(object: GridObject, position: Vector2): Vector2[] {

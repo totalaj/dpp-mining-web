@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { animate_text } from "./simulator/animations"
-import { GameState, MiningGrid } from "./simulator/board"
+import { ActiveObject, GameState, MiningGrid } from "./simulator/board"
 import { Collection } from "./simulator/collection"
 import { create_settings_element } from "./simulator/settings"
 import { Vector2 } from "./math"
@@ -11,35 +11,22 @@ function component(): HTMLDivElement {
     const element = document.createElement('div')
     element.id = 'main-content'
 
-    const grid = new MiningGrid(element, (game_state: GameState) => {
-        let text = game_state.failed ? "The wall collapsed!" : "Everything was dug up!"
-
-        grid.added_items.forEach((item) => {
-            if (item.has_been_found) {
-                text += `\nYou obtained a ${item.object_ref.name}!`
-            }
-        })
-
-        animate_text(notification_text, text)
-    })
+    const grid = new MiningGrid(element)
 
     const lower_bar = element.appendChild(document.createElement('div'))
     lower_bar.className = 'horizontal-spread'
 
-    const notification_text = lower_bar.appendChild(document.createElement('p'))
-    const reset_button = lower_bar.appendChild(document.createElement('button'))
+    const text = lower_bar.appendChild(document.createElement('h2'))
 
-    reset_button.innerText = "New board"
-    reset_button.onclick = (): void => {
-        grid.reset_board()
-        animate_text(notification_text, `Something pinged in the wall!\n${grid.added_items.length} confirmed!`)
+    grid.on_game_start = (objects: ActiveObject[]): void => {
+        text.innerText = `${objects.length} items detected`
     }
 
-    animate_text(notification_text, `Something pinged in the wall!\n${grid.added_items.length} confirmed!`)
+    grid.on_game_end = (): void => {
+        text.innerText = ''
+    }
 
-    // element.appendChild(create_sprite_debugger(new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 1), 64, 64))
-
-
+    grid.reset_board()
     return element
 }
 

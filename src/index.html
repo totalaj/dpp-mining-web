@@ -80,7 +80,7 @@
     .horizontal-spread {
       display: flex;
       flex-direction: row;
-      justify-content: space-between;
+      justify-content: space-evenly;
       padding: 1em;
     }
 
@@ -156,6 +156,7 @@
 
     #hammer-button {
       position: absolute;
+      cursor: pointer;
     }
 
     #overlay {
@@ -251,6 +252,8 @@
 
     #message-text {
       font-size: 2em;
+      pointer-events: none;
+      user-select: none;
     }
   </style>
 </head>
