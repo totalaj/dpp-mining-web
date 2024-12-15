@@ -185,11 +185,6 @@
       right: 0;
     }
 
-    .setting {
-      display: flex;
-      flex-direction: row;
-    }
-
     #collection {
       padding: 4em 20%;
     }
@@ -210,7 +205,8 @@
       flex-direction: row;
       background: var(--background-color-invert);
       align-items: center;
-      border-style: solid;
+      border-style: inset;
+      border-color: var(--background-color-invert);
     }
 
     #collection-sprite {}
@@ -224,6 +220,27 @@
       width: fit-content;
       height: fit-content;
       padding: 4px 32px 4px 4px;
+      border-style: outset;
+      border-color: var(--background-color-invert);
+    }
+
+    #settings {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      background: var(--background-color-invert);
+      padding-right: 1em;
+      border: var(--background-color-invert);
+      border-style: outset;
+    }
+
+    .setting {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .setting-text {
+      margin: 0;
     }
   </style>
 </head>

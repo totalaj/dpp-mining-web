@@ -56,11 +56,13 @@ function create_boolean_input(parent_element: HTMLElement, default_value: boolea
 
     const text_element = element.appendChild(document.createElement('p'))
     text_element.innerText = text
+    text_element.className = "setting-text inverted-text"
     return input_element
 }
 
 export function create_settings_element(): HTMLElement {
     const settings_element = document.createElement('div')
+    settings_element.id = "settings"
 
     const freeplay = create_boolean_input(settings_element, !!Settings.freeplay, "Freeplay")
     freeplay.oninput = (): void => { Settings.freeplay = freeplay.checked }
