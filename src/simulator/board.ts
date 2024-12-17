@@ -233,6 +233,7 @@ export class MiningGrid {
         if (!Progress.postgame) {
             const progress_bar_update = this.update_progress_bar()
             if (progress_bar_update) {
+                Progress.postgame = true
                 // Enter postgame, play some animation
             }
         }
