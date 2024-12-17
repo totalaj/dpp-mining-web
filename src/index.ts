@@ -50,8 +50,8 @@ function get_version_text(version?: GameVersion): string {
 }
 
 document.body.appendChild(ELEMENT)
-const COLLECTION = document.body.appendChild(Collection.create_collection_element())
-COLLECTION.appendChild(create_settings_element())
+document.body.appendChild(Collection.create_collection_element())
+document.body.appendChild(create_settings_element())
 
 if (Progress.has_selected_version) {
     TITLE.innerText = get_version_text(Settings.game_version)
