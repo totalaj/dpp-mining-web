@@ -1,3 +1,4 @@
+import { SMALL_SPHERES, LARGE_SPHERES, FOSSILS, EVOLUTION_STONES, SHARDS, WEATHER_STONES, ITEMS, PLATES } from "./objects"
 
 export enum GameVersion {
     DIAMOND = 'Diamond',
@@ -81,15 +82,19 @@ export class Settings {
     public static random_version_parity: boolean
 
     public static get_lootpool(): LootPool {
-        switch (this.game_version) {
+        return this.calculate_lootpool(Settings.game_version, Progress.postgame, this.random_version_parity)
+    }
+
+    public static calculate_lootpool(version: GameVersion, postgame: boolean, parity: boolean): LootPool {
+        switch (version) {
             case GameVersion.DIAMOND:
-                return Progress.postgame ? LootPool.POST_DEX_DIAMOND : LootPool.PRE_DEX_DIAMOND
+                return postgame ? LootPool.POST_DEX_DIAMOND : LootPool.PRE_DEX_DIAMOND
             case GameVersion.PEARL:
-                return Progress.postgame ? LootPool.POST_DEX_PEARL : LootPool.PRE_DEX_PEARL
+                return postgame ? LootPool.POST_DEX_PEARL : LootPool.PRE_DEX_PEARL
             case GameVersion.PLATINUM:
-                return this.random_version_parity
-                    ? (Progress.postgame ? LootPool.POST_DEX_DIAMOND : LootPool.PRE_DEX_DIAMOND)
-                    : (Progress.postgame ? LootPool.POST_DEX_PEARL : LootPool.PRE_DEX_PEARL)
+                return parity
+                    ? (postgame ? LootPool.POST_DEX_DIAMOND : LootPool.PRE_DEX_DIAMOND)
+                    : (postgame ? LootPool.POST_DEX_PEARL : LootPool.PRE_DEX_PEARL)
             default:
                 return LootPool.ALL
         }
@@ -136,6 +141,35 @@ export function create_settings_element(): HTMLElement {
 
     const reset_button = create_button_input(settings_element, 'CLEAR ALL DATA')
     reset_button.onclick = (): void => { window.localStorage.clear() }
+
+    const debug_print = create_button_input(settings_element, 'Print drop chances')
+    debug_print.onclick = (): void => {
+        // const loot_pool = Settings.calculate_lootpool(GameVersion.DIAMOND, true, false)
+        const loot_pool = LootPool.ALL
+        const all_items = [ ...SMALL_SPHERES, ...LARGE_SPHERES, ...FOSSILS, ...EVOLUTION_STONES, ...SHARDS, ...WEATHER_STONES, ...ITEMS, ...PLATES ]
+        let total_chance = 0
+        all_items.forEach((item) => {
+            total_chance += item.rarity.get_rate(loot_pool)
+        })
+
+        all_items.sort((a, b) => b.rarity.get_rate(loot_pool) - a.rarity.get_rate(loot_pool))
+
+        console.log("Total weight:", total_chance)
+
+        all_items.forEach((item) => {
+            const weight = item.rarity.get_rate(loot_pool)
+            const alpha = weight / total_chance
+            const per_board_chance = 1 - Math.pow(1 - alpha, 3)
+            const percentage = alpha * 100
+            const percentage_text = `${Math.floor(percentage * 100) / 100}%`
+            if (weight > 0) {
+                console.log(`Chance of ${item.name}:`, weight, `${percentage_text}, about 1 in ${Math.floor(1 / per_board_chance)} in a board`)
+            }
+            else {
+                console.log(`Chance of ${item.name}:`, weight, `${percentage_text}, not available in the ${LootPool[loot_pool]} loot pool`)
+            }
+        })
+    }
 
     return settings_element
 }

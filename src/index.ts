@@ -15,21 +15,6 @@ const GRID = new MiningGrid(ELEMENT)
 const LOWER_BAR = ELEMENT.appendChild(document.createElement('div'))
 LOWER_BAR.className = 'horizontal-spread'
 
-const TEXT = LOWER_BAR.appendChild(document.createElement('h2'))
-TEXT.style.background = 'white'
-TEXT.style.minWidth = '13em'
-TEXT.style.textAlign = 'center'
-TEXT.style.borderStyle = 'inset'
-TEXT.innerHTML = '&zwnj;'
-
-GRID.on_game_start = (objects: ActiveObject[]): void => {
-    TEXT.innerText = `${objects.length} items detected`
-}
-
-GRID.on_game_end = (): void => {
-    TEXT.innerHTML = '&zwnj;'
-}
-
 const TITLE = document.body.appendChild(document.createElement('h1'))
 // style="text-align: center;" class="title"
 TITLE.style.textAlign = 'center'
@@ -65,6 +50,6 @@ if (Progress.has_selected_version) {
 }
 
 document.body.appendChild(ELEMENT)
+// document.body.appendChild(create_sprite_debugger(new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3), 32, 32))
 document.body.appendChild(Collection.create_collection_element())
 document.body.appendChild(create_settings_element())
-

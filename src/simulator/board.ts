@@ -11,6 +11,7 @@ import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_A
 import { GameVersion, Progress, Settings } from "./settings"
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
+import { ProgressBar } from "../components/progress_bar"
 
 enum HitResult {
     NORMAL,
@@ -199,6 +200,7 @@ export class MiningGrid {
     private readonly HEIGHT = 10
     private readonly WIDTH = 13
 
+    private _postgame_progress: ProgressBar
     private _container_element: HTMLDivElement
     private _sprite_sheet: SpriteSheet
     private _grid_element: HTMLDivElement
@@ -218,6 +220,8 @@ export class MiningGrid {
     private game_over_internal(): void {
         this.on_game_end?.(this.game_state)
 
+        this.clear_screen_shakes()
+
         const item_obtained_messages: string[] = []
         this.added_items.forEach((item) => {
             if (item.has_been_found) {
@@ -225,7 +229,13 @@ export class MiningGrid {
                 item_obtained_messages.push(`You obtained ${item.object_ref.genus} ${item.object_ref.name}!`)
             }
         })
-        this.clear_screen_shakes()
+
+        if (!Progress.postgame) {
+            const progress_bar_update = this.update_progress_bar()
+            if (progress_bar_update) {
+                // Enter postgame, play some animation
+            }
+        }
 
         const failed_transition_duration = 2000
         if (this.game_state.failed) {
@@ -328,6 +338,29 @@ export class MiningGrid {
             }
         }
 
+
+        const text = this._parent.appendChild(document.createElement('h2'))
+        text.style.background = 'white'
+        text.style.minWidth = '13em'
+        text.style.textAlign = 'center'
+        text.style.borderStyle = 'inset'
+        text.innerHTML = '&zwnj;'
+
+        this.on_game_start = (objects: ActiveObject[]): void => {
+            text.innerText = `${objects.length} items detected`
+        }
+
+        this.on_game_end = (): void => {
+            text.innerHTML = '&zwnj;'
+        }
+
+        const postgame_progress_title = this._parent.appendChild(document.createElement('h2'))
+        postgame_progress_title.className = 'inverted-text'
+        postgame_progress_title.innerText = 'Item types discovered'
+
+        this._postgame_progress = new ProgressBar(this._parent, 7, this._sprite_sheet)
+        this.update_progress_bar()
+
         // Setup dummy state
         this.game_state = new GameState(this._health_bar)
     }
@@ -337,6 +370,33 @@ export class MiningGrid {
             clearTimeout(timeout)
         })
         this._shake_timeouts.length = 0
+    }
+
+    private update_progress_bar(): boolean {
+        let category_count = 0, total_count = 0
+
+        function found_any(objects: GridObject[]): void {
+            total_count++
+            for (let index = 0; index < objects.length; index++) {
+                const element = objects[index]
+                if (Collection.get_item_count(element) > 0) {
+                    category_count++
+                    return
+                }
+            }
+        }
+
+        found_any([ ...SMALL_SPHERES, ...LARGE_SPHERES ])
+        found_any(FOSSILS)
+        found_any(EVOLUTION_STONES)
+        found_any(SHARDS)
+        found_any(WEATHER_STONES)
+        found_any(ITEMS)
+        found_any(PLATES)
+
+        this._postgame_progress.set_progress(category_count)
+
+        return category_count > total_count
     }
 
     public reset_board(): void {

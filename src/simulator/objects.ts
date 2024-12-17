@@ -19,22 +19,17 @@ class Rarity {
     }
 
     public get_rate(loot_pool: LootPool): number {
-        if (loot_pool !== undefined) {
-            switch (loot_pool) {
-                case LootPool.PRE_DEX_DIAMOND:
-                    return this.pre_dex_diamond
-                case LootPool.PRE_DEX_PEARL:
-                    return this.pre_dex_pearl
-                case LootPool.POST_DEX_DIAMOND:
-                    return this.pre_dex_diamond
-                case LootPool.POST_DEX_PEARL:
-                    return this.pre_dex_pearl
-                default:
-                    return 1
-            }
-        }
-        else { // Return sum of all for debug purposes
-            return this.pre_dex_diamond + this.pre_dex_pearl + this.post_dex_diamond + this.post_dex_pearl
+        switch (loot_pool) {
+            case LootPool.PRE_DEX_DIAMOND:
+                return this.pre_dex_diamond
+            case LootPool.PRE_DEX_PEARL:
+                return this.pre_dex_pearl
+            case LootPool.POST_DEX_DIAMOND:
+                return this.post_dex_diamond
+            case LootPool.POST_DEX_PEARL:
+                return this.post_dex_pearl
+            default: // Fallback and ALL
+                return this.pre_dex_diamond + this.pre_dex_pearl + this.post_dex_diamond + this.post_dex_pearl
         }
     }
 }
@@ -197,7 +192,7 @@ export const SMALL_SPHERES = [
     ),
     new GridObject(
         new Vector2(15, 0), new Vector2(16, 1), ContentType.ITEM,
-        new Rarity(167, 194, 150, 164), "Small Red Sphere",
+        new Rarity(167, 194, 110, 164), "Small Red Sphere",
         [
             [ true, true ],
             [ true, true ]
@@ -205,7 +200,7 @@ export const SMALL_SPHERES = [
     ),
     new GridObject(
         new Vector2(17, 0), new Vector2(18, 1), ContentType.ITEM,
-        new Rarity(194, 167, 0, 0), "Small Blue Sphere",
+        new Rarity(194, 167, 150, 124), "Small Blue Sphere",
         [
             [ true, true ],
             [ true, true ]
