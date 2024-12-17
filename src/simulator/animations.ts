@@ -189,6 +189,39 @@ export function animate_text(element: HTMLElement, text: string): TextAnimation 
     return return_value
 }
 
+export function animate_remove_text(element: HTMLElement): TextAnimation {
+    const local_framerate = GLOBAL_FRAME_RATE / 2
+    const original_text = element.innerText
+
+    const timeouts: NodeJS.Timeout[] = []
+    for (let index = 0; index < original_text.length; index++) {
+        const timeout = setTimeout(() => {
+            element.innerText = original_text.slice(0, original_text.length - index)
+        }, local_framerate * index)
+        timeouts.push(timeout)
+    }
+    const return_value: TextAnimation = {
+        skip: (): void => { console.error("Skip not implemented for remove text") },
+        on_complete: undefined,
+        completed: false
+    }
+
+    const final = (): void => {
+        element.innerText = original_text
+        if (!return_value.completed) {
+            return_value.completed = true
+            return_value.on_complete?.()
+        }
+    }
+
+    const final_timeout = setTimeout(() => {
+        final()
+    }, local_framerate * original_text.length)
+    timeouts.push(final_timeout)
+
+    return return_value
+}
+
 export function play_item_found_spark(parent_element: HTMLElement, sprite_sheet: SpriteSheet): HTMLElement {
     // Spark animation
     /** 22 x 2

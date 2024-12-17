@@ -1,17 +1,11 @@
 import { SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
+import { LootPool } from "./settings"
 
 export enum ContentType {
     NOTHING = 0,
     ITEM = 1,
     BEDROCK = 2
-}
-
-export enum GameVersion {
-    PRE_DEX_DIAMOND = 0,
-    PRE_DEX_PEARL = 1,
-    POST_DEX_DIAMOND = 2,
-    POST_DEX_PEARL = 3
 }
 
 class Rarity {
@@ -24,16 +18,16 @@ class Rarity {
 
     }
 
-    public get_rate(version?: GameVersion): number {
-        if (version !== undefined) {
-            switch (version) {
-                case GameVersion.PRE_DEX_DIAMOND:
+    public get_rate(loot_pool: LootPool): number {
+        if (loot_pool !== undefined) {
+            switch (loot_pool) {
+                case LootPool.PRE_DEX_DIAMOND:
                     return this.pre_dex_diamond
-                case GameVersion.PRE_DEX_PEARL:
+                case LootPool.PRE_DEX_PEARL:
                     return this.pre_dex_pearl
-                case GameVersion.POST_DEX_DIAMOND:
+                case LootPool.POST_DEX_DIAMOND:
                     return this.pre_dex_diamond
-                case GameVersion.POST_DEX_PEARL:
+                case LootPool.POST_DEX_PEARL:
                     return this.pre_dex_pearl
                 default:
                     return 1

@@ -8,8 +8,9 @@ import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_sp
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
-import { Settings } from "./settings"
+import { GameVersion, LootPool, Progress, Settings } from "./settings"
 import { Collection } from "./collection"
+import { create_version_selector } from "./version_selector"
 
 enum HitResult {
     NORMAL,
@@ -193,6 +194,7 @@ export class MiningGrid {
     public added_items: ActiveObject[] = []
     public on_game_end?: (game_state: GameState) => void
     public on_game_start?: (objects: ActiveObject[]) => void
+    public on_version_selected?: (version: GameVersion) => void
 
     private readonly HEIGHT = 10
     private readonly WIDTH = 13
@@ -213,60 +215,56 @@ export class MiningGrid {
         if (this._transition_element) this._transition_element.remove()
         this._transition_element = value
     }
-    private _game_over_internal: () => void
+    private game_over_internal(): void {
+        console.log("Game over internal", this.game_state)
+        this.on_game_end?.(this.game_state)
+
+        const item_obtained_messages: string[] = []
+        this.added_items.forEach((item) => {
+            if (item.has_been_found) {
+                Collection.add_item(item.object_ref)
+                item_obtained_messages.push(`You obtained ${item.object_ref.genus} ${item.object_ref.name}!`)
+            }
+        })
+        this.clear_screen_shakes()
+
+        const failed_transition_duration = 2000
+        if (this.game_state.failed) {
+            const screen_shake_duration = ((failed_transition_duration) / GLOBAL_FRAME_RATE) + SHUTTER_ANIMATION_FRAMES + 1
+            this.screen_shake(screen_shake_duration, 3)
+
+            this._game_over_timeout = setTimeout(() => {
+                this.transition_element = shutter_animation(this._background_sprite.element, true)
+                setTimeout(() => {
+                    this.display_messages([ "The wall collapsed!", ...item_obtained_messages ]).on_completed = (): void => {
+                        setTimeout(() => {
+                            this.reset_board()
+                        }, 8 * GLOBAL_FRAME_RATE)
+                    }
+                }, SHUTTER_ANIMATION_FRAMES * GLOBAL_FRAME_RATE)
+            }, failed_transition_duration)
+        }
+        else {
+            this._game_over_timeout = setTimeout(() => {
+                this.display_messages([ "Everything was dug up!", ...item_obtained_messages ]).on_completed = (): void => {
+                    this.transition_element = circle_animation(this._background_sprite.element, true)
+                    setTimeout(() => {
+                        this.reset_board()
+                    }, (CIRCLE_ANIMATION_FRAMES + 8) * GLOBAL_FRAME_RATE)
+                }
+            }, 1000)
+        }
+    }
     private _game_over_timeout?: NodeJS.Timeout
 
     constructor(private _parent: HTMLDivElement) {
-        this._game_over_internal = (): void => {
-            console.log("Game over internal", this.game_state)
-            this.on_game_end?.(this.game_state)
-
-            const item_obtained_messages: string[] = []
-            this.added_items.forEach((item) => {
-                if (item.has_been_found) {
-                    Collection.add_item(item.object_ref)
-                    item_obtained_messages.push(`You obtained ${item.object_ref.genus} ${item.object_ref.name}!`)
-                }
-            })
-            this.clear_screen_shakes()
-
-            const failed_transition_duration = 2000
-            if (this.game_state.failed) {
-                const screen_shake_duration = ((failed_transition_duration) / GLOBAL_FRAME_RATE) + SHUTTER_ANIMATION_FRAMES + 1
-                this.screen_shake(screen_shake_duration, 3)
-
-                this._game_over_timeout = setTimeout(() => {
-                    this.transition_element = shutter_animation(this._background_sprite.element, true)
-                    setTimeout(() => {
-                        this.display_messages([ "The wall collapsed!", ...item_obtained_messages ]).on_completed = (): void => {
-                            setTimeout(() => {
-                                this.reset_board()
-                            }, 8 * GLOBAL_FRAME_RATE)
-                        }
-                    }, SHUTTER_ANIMATION_FRAMES * GLOBAL_FRAME_RATE)
-                }, failed_transition_duration)
-            }
-            else {
-                this._game_over_timeout = setTimeout(() => {
-                    this.display_messages([ "Everything was dug up!", ...item_obtained_messages ]).on_completed = (): void => {
-                        this.transition_element = circle_animation(this._background_sprite.element, true)
-                        setTimeout(() => {
-                            this.reset_board()
-                        }, (CIRCLE_ANIMATION_FRAMES + 8) * GLOBAL_FRAME_RATE)
-                    }
-                }, 1000)
-            }
-        }
-
         this._container_element = this._parent.appendChild(document.createElement('div'))
-        this._container_element.style.overflow = 'hidden'
+        this._container_element.id = 'board'
 
         this._sprite_sheet = new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3)
         const tile_size = this._sprite_sheet.tile_size
         this._background_sprite = new Sprite(this._container_element, this._sprite_sheet, new Vector2(5, 9), new Vector2(20, 20))
         this._background_sprite.element.style.zIndex = '-1'
-
-        this.transition_element = circle_animation(this._background_sprite.element, false)
 
         const light_hammer_button = new HammerButton(
             this._background_sprite.element, this._sprite_sheet, HammerType.LIGHT,
@@ -311,8 +309,6 @@ export class MiningGrid {
         shadow_overlay.id = "overlay"
         shadow_overlay.style.zIndex = '15'
         shadow_overlay.style.boxShadow = 'inset 0 0 5em 1px rgb(0 0 0 / 78%), inset 0 0 1em 4px rgb(0 0 0)'
-        shadow_overlay.style.width = this._background_sprite.element.style.width
-        shadow_overlay.style.height = this._background_sprite.element.style.height
 
         this._hammer = new Hammer(this._grid_element, this._sprite_sheet)
 
@@ -322,6 +318,18 @@ export class MiningGrid {
             for (let y_index = 0; y_index < this.HEIGHT; y_index++) {
                 this._cells[x_index].push(new Cell(this._grid_element, this._sprite_sheet, x_index + 1, y_index + 1, (x, y) => this.clicked_cell(x, y)))
             }
+        }
+
+        if (!Progress.has_selected_version) {
+            const version_selector = create_version_selector()
+            this._background_sprite.element.appendChild(version_selector.element)
+            version_selector.on_selected = (): void => {
+                this.on_version_selected?.(Settings.game_version ?? GameVersion.DIAMOND)
+                this.reset_board()
+            }
+        }
+        else {
+            this.reset_board()
         }
 
         // Setup dummy state
@@ -397,10 +405,12 @@ export class MiningGrid {
         // We're not going to do that, instead we're gonna get all valid positions and place in one of those at random
         // Also, all items can appear any amount of times EXCEPT Plates. So we do a reroll if that happens
 
+        console.log("Generating board with loot pool", LootPool[Settings.get_lootpool()])
+
         const all_items: GridObject[] = [ ...SMALL_SPHERES, ...LARGE_SPHERES, ...FOSSILS, ...EVOLUTION_STONES, ...SHARDS, ...WEATHER_STONES, ...ITEMS, ...PLATES ]
         let total_chance = 0
         all_items.forEach((item) => {
-            total_chance += item.rarity.get_rate()
+            total_chance += item.rarity.get_rate(Settings.get_lootpool())
         })
 
         function random_item(): GridObject {
@@ -409,7 +419,7 @@ export class MiningGrid {
 
             for (let index = 0; index < all_items.length; index++) {
                 const item = all_items[index]
-                accumulation += item.rarity.get_rate()
+                accumulation += item.rarity.get_rate(Settings.get_lootpool())
                 if (accumulation > roll) {
                     return item
                 }
@@ -604,7 +614,7 @@ export class MiningGrid {
             const all_found = this.added_items.every((item) => item.has_been_found)
             if (all_found) {
                 this.game_state.is_over = true
-                this._game_over_internal()
+                this.game_over_internal()
             }
         }
     }
@@ -673,7 +683,7 @@ export class MiningGrid {
             const health_result = this.game_state.reduce_health(this._hammer_type === HammerType.LIGHT ? 1 : 2)
 
             if (!health_result) {
-                this._game_over_internal()
+                this.game_over_internal()
             }
             else {
                 const damage_taken = GameState.MAX_HEALTH - this.game_state.health

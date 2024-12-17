@@ -1,4 +1,19 @@
-type SaveableValue = boolean | string | number
+
+export enum GameVersion {
+    DIAMOND = 'Diamond',
+    PEARL = 'Pearl',
+    PLATINUM = 'Platinum'
+}
+
+export enum LootPool {
+    PRE_DEX_DIAMOND = 0,
+    PRE_DEX_PEARL = 1,
+    POST_DEX_DIAMOND = 2,
+    POST_DEX_PEARL = 3,
+    ALL = 4
+}
+
+type SaveableValue = boolean | string | number | Enumerator<string>
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export function Saveable(key: string, default_value: SaveableValue) {
     return (target: any, property_key: string): void => {
@@ -15,6 +30,11 @@ export function Saveable(key: string, default_value: SaveableValue) {
                     else if (type === 'number') {
                         value = Number.parseFloat(item)
                     }
+                    else if (type === 'object') {
+                        console.log(item)
+                        value = item.toString()
+                        console.log(item)
+                    }
                     else {
                         value = item
                     }
@@ -27,7 +47,12 @@ export function Saveable(key: string, default_value: SaveableValue) {
         }
         const setter = (new_val: SaveableValue): void => {
             value = new_val
-            window.localStorage.setItem(key, value.toString())
+            if (typeof value === 'object') {
+                window.localStorage.setItem(key, value.item())
+            }
+            else {
+                window.localStorage.setItem(key, value.toString())
+            }
         }
         Object.defineProperty(target, property_key, {
             get: getter,
@@ -36,12 +61,41 @@ export function Saveable(key: string, default_value: SaveableValue) {
     }
 }
 
+export class Progress {
+    @Saveable('Progress.postgame', false)
+    public static postgame: boolean
+
+    @Saveable('Progress.started', false)
+    public static has_selected_version: boolean
+}
+
 export class Settings {
     @Saveable("Settings.freeplay", false)
-    public static freeplay?: boolean
+    public static freeplay: boolean
 
     @Saveable("Settings.screen_shake", true)
-    public static screen_shake?: boolean
+    public static screen_shake: boolean
+
+    @Saveable("Settings.version", GameVersion.DIAMOND)
+    public static game_version: GameVersion
+
+    @Saveable("Settings.version_parity", true)
+    public static random_version_parity: boolean
+
+    public static get_lootpool(): LootPool {
+        switch (this.game_version) {
+            case GameVersion.DIAMOND:
+                return Progress.postgame ? LootPool.PRE_DEX_DIAMOND : LootPool.POST_DEX_DIAMOND
+            case GameVersion.PEARL:
+                return Progress.postgame ? LootPool.PRE_DEX_PEARL : LootPool.POST_DEX_PEARL
+            case GameVersion.PLATINUM:
+                return this.random_version_parity
+                    ? (Progress.postgame ? LootPool.PRE_DEX_DIAMOND : LootPool.POST_DEX_DIAMOND)
+                    : (Progress.postgame ? LootPool.PRE_DEX_PEARL : LootPool.POST_DEX_PEARL)
+            default:
+                return LootPool.ALL
+        }
+    }
 }
 
 
@@ -60,6 +114,15 @@ function create_boolean_input(parent_element: HTMLElement, default_value: boolea
     return input_element
 }
 
+function create_button_input(parent_element: HTMLElement, text: string): HTMLButtonElement {
+    const element = parent_element.appendChild(document.createElement('button'))
+    element.className = 'setting'
+    element.id = 'button-setting'
+    element.innerText = text
+
+    return element
+}
+
 export function create_settings_element(): HTMLElement {
     const settings_element = document.createElement('div')
     settings_element.id = "settings"
@@ -69,6 +132,12 @@ export function create_settings_element(): HTMLElement {
 
     const screen_shake = create_boolean_input(settings_element, !!Settings.screen_shake, "Screen shake")
     screen_shake.oninput = (): void => { Settings.screen_shake = screen_shake.checked }
+
+    const reset_version = create_button_input(settings_element, 'Reset version')
+    reset_version.onclick = (): void => { window.localStorage.removeItem("Progress.started") }
+
+    const reset_button = create_button_input(settings_element, 'CLEAR ALL DATA')
+    reset_button.onclick = (): void => { window.localStorage.clear() }
 
     return settings_element
 }
