@@ -8,7 +8,7 @@ import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_sp
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
-import { GameVersion, LootPool, Progress, Settings } from "./settings"
+import { GameVersion, Progress, Settings } from "./settings"
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
 
@@ -216,7 +216,6 @@ export class MiningGrid {
         this._transition_element = value
     }
     private game_over_internal(): void {
-        console.log("Game over internal", this.game_state)
         this.on_game_end?.(this.game_state)
 
         const item_obtained_messages: string[] = []
@@ -328,9 +327,6 @@ export class MiningGrid {
                 this.reset_board()
             }
         }
-        else {
-            this.reset_board()
-        }
 
         // Setup dummy state
         this.game_state = new GameState(this._health_bar)
@@ -405,12 +401,12 @@ export class MiningGrid {
         // We're not going to do that, instead we're gonna get all valid positions and place in one of those at random
         // Also, all items can appear any amount of times EXCEPT Plates. So we do a reroll if that happens
 
-        console.log("Generating board with loot pool", LootPool[Settings.get_lootpool()])
+        const loot_pool = Settings.get_lootpool()
 
         const all_items: GridObject[] = [ ...SMALL_SPHERES, ...LARGE_SPHERES, ...FOSSILS, ...EVOLUTION_STONES, ...SHARDS, ...WEATHER_STONES, ...ITEMS, ...PLATES ]
         let total_chance = 0
         all_items.forEach((item) => {
-            total_chance += item.rarity.get_rate(Settings.get_lootpool())
+            total_chance += item.rarity.get_rate(loot_pool)
         })
 
         function random_item(): GridObject {
@@ -419,7 +415,7 @@ export class MiningGrid {
 
             for (let index = 0; index < all_items.length; index++) {
                 const item = all_items[index]
-                accumulation += item.rarity.get_rate(Settings.get_lootpool())
+                accumulation += item.rarity.get_rate(loot_pool)
                 if (accumulation > roll) {
                     return item
                 }
@@ -439,13 +435,10 @@ export class MiningGrid {
                 ...PLATES.filter((item) => Collection.get_item_count(item) > 0) // No already found plates
             ]
 
-            console.log("Disallowed items", disallowed_items)
-
             let found_item: GridObject
 
             do {
                 found_item = random_item()
-                console.log("Disallowed?", found_item.name, disallowed_items.includes(found_item))
             } while (disallowed_items.some((item) => found_item === item))
 
             const result = this.try_add_object_at_random_valid_position(found_item)
@@ -470,20 +463,17 @@ export class MiningGrid {
         overlay.id = 'message-overlay'
         let current_message: MessageBox | undefined = undefined
         overlay.onclick = (): void => {
-            console.log("Click")
             if (current_message) {
                 if (current_message.animated_text.completed) {
                     next_message()
                 }
                 else {
-                    console.log("Skipping")
                     current_message.animated_text.skip()
                 }
             }
         }
         let index = 0
         function next_message(): void {
-            console.log("Starting message", index)
             if (index >= messages.length) {
                 return_value.on_completed?.()
                 overlay.remove()

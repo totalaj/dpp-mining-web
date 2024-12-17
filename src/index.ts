@@ -36,7 +36,6 @@ TITLE.style.textAlign = 'center'
 TITLE.className = 'title'
 
 function get_version_text(version?: GameVersion): string {
-    console.log(version)
     switch (version) {
         case GameVersion.DIAMOND:
             return 'Pokémon Diamond underground mining game simulator'
@@ -49,10 +48,6 @@ function get_version_text(version?: GameVersion): string {
     }
 }
 
-document.body.appendChild(ELEMENT)
-document.body.appendChild(Collection.create_collection_element())
-document.body.appendChild(create_settings_element())
-
 if (Progress.has_selected_version) {
     TITLE.innerText = get_version_text(Settings.game_version)
 }
@@ -64,3 +59,12 @@ else {
         }
     }
 }
+
+if (Progress.has_selected_version) {
+    GRID.reset_board()
+}
+
+document.body.appendChild(ELEMENT)
+document.body.appendChild(Collection.create_collection_element())
+document.body.appendChild(create_settings_element())
+

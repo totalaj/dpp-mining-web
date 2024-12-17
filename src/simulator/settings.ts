@@ -31,9 +31,7 @@ export function Saveable(key: string, default_value: SaveableValue) {
                         value = Number.parseFloat(item)
                     }
                     else if (type === 'object') {
-                        console.log(item)
                         value = item.toString()
-                        console.log(item)
                     }
                     else {
                         value = item
@@ -85,13 +83,13 @@ export class Settings {
     public static get_lootpool(): LootPool {
         switch (this.game_version) {
             case GameVersion.DIAMOND:
-                return Progress.postgame ? LootPool.PRE_DEX_DIAMOND : LootPool.POST_DEX_DIAMOND
+                return Progress.postgame ? LootPool.POST_DEX_DIAMOND : LootPool.PRE_DEX_DIAMOND
             case GameVersion.PEARL:
-                return Progress.postgame ? LootPool.PRE_DEX_PEARL : LootPool.POST_DEX_PEARL
+                return Progress.postgame ? LootPool.POST_DEX_PEARL : LootPool.PRE_DEX_PEARL
             case GameVersion.PLATINUM:
                 return this.random_version_parity
-                    ? (Progress.postgame ? LootPool.PRE_DEX_DIAMOND : LootPool.POST_DEX_DIAMOND)
-                    : (Progress.postgame ? LootPool.PRE_DEX_PEARL : LootPool.POST_DEX_PEARL)
+                    ? (Progress.postgame ? LootPool.POST_DEX_DIAMOND : LootPool.PRE_DEX_DIAMOND)
+                    : (Progress.postgame ? LootPool.POST_DEX_PEARL : LootPool.PRE_DEX_PEARL)
             default:
                 return LootPool.ALL
         }

@@ -11,7 +11,6 @@ export function create_version_selector(): VersionReturnValue {
     let version: GameVersion = GameVersion.DIAMOND
 
     function select_version(new_version: GameVersion, class_names: string, text: string): void {
-        console.log("select_version")
         version = new_version
         confirm_button.className = class_names
         confirm_title.innerText = `Confirm choosing ${text} version?`
@@ -22,7 +21,6 @@ export function create_version_selector(): VersionReturnValue {
     }
 
     function finalize_version(): void {
-        console.log("finalize_version")
         Settings.game_version = version
         Settings.random_version_parity = Math.random() > 0.5
         Progress.has_selected_version = true
@@ -51,7 +49,6 @@ export function create_version_selector(): VersionReturnValue {
     }
 
     function cancel_finalize(): void {
-        console.log("cancel_finalize")
         confirm_element.classList.add('transparent')
         select_element.classList.remove('transparent')
         confirm_element.style.pointerEvents = 'none'

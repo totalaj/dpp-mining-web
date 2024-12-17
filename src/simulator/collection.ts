@@ -90,7 +90,6 @@ export class Collection {
     private static _item_sheet: SpriteSheet = new SpriteSheet(16, "./assets/object_sheet.png", new Vector2(1024, 1024), 1)
 
     private static on_object_count_changed(object: GridObject, count: number): void {
-        console.log("Object change hook", object, count)
         const element = this._object_element_map.get(object.name)!
         element.update_style([ object, count ])
         this._object_section_map.filter((objects) => objects[0].includes(object)).forEach((section) => {
@@ -116,7 +115,6 @@ export class Collection {
     }
 
     private static set_item_count(object: GridObject, count: number): void {
-        console.log("Object count changed", object, count)
         this._loaded_values.set(this.item_key(object), count)
         window.localStorage.setItem(this.item_key(object), count.toString())
         this.on_object_count_changed(object, count)
@@ -145,7 +143,6 @@ export class Collection {
 
     public static add_item(object: GridObject): number {
         const new_count = this.get_item_count(object) + 1
-        console.log("Adding 1 to", object.name, new_count)
         this.set_item_count(object, new_count)
         return new_count
     }
