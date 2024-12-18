@@ -2,7 +2,7 @@
 import { animate_remove_text, animate_text } from "./simulator/animations"
 import { ActiveObject, GameState, MiningGrid } from "./simulator/board"
 import { Collection } from "./simulator/collection"
-import { create_settings_element, GameVersion, Progress, Settings } from "./simulator/settings"
+import { create_settings_element, GameVersion, Progress, Settings, Statistics } from "./simulator/settings"
 import { Vector2 } from "./math"
 import { SpriteSheet } from "./components/sprite"
 import { create_sprite_debugger } from "./utils/sprite_debug"
@@ -53,3 +53,8 @@ document.body.appendChild(ELEMENT)
 // document.body.appendChild(create_sprite_debugger(new SpriteSheet(16, './assets/board_sheet.png', new Vector2(512, 512), 3), 32, 32))
 document.body.appendChild(Collection.create_collection_element())
 document.body.appendChild(create_settings_element())
+
+const SECONDS_INTERVAL = 10
+setInterval(() => {
+    Statistics.time_played_seconds += SECONDS_INTERVAL
+}, 1000 * SECONDS_INTERVAL)

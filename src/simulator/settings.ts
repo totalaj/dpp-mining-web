@@ -72,6 +72,35 @@ export class Progress {
     public static finished_collection: boolean
 }
 
+export class Statistics {
+    @Saveable('Statistics.rounds_played', 0)
+    public static rounds_played: number
+
+    @Saveable('Statistics.heavy_hammer_hits', 0)
+    public static heavy_hammer_hits: number
+
+    @Saveable('Statistics.light_hammer_hits', 0)
+    public static light_hammer_hits: number
+
+    @Saveable('Statistics.full_clears', 0)
+    public static full_clears: number
+
+    @Saveable('Statistics.modifiers_purchased', 0)
+    public static modifiers_purchased: number
+
+    @Saveable('Statistics.time_played', 0)
+    public static time_played_seconds: number
+
+    @Saveable('Statistics.times_hit_bedrock', 0)
+    public static times_hit_bedrock: number
+
+    @Saveable('Statistics.times_hit_items', 0)
+    public static times_hit_items: number
+
+    @Saveable('Statistics.times_hit_nothing', 0)
+    public static times_hit_nothing: number
+}
+
 export class Settings {
     @Saveable("Settings.freeplay", false)
     public static freeplay: boolean

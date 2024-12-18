@@ -8,7 +8,7 @@ import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_sp
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
-import { GameVersion, LootPool, Progress, Settings } from "./settings"
+import { GameVersion, LootPool, Progress, Settings, Statistics } from "./settings"
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
 import { ProgressBar } from "../components/progress_bar"
@@ -307,6 +307,7 @@ export class MiningGrid {
     }
     private game_over_internal(): void {
         this.on_game_end?.(this.game_state)
+        Statistics.rounds_played++
 
         this.clear_screen_shakes()
 
@@ -319,11 +320,7 @@ export class MiningGrid {
         })
 
         let on_new_game = (): void => {
-            const modifier_interface = this.create_modifier_interface()
-            this._background_sprite.element.appendChild(modifier_interface.element)
-            modifier_interface.on_finalize = (): void => {
-                this.reset_board()
-            }
+            this.reset_board()
         }
 
         if (!Progress.postgame) {
@@ -394,6 +391,7 @@ export class MiningGrid {
             }, failed_transition_duration)
         }
         else {
+            Statistics.full_clears++
             this._game_over_timeout = setTimeout(() => {
                 this.display_messages([ "Everything was dug up!", ...item_obtained_messages ]).on_completed = (): void => {
                     this.transition_element = circle_animation(this._background_sprite.element, true)
@@ -546,19 +544,27 @@ export class MiningGrid {
     }
 
     private create_modifier_interface(): { element: HTMLElement, on_finalize?: () => void } {
-        const element = document.createElement('div')
-        element.classList.add('simple-overlay')
+        const parent_element = document.createElement('div')
+        parent_element.classList.add('simple-overlay')
+        parent_element.style.background = 'black'
+        parent_element.style.zIndex = '13'
+        const element = parent_element.appendChild(document.createElement('div'))
+        // element.classList.add('animate-opacity')
         element.id = 'modifier-screen'
-        element.style.zIndex = '13'
-        element.style.width = '90%'
-        element.style.height = '90%'
-        element.style.margin = '5%'
+        // element.style.width = '90%'
+        // element.style.height = '90%'
+        element.style.padding = '5%'
+        element.style.transitionDuration = '0.3s'
 
-        const return_element: { element: HTMLElement, on_finalize?: () => void } = { element: element }
+        const return_element: { element: HTMLElement, on_finalize?: () => void } = { element: parent_element }
 
         function finalize_selection(): void {
-            element.remove()
-            return_element.on_finalize?.()
+            element.classList.add('transparent')
+            element.style.scale = '0.5'
+            setTimeout(() => {
+                parent_element.remove()
+                return_element.on_finalize?.()
+            }, 300)
         }
 
         let modifier_count = 0
@@ -568,6 +574,7 @@ export class MiningGrid {
                 const modifier_element = this.create_modifier_option(title, modifier, button_class)
                 element.appendChild(modifier_element.element)
                 modifier_element.on_click = (new_mod: Modifier): void => {
+                    Statistics.modifiers_purchased++
                     new_mod.purchase()
                     this._active_modifier = new_mod
                     finalize_selection()
@@ -616,7 +623,7 @@ export class MiningGrid {
         add_if_affordable(stone_modifier_large, 'Increase stones', 'diamond')
         add_if_affordable(fossil_modifier_small, 'Increase fossils', 'platinum')
         add_if_affordable(fossil_modifier_large, 'Increase fossils', 'platinum')
-        add_if_affordable(plate_modifier, 'Increase plates', 'pearl')
+        add_if_affordable(plate_modifier, 'Assemble pieces', 'pearl')
 
         const opposing_button_class = version === GameVersion.DIAMOND ? 'pearl' : 'diamond'
         add_if_affordable(version_modifier_small, 'Spacetime rift?', opposing_button_class)
@@ -625,7 +632,44 @@ export class MiningGrid {
         if (modifier_count === 0) {
             const no_modifier_count = element.appendChild(document.createElement('h2'))
             no_modifier_count.classList.add('inverted-text')
-            no_modifier_count.innerText = 'No affordable modifiers'
+            if (Collection.get_all_items().every((item) => Collection.get_item_count(item) === 0)) {
+                if (Statistics.rounds_played === 0) {
+                    no_modifier_count.innerText = 'Your journey into the underground begins...\nClick the screen to mine out terrain\nThere are surely treasures to be found underneath\nthe rich soils...'
+                }
+                else if (Statistics.rounds_played === 1) {
+                    no_modifier_count.innerText = 'That was a good attempt!\nTry mining the more shallow soil first'
+                }
+                else if (Statistics.rounds_played === 2) {
+                    no_modifier_count.innerText = 'An item will sparkle once it\nhas been fully unearthed.\nKeep at it!'
+                }
+                else if (Statistics.rounds_played === 3) {
+                    no_modifier_count.innerText = 'Sometimes you just get unlucky!\nKeep trying'
+                }
+                else if (Statistics.rounds_played === 4) {
+                    no_modifier_count.innerText = 'Even through hardship, persist'
+                }
+                else {
+                    no_modifier_count.innerText = "You've got it the next time!\nKeep digging"
+                }
+            }
+            else {
+                if (Statistics.rounds_played < 5) {
+                    no_modifier_count.innerText = 'Great work!\nYour journey underground continues...'
+                }
+                else if (Statistics.rounds_played < 20) {
+                    no_modifier_count.innerText = 'Once you collect some more items,\nyou can purchase modifiers here'
+                }
+                else {
+                    no_modifier_count.innerText = random_element([
+                        'When life gives you lemons\nThink about how you handle your economy',
+                        "Only through hardship do we learn\ntrue value",
+                        "Spare some change?",
+                        "Working hard or hardly working?",
+                        "I always keep a few\nspare spheres on me.\nDon't you?",
+                        "I would animate a moth flying out\nof your wallet, but I can't be bothered"
+                    ])
+                }
+            }
         }
 
         const finalize_button = element.appendChild(document.createElement('button'))
@@ -666,15 +710,18 @@ export class MiningGrid {
 
     public reset_board(): void {
         clearTimeout(this._game_over_timeout)
-        this.clear_screen_shakes()
-        this.clear_board()
-        this.setup_terrain()
-        this.populate_board()
-        this.game_state = new GameState(this._health_bar)
-        this.transition_element = circle_animation(this._background_sprite.element, false)
-        this.transition_element.style.width = this._background_sprite.element.style.width
-        this.transition_element.style.height = this._background_sprite.element.style.height
-        this.on_game_start?.(this.added_items)
+
+        const modifier_interface = this.create_modifier_interface()
+        this._background_sprite.element.appendChild(modifier_interface.element)
+        modifier_interface.on_finalize = (): void => {
+            this.clear_screen_shakes()
+            this.clear_board()
+            this.setup_terrain()
+            this.populate_board()
+            this.game_state = new GameState(this._health_bar)
+            this.transition_element = circle_animation(this._background_sprite.element, false)
+            this.on_game_start?.(this.added_items)
+        }
     }
 
     public set_hammer_type(hammer_type: HammerType): void {
@@ -985,6 +1032,31 @@ export class MiningGrid {
             this._hammer_type,
             result === HitResult.BOTTOM ? target_cell.content : ContentType.NOTHING
         )
+
+        // Statistics
+        if (this._hammer_type === HammerType.HEAVY) {
+            Statistics.heavy_hammer_hits++
+        }
+        else {
+            Statistics.light_hammer_hits++
+        }
+
+        if (result === HitResult.BOTTOM) {
+            switch (target_cell.content) {
+                case ContentType.BEDROCK:
+                    Statistics.times_hit_bedrock++
+                    break
+                case ContentType.ITEM:
+                    Statistics.times_hit_items++
+                    break
+                case ContentType.NOTHING:
+                    Statistics.times_hit_nothing++
+                    break
+                default:
+                    break
+            }
+        }
+
 
         if (!(result === HitResult.BOTTOM && target_cell.content === ContentType.BEDROCK)) {
             if (this._hammer_type === HammerType.LIGHT) {
