@@ -553,7 +553,7 @@ export class MiningGrid {
         element.id = 'modifier-screen'
         // element.style.width = '90%'
         // element.style.height = '90%'
-        element.style.padding = '5%'
+        element.style.padding = '0 5%'
         element.style.transitionDuration = '0.3s'
 
         const return_element: { element: HTMLElement, on_finalize?: () => void } = { element: parent_element }
@@ -621,6 +621,7 @@ export class MiningGrid {
         flavour_text.classList.add('inverted-text')
         flavour_text.style.width = '100%'
         flavour_text.style.textAlign = 'center'
+        flavour_text.style.marginTop = '0.5em'
         flavour_text.innerText = 'Welcome to the modifier shop!'
 
         add_if_affordable(item_modifier_small, 'Increase items', 'pearl')
