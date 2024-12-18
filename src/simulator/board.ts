@@ -8,7 +8,7 @@ import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_sp
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
-import { GameVersion, Progress, Settings } from "./settings"
+import { GameVersion, LootPool, Progress, Settings } from "./settings"
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
 import { ProgressBar } from "../components/progress_bar"
@@ -189,6 +189,82 @@ class MessageBox {
     }
 }
 
+type ModifierCost = [GridObject, number][]
+class Modifier {
+    constructor(public cost: ModifierCost) {
+
+    }
+
+    public can_afford(): boolean {
+        let can_afford_modifier = true
+        this.cost.forEach((value) => {
+            console.log("Checking count of ", value[0].name, "Have", Collection.get_item_count(value[0]), "Need", value[1])
+            if (Collection.get_item_count(value[0]) < value[1]) {
+                can_afford_modifier = false
+            }
+        })
+
+        return can_afford_modifier
+    }
+
+    public purchase(): void {
+        this.cost.forEach((value) => Collection.remove_item(value[0], value[1]))
+    }
+
+    public modify_loot_pool(loot_pool: LootPool): LootPool {
+        return loot_pool
+    }
+
+    public modify_rate(object: GridObject, rate: number): number {
+        return rate
+    }
+}
+
+class DropRateModifier extends Modifier {
+    constructor(modifier_cost: ModifierCost, private _increases: Map<string, number>) {
+        super(modifier_cost)
+    }
+
+    public override modify_rate(object: GridObject, rate: number): number {
+        if (this._increases.has(object.name)) {
+            return rate + this._increases.get(object.name)!
+        }
+        else {
+            return rate
+        }
+    }
+}
+
+class LootPoolModifier extends Modifier {
+    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>) {
+        super(modifier_cost)
+    }
+
+    public override modify_loot_pool(loot_pool: LootPool): LootPool {
+        if (this._loot_pool_map.has(loot_pool)) {
+            return this._loot_pool_map.get(loot_pool)!
+        }
+        else {
+            return loot_pool
+        }
+    }
+}
+
+class PlateModifier extends Modifier {
+    constructor(modifier_cost: ModifierCost) {
+        super(modifier_cost)
+    }
+
+    public override can_afford(): boolean {
+        return true
+        if (PLATES.every((plate) => Collection.get_item_count(plate) > 0)) {
+            return false
+        }
+
+        return super.can_afford()
+    }
+}
+
 export class MiningGrid {
     public game_state: GameState
 
@@ -211,6 +287,7 @@ export class MiningGrid {
     private _hammer_type: HammerType = HammerType.LIGHT
     private _health_bar: HealthBar
     private _transition_element?: HTMLElement | undefined
+    private _active_modifier?: Modifier
     private get transition_element(): HTMLElement | undefined {
         return this._transition_element
     }
@@ -231,7 +308,13 @@ export class MiningGrid {
             }
         })
 
-        let on_new_game: () => void = this.reset_board.bind(this)
+        let on_new_game = (): void => {
+            const modifier_interface = this.create_modifier_interface()
+            this._background_sprite.element.appendChild(modifier_interface.element)
+            modifier_interface.on_finalize = (): void => {
+                this.reset_board()
+            }
+        }
 
         if (!Progress.postgame) {
             const progress_bar_update = this.update_progress_bar()
@@ -421,6 +504,119 @@ export class MiningGrid {
             clearTimeout(timeout)
         })
         this._shake_timeouts.length = 0
+    }
+
+    private create_modifier_option(title: string, modifier: Modifier, button_class: string): { element: HTMLElement, on_click?: (applied_modifier: Modifier) => void } {
+        const small_sprites = new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 1)
+        const element = document.createElement('div')
+        element.id = 'modifier-option'
+        const return_value: { element: HTMLElement, on_click?: (applied_modifier: Modifier) => void } = { element: element }
+
+        // const title = document.createElement('p')
+        const item_list = element.appendChild(document.createElement('div'))
+        item_list.id = 'modifier-cost'
+
+        modifier.cost.forEach((value) => {
+            new Sprite(item_list, small_sprites, value[0].start_tile, value[0].end_tile)
+            if (value[1] > 1) {
+                const amt_text = item_list.appendChild(document.createElement('span'))
+                amt_text.innerText = `x${value[1]}`
+                amt_text.classList.add('inverted-text')
+            }
+        })
+
+        const button = element.appendChild(document.createElement('button'))
+        button.innerText = title
+        button.id = 'modifier-button'
+        button.classList.add(button_class)
+        button.onclick = (): void => return_value.on_click?.(modifier)
+
+        return return_value
+    }
+
+    private create_modifier_interface(): { element: HTMLElement, on_finalize?: () => void } {
+        const element = document.createElement('div')
+        element.classList.add('simple-overlay')
+        element.id = 'modifier-screen'
+        element.style.zIndex = '13'
+        element.style.width = '90%'
+        element.style.height = '90%'
+        element.style.margin = '5%'
+
+        const return_element: { element: HTMLElement, on_finalize?: () => void } = { element: element }
+
+        function finalize_selection(): void {
+            element.remove()
+            return_element.on_finalize?.()
+        }
+
+        const add_if_affordable = (modifier: Modifier, title: string, button_class: string): void => {
+            if (modifier.can_afford()) {
+                console.log("Can afford", modifier)
+                const modifier_element = this.create_modifier_option(title, modifier, button_class)
+                element.appendChild(modifier_element.element)
+                modifier_element.on_click = (new_mod: Modifier): void => {
+                    this._active_modifier = new_mod
+                    finalize_selection()
+                }
+            }
+        }
+
+        const item_modifier_increases
+        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        // Costs red spheres
+        const item_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[1], 3 ] ], item_modifier_increases)
+        const item_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[1], 1 ] ], item_modifier_increases)
+
+        // Costs blue spheres
+        const stone_modifier_increases
+        // Only incraese if normal rate isn't 0
+        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        const stone_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[2], 3 ] ], stone_modifier_increases)
+        const stone_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[2], 1 ] ], stone_modifier_increases)
+
+        // Costs green spheres
+        const fossil_modifier_increases
+        // Only increase if normal rate isn't 0
+        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        const fossil_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[0], 3 ] ], fossil_modifier_increases)
+        const fossil_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[0], 1 ] ], fossil_modifier_increases)
+
+        const plate_modifier = new PlateModifier(SHARDS.map((shard) => [ shard, 1 ]))
+
+        const loot_pool_mapping = new Map<LootPool, LootPool>([
+            [ LootPool.POST_DEX_DIAMOND, LootPool.POST_DEX_PEARL ],
+            [ LootPool.POST_DEX_PEARL, LootPool.POST_DEX_DIAMOND ],
+            [ LootPool.PRE_DEX_DIAMOND, LootPool.PRE_DEX_PEARL ],
+            [ LootPool.PRE_DEX_PEARL, LootPool.PRE_DEX_DIAMOND ]
+        ])
+
+        console.log(plate_modifier)
+
+        const version = Settings.get_squashed_version()
+        const small_opposing_sphere = version === GameVersion.DIAMOND ? SMALL_SPHERES[4] : SMALL_SPHERES[3]
+        const large_opposing_sphere = version === GameVersion.DIAMOND ? LARGE_SPHERES[4] : LARGE_SPHERES[3]
+        const version_modifier_small = new LootPoolModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping)
+        const version_modifier_large = new LootPoolModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping)
+
+        add_if_affordable(item_modifier_small, 'Increase items', 'pearl')
+        add_if_affordable(item_modifier_large, 'Increase items', 'pearl')
+        add_if_affordable(stone_modifier_small, 'Increase stones', 'diamond')
+        add_if_affordable(stone_modifier_large, 'Increase stones', 'diamond')
+        add_if_affordable(fossil_modifier_small, 'Increase fossils', 'platinum')
+        add_if_affordable(fossil_modifier_large, 'Increase fossils', 'platinum')
+        add_if_affordable(plate_modifier, 'Increase plates', 'pearl')
+
+        const opposing_button_class = version === GameVersion.DIAMOND ? 'pearl' : 'diamond'
+        add_if_affordable(version_modifier_small, 'Spacetime rift?', opposing_button_class)
+        add_if_affordable(version_modifier_large, 'Spacetime rift?', opposing_button_class)
+
+        const finalize_button = element.appendChild(document.createElement('button'))
+        finalize_button.innerText = 'Continue'
+        finalize_button.id = 'finalize-button'
+        finalize_button.onclick = finalize_selection
+
+        return return_element
     }
 
     private update_progress_bar(): boolean {

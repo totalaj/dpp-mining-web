@@ -82,6 +82,7 @@ export class Settings {
     @Saveable("Settings.version", GameVersion.DIAMOND)
     public static game_version: GameVersion
 
+    // True = Diamond, False = Pearl
     @Saveable("Settings.version_parity", true)
     public static random_version_parity: boolean
 
@@ -101,6 +102,19 @@ export class Settings {
                     : (postgame ? LootPool.POST_DEX_PEARL : LootPool.PRE_DEX_PEARL)
             default:
                 return LootPool.ALL
+        }
+    }
+
+    public static get_squashed_version(): GameVersion {
+        switch (Settings.game_version) {
+            case GameVersion.DIAMOND:
+                return GameVersion.DIAMOND
+            case GameVersion.PEARL:
+                return GameVersion.PEARL
+            case GameVersion.PLATINUM:
+                return Settings.random_version_parity ? GameVersion.DIAMOND : GameVersion.PEARL
+            default:
+                return GameVersion.DIAMOND
         }
     }
 }

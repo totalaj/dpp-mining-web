@@ -147,8 +147,14 @@ export class Collection {
         return entries
     }
 
-    public static add_item(object: GridObject): number {
-        const new_count = this.get_item_count(object) + 1
+    public static add_item(object: GridObject, count: number = 1): number {
+        const new_count = this.get_item_count(object) + count
+        this.set_item_count(object, new_count)
+        return new_count
+    }
+
+    public static remove_item(object: GridObject, count: number = 1): number {
+        const new_count = this.get_item_count(object) - count
         this.set_item_count(object, new_count)
         return new_count
     }
