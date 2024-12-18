@@ -1,4 +1,5 @@
-import { SMALL_SPHERES, LARGE_SPHERES, FOSSILS, EVOLUTION_STONES, SHARDS, WEATHER_STONES, ITEMS, PLATES } from "./objects"
+import { Collection } from "./collection"
+import { SMALL_SPHERES, LARGE_SPHERES, FOSSILS, EVOLUTION_STONES, SHARDS, WEATHER_STONES, ITEMS, PLATES, get_all_objects } from "./objects"
 
 export enum GameVersion {
     DIAMOND = 'Diamond',
@@ -61,11 +62,14 @@ export function Saveable(key: string, default_value: SaveableValue) {
 }
 
 export class Progress {
+    @Saveable('Progress.started', false)
+    public static has_selected_version: boolean
+
     @Saveable('Progress.postgame', false)
     public static postgame: boolean
 
-    @Saveable('Progress.started', false)
-    public static has_selected_version: boolean
+    @Saveable('Progress.finished_collection', false)
+    public static finished_collection: boolean
 }
 
 export class Settings {
@@ -141,6 +145,9 @@ export function create_settings_element(): HTMLElement {
 
     const reset_button = create_button_input(settings_element, 'CLEAR ALL DATA')
     reset_button.onclick = (): void => { window.localStorage.clear() }
+
+    const fill_collection = create_button_input(settings_element, 'Fill collection')
+    fill_collection.onclick = (): void => { get_all_objects().forEach((object) => Collection.add_item(object)) }
 
     const debug_print = create_button_input(settings_element, 'Print drop chances')
     debug_print.onclick = (): void => {

@@ -1,7 +1,7 @@
 import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import * as Noise from 'ts-perlin-simplex'
-import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
+import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, get_all_objects, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, trim_duplicates, WEATHER_STONES } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
 import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark, TextAnimation } from "./animations"
@@ -200,7 +200,8 @@ export class MiningGrid {
     private readonly HEIGHT = 10
     private readonly WIDTH = 13
 
-    private _postgame_progress: ProgressBar
+    private _postgame_title?: HTMLElement
+    private _postgame_progress?: ProgressBar
     private _container_element: HTMLDivElement
     private _sprite_sheet: SpriteSheet
     private _grid_element: HTMLDivElement
@@ -230,11 +231,57 @@ export class MiningGrid {
             }
         })
 
+        let on_new_game: () => void = this.reset_board.bind(this)
+
         if (!Progress.postgame) {
             const progress_bar_update = this.update_progress_bar()
+            console.log("Checking postgame", progress_bar_update)
             if (progress_bar_update) {
                 Progress.postgame = true
+                this._postgame_progress?.dispose()
+                this._postgame_title?.remove()
                 // Enter postgame, play some animation
+                on_new_game = (): void => {
+                    this.display_messages([
+                        "You've discovered all item types!",
+                        "You have entered the postgame",
+                        "This means a greater variety\nof items will be available",
+                        "Good luck!"
+                    ]).on_completed = (): void => {
+                        this.reset_board()
+                    }
+                }
+            }
+        }
+        else if (!Progress.finished_collection) {
+            let collection_completed = true
+            const all_items = trim_duplicates(get_all_objects())
+            for (let index = 0; index < all_items.length; index++) {
+                const element = all_items[index]
+                if (Collection.get_item_count(element) === 0) {
+                    collection_completed = false
+                    break
+                }
+            }
+            console.log("Check progression", collection_completed)
+
+            if (collection_completed) {
+                Progress.finished_collection = true
+                on_new_game = (): void => {
+                    this.display_messages([
+                        "You've completed your collection",
+                        "Congratulations!",
+                        "Very few people ever reach this point",
+                        "Thanks for playing!",
+                        "What's left to do?",
+                        "Well...",
+                        "Try getting 10 of each item?",
+                        "Or contribute to the project\nand expand the game!",
+                        "Anyway, thanks again\nand havea good day!"
+                    ]).on_completed = (): void => {
+                        this.reset_board()
+                    }
+                }
             }
         }
 
@@ -248,7 +295,7 @@ export class MiningGrid {
                 setTimeout(() => {
                     this.display_messages([ "The wall collapsed!", ...item_obtained_messages ]).on_completed = (): void => {
                         setTimeout(() => {
-                            this.reset_board()
+                            on_new_game()
                         }, 8 * GLOBAL_FRAME_RATE)
                     }
                 }, SHUTTER_ANIMATION_FRAMES * GLOBAL_FRAME_RATE)
@@ -259,12 +306,13 @@ export class MiningGrid {
                 this.display_messages([ "Everything was dug up!", ...item_obtained_messages ]).on_completed = (): void => {
                     this.transition_element = circle_animation(this._background_sprite.element, true)
                     setTimeout(() => {
-                        this.reset_board()
+                        on_new_game()
                     }, (CIRCLE_ANIMATION_FRAMES + 8) * GLOBAL_FRAME_RATE)
                 }
             }, 1000)
         }
     }
+
     private _game_over_timeout?: NodeJS.Timeout
 
     constructor(private _parent: HTMLDivElement) {
@@ -355,12 +403,14 @@ export class MiningGrid {
             text.innerHTML = '&zwnj;'
         }
 
-        const postgame_progress_title = this._parent.appendChild(document.createElement('h2'))
-        postgame_progress_title.className = 'inverted-text'
-        postgame_progress_title.innerText = 'Item types discovered'
+        if (!Progress.postgame) {
+            this._postgame_title = this._parent.appendChild(document.createElement('h2'))
+            this._postgame_title.className = 'inverted-text'
+            this._postgame_title.innerText = 'Item types discovered'
 
-        this._postgame_progress = new ProgressBar(this._parent, 7, this._sprite_sheet)
-        this.update_progress_bar()
+            this._postgame_progress = new ProgressBar(this._parent, 7, this._sprite_sheet)
+            this.update_progress_bar()
+        }
 
         // Setup dummy state
         this.game_state = new GameState(this._health_bar)
@@ -374,6 +424,7 @@ export class MiningGrid {
     }
 
     private update_progress_bar(): boolean {
+        if (!this._postgame_progress) return true
         let category_count = 0, total_count = 0
 
         function found_any(objects: GridObject[]): void {
@@ -397,7 +448,7 @@ export class MiningGrid {
 
         this._postgame_progress.set_progress(category_count)
 
-        return category_count > total_count
+        return category_count >= total_count
     }
 
     public reset_board(): void {
@@ -464,7 +515,7 @@ export class MiningGrid {
 
         const loot_pool = Settings.get_lootpool()
 
-        const all_items: GridObject[] = [ ...SMALL_SPHERES, ...LARGE_SPHERES, ...FOSSILS, ...EVOLUTION_STONES, ...SHARDS, ...WEATHER_STONES, ...ITEMS, ...PLATES ]
+        const all_items: GridObject[] = get_all_objects()
         let total_chance = 0
         all_items.forEach((item) => {
             total_chance += item.rarity.get_rate(loot_pool)

@@ -58,6 +58,10 @@ export function trim_duplicates(objects: GridObject[]): GridObject[] {
     })
 }
 
+export function get_all_objects(): GridObject[] {
+    return [ ...SMALL_SPHERES, ...LARGE_SPHERES, ...FOSSILS, ...EVOLUTION_STONES, ...SHARDS, ...WEATHER_STONES, ...ITEMS, ...PLATES ]
+}
+
 export const BEDROCK_OBJECTS = [
     new GridObject(
         new Vector2(1, 0), new Vector2(1, 3), ContentType.BEDROCK,

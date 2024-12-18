@@ -20,4 +20,9 @@ export class ProgressBar {
             this._bar_sprites.push(sprite)
         }
     }
+
+    public dispose(): void {
+        this._bar_sprites.forEach((element) => element.dispose())
+        this._element.remove()
+    }
 }

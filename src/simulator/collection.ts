@@ -12,6 +12,7 @@ import {
     trim_duplicates,
     WEATHER_STONES
 } from "./objects"
+import { Progress } from "./settings"
 
 type CollectionEntry = [GridObject, number]
 
@@ -47,7 +48,10 @@ class CollectionSection {
             }
         })
 
-        this._title.innerText = `${this._section_title} (${count}/${this._objects.length})`
+        this._title.innerText = `${this._section_title}`
+        if (Progress.postgame) {
+            this._title.innerText += ` (${count}/${this._objects.length})`
+        }
         if (count === this._objects.length) this._title.className = "collection-title highlight"
         this._title.style.display = visible ? "" : "none"
         this._section.style.display = visible ? "" : "none"
@@ -88,6 +92,7 @@ export class Collection {
     private static _object_element_map: Map<string, CollectionElement> = new Map()
     private static _object_section_map: [GridObject[], CollectionSection][] = []
     private static _item_sheet: SpriteSheet = new SpriteSheet(16, "./assets/object_sheet.png", new Vector2(1024, 1024), 1)
+    private static _title: HTMLHeadingElement
 
     private static on_object_count_changed(object: GridObject, count: number): void {
         const element = this._object_element_map.get(object.name)!
@@ -95,6 +100,7 @@ export class Collection {
         this._object_section_map.filter((objects) => objects[0].includes(object)).forEach((section) => {
             section[1].update_style(true)
         })
+        this._title.style.display = ''
     }
 
     public static get_all_items(): GridObject[] {
@@ -151,8 +157,9 @@ export class Collection {
         const element = document.createElement('div')
         element.id = 'collection'
 
-        const title = element.appendChild(document.createElement('h2'))
-        title.innerText = "Collection"
+        this._title = element.appendChild(document.createElement('h2'))
+        this._title.innerText = "Collection"
+        this._title.style.display = this.get_all_items().some((item) => Collection.get_item_count(item) > 0) ? '' : 'none'
 
         // Style background
         const colors = [
