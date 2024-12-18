@@ -54,7 +54,7 @@ document.body.appendChild(ELEMENT)
 document.body.appendChild(Collection.create_collection_element())
 document.body.appendChild(create_settings_element())
 
-const SECONDS_INTERVAL = 10
+const SECONDS_INTERVAL = 1
 setInterval(() => {
     Statistics.time_played_seconds += SECONDS_INTERVAL
 }, 1000 * SECONDS_INTERVAL)

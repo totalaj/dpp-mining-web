@@ -617,6 +617,12 @@ export class MiningGrid {
         const version_modifier_small = new LootPoolModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping)
         const version_modifier_large = new LootPoolModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping)
 
+        const flavour_text = element.appendChild(document.createElement('h3'))
+        flavour_text.classList.add('inverted-text')
+        flavour_text.style.width = '100%'
+        flavour_text.style.textAlign = 'center'
+        flavour_text.innerText = 'Welcome to the modifier shop!'
+
         add_if_affordable(item_modifier_small, 'Increase items', 'pearl')
         add_if_affordable(item_modifier_large, 'Increase items', 'pearl')
         add_if_affordable(stone_modifier_small, 'Increase stones', 'diamond')
