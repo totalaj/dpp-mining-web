@@ -155,6 +155,7 @@ export class Collection {
 
     public static remove_item(object: GridObject, count: number = 1): number {
         const new_count = this.get_item_count(object) - count
+        console.log("Reducing item", object.name, "by", count, "to", new_count)
         this.set_item_count(object, new_count)
         return new_count
     }

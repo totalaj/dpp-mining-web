@@ -218,6 +218,10 @@ class Modifier {
     public modify_rate(object: GridObject, rate: number): number {
         return rate
     }
+
+    public modify_item_amount(item_amount: number): number {
+        return item_amount
+    }
 }
 
 class DropRateModifier extends Modifier {
@@ -232,6 +236,10 @@ class DropRateModifier extends Modifier {
         else {
             return rate
         }
+    }
+
+    public override modify_item_amount(item_amount: number): number {
+        return Math.max(3, item_amount)
     }
 }
 
@@ -256,12 +264,15 @@ class PlateModifier extends Modifier {
     }
 
     public override can_afford(): boolean {
-        return true
         if (PLATES.every((plate) => Collection.get_item_count(plate) > 0)) {
             return false
         }
 
         return super.can_afford()
+    }
+
+    public override modify_item_amount(): number {
+        return 1
     }
 }
 
@@ -287,7 +298,7 @@ export class MiningGrid {
     private _hammer_type: HammerType = HammerType.LIGHT
     private _health_bar: HealthBar
     private _transition_element?: HTMLElement | undefined
-    private _active_modifier?: Modifier
+    private _active_modifier: Modifier
     private get transition_element(): HTMLElement | undefined {
         return this._transition_element
     }
@@ -453,6 +464,8 @@ export class MiningGrid {
 
         this._hammer = new Hammer(this._grid_element, this._sprite_sheet)
 
+        this._active_modifier = new Modifier([])
+
         for (let x_index = 0; x_index < this.WIDTH; x_index++) {
             this._cells.push([])
 
@@ -550,12 +563,15 @@ export class MiningGrid {
             return_element.on_finalize?.()
         }
 
+        let modifier_count = 0
         const add_if_affordable = (modifier: Modifier, title: string, button_class: string): void => {
             if (modifier.can_afford()) {
+                modifier_count++
                 console.log("Can afford", modifier)
                 const modifier_element = this.create_modifier_option(title, modifier, button_class)
                 element.appendChild(modifier_element.element)
                 modifier_element.on_click = (new_mod: Modifier): void => {
+                    new_mod.purchase()
                     this._active_modifier = new_mod
                     finalize_selection()
                 }
@@ -563,24 +579,24 @@ export class MiningGrid {
         }
 
         const item_modifier_increases
-        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
         // Costs red spheres
-        const item_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[1], 3 ] ], item_modifier_increases)
-        const item_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[1], 1 ] ], item_modifier_increases)
+        const item_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[1], 6 ] ], item_modifier_increases)
+        const item_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[1], 2 ] ], item_modifier_increases)
 
         // Costs blue spheres
         const stone_modifier_increases
         // Only incraese if normal rate isn't 0
-        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
-        const stone_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[2], 3 ] ], stone_modifier_increases)
-        const stone_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[2], 1 ] ], stone_modifier_increases)
+        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
+        const stone_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[2], 6 ] ], stone_modifier_increases)
+        const stone_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[2], 2 ] ], stone_modifier_increases)
 
         // Costs green spheres
         const fossil_modifier_increases
         // Only increase if normal rate isn't 0
-        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
-        const fossil_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[0], 3 ] ], fossil_modifier_increases)
-        const fossil_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[0], 1 ] ], fossil_modifier_increases)
+        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
+        const fossil_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[0], 6 ] ], fossil_modifier_increases)
+        const fossil_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[0], 2 ] ], fossil_modifier_increases)
 
         const plate_modifier = new PlateModifier(SHARDS.map((shard) => [ shard, 1 ]))
 
@@ -610,6 +626,12 @@ export class MiningGrid {
         const opposing_button_class = version === GameVersion.DIAMOND ? 'pearl' : 'diamond'
         add_if_affordable(version_modifier_small, 'Spacetime rift?', opposing_button_class)
         add_if_affordable(version_modifier_large, 'Spacetime rift?', opposing_button_class)
+
+        if (modifier_count === 0) {
+            const no_modifier_count = element.appendChild(document.createElement('h2'))
+            no_modifier_count.classList.add('inverted-text')
+            no_modifier_count.innerText = 'No affordable modifiers'
+        }
 
         const finalize_button = element.appendChild(document.createElement('button'))
         finalize_button.innerText = 'Continue'
@@ -709,38 +731,54 @@ export class MiningGrid {
         // We're not going to do that, instead we're gonna get all valid positions and place in one of those at random
         // Also, all items can appear any amount of times EXCEPT Plates. So we do a reroll if that happens
 
-        const loot_pool = Settings.get_lootpool()
+        const loot_pool = this._active_modifier.modify_loot_pool(Settings.get_lootpool())
 
-        const all_items: GridObject[] = get_all_objects()
+        let elegible_items: GridObject[] = get_all_objects()
+        if (this._active_modifier instanceof PlateModifier) {
+            elegible_items = [ ...PLATES ]
+        }
+
+        elegible_items = elegible_items.filter((item) => PLATES.includes(item) && Collection.get_item_count(item) > 0)
+
+        // Emergency fallback, if for example all elegible items were plates and all plates have been found
+        if (elegible_items.length === 0) {
+            elegible_items = get_all_objects()
+        }
+
         let total_chance = 0
-        all_items.forEach((item) => {
-            total_chance += item.rarity.get_rate(loot_pool)
+        elegible_items.forEach((item) => {
+            total_chance += this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool))
         })
 
-        function random_item(): GridObject {
+        const random_item = (): GridObject => {
             const roll = Math.floor(Math.random() * total_chance)
             let accumulation = 0
+            console.log("Starting roll", roll, "Total chance", total_chance)
 
-            for (let index = 0; index < all_items.length; index++) {
-                const item = all_items[index]
-                accumulation += item.rarity.get_rate(loot_pool)
+            for (let index = 0; index < elegible_items.length; index++) {
+                const item = elegible_items[index]
+                console.log(
+                    "Accumulating", item.name,
+                    "Value", this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool)), "Original value:", item.rarity.get_rate(loot_pool)
+                )
+                accumulation += this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool))
                 if (accumulation > roll) {
+                    console.log("Accumulation finished at accumulation", accumulation, ", returned item", item.name)
                     return item
                 }
             }
 
-            return all_items[0] // We should NEVER get here, in theory
+            return elegible_items[0] // We should NEVER get here, in theory
         }
 
-        const item_count = 2 + random_in_range(0, 2, true)
+        const item_count = this._active_modifier.modify_item_amount(2 + random_in_range(0, 2, true))
 
         this.added_items = []
 
         for (let index = 0; index < item_count; index++) {
             // Filter out plates that have already been added
             const disallowed_items: GridObject[] = [
-                ...this.added_items.filter((item) => PLATES.includes(item.object_ref)).map((item) => item.object_ref), // No duplicate of plates
-                ...PLATES.filter((item) => Collection.get_item_count(item) > 0) // No already found plates
+                ...this.added_items.filter((item) => PLATES.includes(item.object_ref)).map((item) => item.object_ref) // No duplicate of plates
             ]
 
             let found_item: GridObject
@@ -755,13 +793,16 @@ export class MiningGrid {
             }
         }
 
-        this.display_messages([ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
-
         const bedrock_count = Math.floor(Math.pow(Math.random() * 8, 0.5)) + 4
 
         for (let index = 0; index < bedrock_count; index++) {
             this.try_add_object_at_random_valid_position(random_element(BEDROCK_OBJECTS))
         }
+
+        this._active_modifier = new Modifier([])
+        console.log(this.added_items)
+
+        this.display_messages([ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
     }
 
     private display_messages(messages: string[], instant: boolean = false): { on_completed?: () => void } {
