@@ -103,6 +103,17 @@ export class Collection {
         this._title.style.display = ''
     }
 
+    public static refresh_all_style(): void {
+        this.on_object_count_changed(SMALL_SPHERES[0], this.get_item_count(SMALL_SPHERES[0]))
+        this.on_object_count_changed(LARGE_SPHERES[0], this.get_item_count(LARGE_SPHERES[0]))
+        this.on_object_count_changed(FOSSILS[0], this.get_item_count(FOSSILS[0]))
+        this.on_object_count_changed(EVOLUTION_STONES[0], this.get_item_count(EVOLUTION_STONES[0]))
+        this.on_object_count_changed(SHARDS[0], this.get_item_count(SHARDS[0]))
+        this.on_object_count_changed(WEATHER_STONES[0], this.get_item_count(WEATHER_STONES[0]))
+        this.on_object_count_changed(ITEMS[0], this.get_item_count(ITEMS[0]))
+        this.on_object_count_changed(PLATES[0], this.get_item_count(PLATES[0]))
+    }
+
     public static get_all_items(): GridObject[] {
         return trim_duplicates([
             ...SMALL_SPHERES,

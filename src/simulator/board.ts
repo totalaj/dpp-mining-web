@@ -198,7 +198,6 @@ class Modifier {
     public can_afford(): boolean {
         let can_afford_modifier = true
         this.cost.forEach((value) => {
-            console.log("Checking count of ", value[0].name, "Have", Collection.get_item_count(value[0]), "Need", value[1])
             if (Collection.get_item_count(value[0]) < value[1]) {
                 can_afford_modifier = false
             }
@@ -329,12 +328,12 @@ export class MiningGrid {
 
         if (!Progress.postgame) {
             const progress_bar_update = this.update_progress_bar()
-            console.log("Checking postgame", progress_bar_update)
             if (progress_bar_update) {
                 Progress.postgame = true
                 this._postgame_progress?.dispose()
                 this._postgame_title?.remove()
-                // Enter postgame, play some animation
+                // Refresh all collection items because postgame has different styling
+                Collection.refresh_all_style()
                 on_new_game = (): void => {
                     this.display_messages([
                         "You've discovered all item types!",
@@ -357,7 +356,6 @@ export class MiningGrid {
                     break
                 }
             }
-            console.log("Check progression", collection_completed)
 
             if (collection_completed) {
                 Progress.finished_collection = true
@@ -567,7 +565,6 @@ export class MiningGrid {
         const add_if_affordable = (modifier: Modifier, title: string, button_class: string): void => {
             if (modifier.can_afford()) {
                 modifier_count++
-                console.log("Can afford", modifier)
                 const modifier_element = this.create_modifier_option(title, modifier, button_class)
                 element.appendChild(modifier_element.element)
                 modifier_element.on_click = (new_mod: Modifier): void => {
@@ -606,8 +603,6 @@ export class MiningGrid {
             [ LootPool.PRE_DEX_DIAMOND, LootPool.PRE_DEX_PEARL ],
             [ LootPool.PRE_DEX_PEARL, LootPool.PRE_DEX_DIAMOND ]
         ])
-
-        console.log(plate_modifier)
 
         const version = Settings.get_squashed_version()
         const small_opposing_sphere = version === GameVersion.DIAMOND ? SMALL_SPHERES[4] : SMALL_SPHERES[3]
@@ -738,10 +733,12 @@ export class MiningGrid {
             elegible_items = [ ...PLATES ]
         }
 
-        elegible_items = elegible_items.filter((item) => PLATES.includes(item) && Collection.get_item_count(item) > 0)
+        // If a plate, and collection contains at least one, remove from elegible items
+        elegible_items = elegible_items.filter((item) => !(PLATES.includes(item) && Collection.get_item_count(item) > 0))
 
         // Emergency fallback, if for example all elegible items were plates and all plates have been found
         if (elegible_items.length === 0) {
+            console.warn("No elegible items! This might be an error, perhaps plate modifier was available when it shouldn't have been")
             elegible_items = get_all_objects()
         }
 
@@ -753,17 +750,11 @@ export class MiningGrid {
         const random_item = (): GridObject => {
             const roll = Math.floor(Math.random() * total_chance)
             let accumulation = 0
-            console.log("Starting roll", roll, "Total chance", total_chance)
 
             for (let index = 0; index < elegible_items.length; index++) {
                 const item = elegible_items[index]
-                console.log(
-                    "Accumulating", item.name,
-                    "Value", this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool)), "Original value:", item.rarity.get_rate(loot_pool)
-                )
                 accumulation += this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool))
                 if (accumulation > roll) {
-                    console.log("Accumulation finished at accumulation", accumulation, ", returned item", item.name)
                     return item
                 }
             }
@@ -800,7 +791,6 @@ export class MiningGrid {
         }
 
         this._active_modifier = new Modifier([])
-        console.log(this.added_items)
 
         this.display_messages([ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
     }

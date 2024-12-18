@@ -161,7 +161,11 @@ export function create_settings_element(): HTMLElement {
     reset_button.onclick = (): void => { window.localStorage.clear() }
 
     const fill_collection = create_button_input(settings_element, 'Fill collection')
-    fill_collection.onclick = (): void => { get_all_objects().forEach((object) => Collection.add_item(object)) }
+    fill_collection.onclick = (): void => {
+        get_all_objects().forEach((object) => {
+            if (!PLATES.includes(object)) Collection.add_item(object)
+        })
+    }
 
     const debug_print = create_button_input(settings_element, 'Print drop chances')
     debug_print.onclick = (): void => {
