@@ -4,14 +4,17 @@ import * as Noise from 'ts-perlin-simplex'
 import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, get_all_objects, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, trim_duplicates, WEATHER_STONES } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
-import { animate_text, GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark, TextAnimation } from "./animations"
+import { GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark } from "./animations"
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
-import { GameVersion, LootPool, Progress, Settings, Statistics } from "./settings"
+import { GameVersion, Progress, Settings, Statistics } from "./settings"
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
 import { ProgressBar } from "../components/progress_bar"
+import { Modifier, Modifiers, PlateModifier } from "./modifier"
+import { GameState, HealthBar } from "./game_state"
+import { MessageBox } from "../components/message_box"
 
 enum HitResult {
     NORMAL,
@@ -85,193 +88,6 @@ class Cell {
     public set level(value: number) {
         this._level = Math.max(0, Math.floor(value))
         this._terrain_sprite.set_tile(new Vector2(this.level !== 0 ? 1 + this._level : 0, 0))
-    }
-}
-
-export class GameState {
-    public static readonly MAX_HEALTH = 49
-    public is_over: boolean = false
-    public failed: boolean = false
-    public health: number = GameState.MAX_HEALTH
-
-    constructor(private _health_bar: HealthBar) {
-        _health_bar.set_health(GameState.MAX_HEALTH)
-    }
-
-    public reduce_health(by: number): boolean {
-        this.health = Math.max(0, this.health - by)
-        this._health_bar.set_health(this.health)
-        if (this.health > 0) {
-            return true
-        }
-        else {
-            this.is_over = true
-            this.failed = true
-            return false
-        }
-    }
-}
-
-class HealthBar {
-    public element: HTMLElement
-    private _inner_element: HTMLElement
-
-    private _sprite_sheet: SpriteSheet
-
-    private readonly HEALTH_TILE = { from: new Vector2(17, 0), to: new Vector2(21 - (1 / 5), 4) }
-    private readonly HEALTH_REMAINDER_TILES = [
-        { from: new Vector2(13, 0), to: new Vector2(15, 4) },
-        { from: new Vector2(12, 5), to: new Vector2(15, 9) },
-        { from: new Vector2(11 + (2 / 5), 10), to: new Vector2(15, 14) },
-        { from: new Vector2(2 + (2 / 5), 0), to: new Vector2(7, 4) },
-        { from: new Vector2(1 + (3 / 5), 5), to: new Vector2(7, 9) },
-        { from: new Vector2(1, 10), to: new Vector2(7, 14) }
-    ]
-
-
-    private _segments: Sprite[] = []
-
-    constructor(parent_element: HTMLElement) {
-        this._sprite_sheet = new SpriteSheet(5, './assets/health_bar.png', new Vector2(128, 128), 3)
-
-        this.element = parent_element.appendChild(document.createElement('div'))
-        this.element.style.position = 'absolute'
-        this.element.style.overflow = 'hidden'
-        this._inner_element = this.element.appendChild(document.createElement('div'))
-        this._inner_element.style.height = '100%'
-        this._inner_element.id = 'health-bar'
-        this._inner_element.style.translate = `${11 * this._sprite_sheet.scale}px -4px` // Oh this is disgusting
-    }
-
-    public set_health(health: number): void {
-        this._segments.forEach((sprite) => {
-            sprite.dispose()
-        })
-        this._segments.length = 0
-
-        if (GameState.MAX_HEALTH === health) return // Clear bar when no damage taken
-
-        // Bar appears to start at tile with index 3, so add 3. Then subtract since the first frame is at 1 hp lost
-        const damage_taken = GameState.MAX_HEALTH - health + 3 - 1
-
-        const health_to_tile_width = 6
-
-        const tile_count = Math.floor(damage_taken / health_to_tile_width)
-
-        for (let index = 0; index < tile_count; index++) {
-            this._segments.push(new Sprite(this._inner_element, this._sprite_sheet, this.HEALTH_TILE.from, this.HEALTH_TILE.to))
-        }
-
-        const remainder = Math.floor((damage_taken) % health_to_tile_width)
-
-        const remainder_sprite = this.HEALTH_REMAINDER_TILES[remainder]
-
-        this._segments.push(new Sprite(this._inner_element, this._sprite_sheet, remainder_sprite.from, remainder_sprite.to))
-    }
-}
-
-class MessageBox {
-    public animated_text: TextAnimation
-    private _sprite: Sprite
-
-    constructor(parent_element: HTMLElement, text: string) {
-        this._sprite = new Sprite(parent_element, GridObject.object_sheet, new Vector2(14, 39), new Vector2(29, 41))
-        set_translation(this._sprite.element, GridObject.object_sheet.tile_size, 0, 9)
-        const text_element = this._sprite.element.appendChild(document.createElement('div'))
-        text_element.id = 'message-text'
-        text_element.className = 'inverted-text'
-        set_translation(text_element, GridObject.object_sheet.tile_size, 1, (2 / 8))
-        this.animated_text = animate_text(text_element, text)
-    }
-
-    public dispose(): void {
-        this._sprite.dispose()
-    }
-}
-
-type ModifierCost = [GridObject, number][]
-class Modifier {
-    constructor(public cost: ModifierCost) {
-
-    }
-
-    public can_afford(): boolean {
-        let can_afford_modifier = true
-        this.cost.forEach((value) => {
-            if (Collection.get_item_count(value[0]) < value[1]) {
-                can_afford_modifier = false
-            }
-        })
-
-        return can_afford_modifier
-    }
-
-    public purchase(): void {
-        this.cost.forEach((value) => Collection.remove_item(value[0], value[1]))
-    }
-
-    public modify_loot_pool(loot_pool: LootPool): LootPool {
-        return loot_pool
-    }
-
-    public modify_rate(object: GridObject, rate: number): number {
-        return rate
-    }
-
-    public modify_item_amount(item_amount: number): number {
-        return item_amount
-    }
-}
-
-class DropRateModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _increases: Map<string, number>) {
-        super(modifier_cost)
-    }
-
-    public override modify_rate(object: GridObject, rate: number): number {
-        if (this._increases.has(object.name)) {
-            return rate + this._increases.get(object.name)!
-        }
-        else {
-            return rate
-        }
-    }
-
-    public override modify_item_amount(item_amount: number): number {
-        return Math.max(3, item_amount)
-    }
-}
-
-class LootPoolModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>) {
-        super(modifier_cost)
-    }
-
-    public override modify_loot_pool(loot_pool: LootPool): LootPool {
-        if (this._loot_pool_map.has(loot_pool)) {
-            return this._loot_pool_map.get(loot_pool)!
-        }
-        else {
-            return loot_pool
-        }
-    }
-}
-
-class PlateModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost) {
-        super(modifier_cost)
-    }
-
-    public override can_afford(): boolean {
-        if (PLATES.every((plate) => Collection.get_item_count(plate) > 0)) {
-            return false
-        }
-
-        return super.can_afford()
-    }
-
-    public override modify_item_amount(): number {
-        return 1
     }
 }
 
@@ -460,7 +276,7 @@ export class MiningGrid {
 
         this._hammer = new Hammer(this._grid_element, this._sprite_sheet)
 
-        this._active_modifier = new Modifier([])
+        this._active_modifier = new Modifier([], '', '')
 
         for (let x_index = 0; x_index < this.WIDTH; x_index++) {
             this._cells.push([])
@@ -515,44 +331,13 @@ export class MiningGrid {
         this._shake_timeouts.length = 0
     }
 
-    private create_modifier_option(title: string, modifier: Modifier, button_class: string): { element: HTMLElement, on_click?: (applied_modifier: Modifier) => void } {
-        const small_sprites = new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 1)
-        const element = document.createElement('div')
-        element.id = 'modifier-option'
-        const return_value: { element: HTMLElement, on_click?: (applied_modifier: Modifier) => void } = { element: element }
-
-        // const title = document.createElement('p')
-        const item_list = element.appendChild(document.createElement('div'))
-        item_list.id = 'modifier-cost'
-
-        modifier.cost.forEach((value) => {
-            new Sprite(item_list, small_sprites, value[0].start_tile, value[0].end_tile)
-            if (value[1] > 1) {
-                const amt_text = item_list.appendChild(document.createElement('span'))
-                amt_text.innerText = `x${value[1]}`
-                amt_text.classList.add('inverted-text')
-            }
-        })
-
-        const button = element.appendChild(document.createElement('button'))
-        button.innerText = title
-        button.id = 'modifier-button'
-        button.classList.add(button_class)
-        button.onclick = (): void => return_value.on_click?.(modifier)
-
-        return return_value
-    }
-
     private create_modifier_interface(): { element: HTMLElement, on_finalize?: () => void } {
         const parent_element = document.createElement('div')
         parent_element.classList.add('simple-overlay')
         parent_element.style.background = 'black'
         parent_element.style.zIndex = '13'
         const element = parent_element.appendChild(document.createElement('div'))
-        // element.classList.add('animate-opacity')
         element.id = 'modifier-screen'
-        // element.style.width = '90%'
-        // element.style.height = '90%'
         element.style.padding = '0 5%'
         element.style.transitionDuration = '0.3s'
 
@@ -568,10 +353,10 @@ export class MiningGrid {
         }
 
         let modifier_count = 0
-        const add_if_affordable = (modifier: Modifier, title: string, button_class: string): void => {
+        const add_if_affordable = (modifier: Modifier): void => {
             if (modifier.can_afford()) {
                 modifier_count++
-                const modifier_element = this.create_modifier_option(title, modifier, button_class)
+                const modifier_element = modifier.create_modifier_option()
                 element.appendChild(modifier_element.element)
                 modifier_element.on_click = (new_mod: Modifier): void => {
                     Statistics.modifiers_purchased++
@@ -582,40 +367,6 @@ export class MiningGrid {
             }
         }
 
-        const item_modifier_increases
-        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
-        // Costs red spheres
-        const item_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[1], 6 ] ], item_modifier_increases)
-        const item_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[1], 2 ] ], item_modifier_increases)
-
-        // Costs blue spheres
-        const stone_modifier_increases
-        // Only incraese if normal rate isn't 0
-        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
-        const stone_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[2], 6 ] ], stone_modifier_increases)
-        const stone_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[2], 2 ] ], stone_modifier_increases)
-
-        // Costs green spheres
-        const fossil_modifier_increases
-        // Only increase if normal rate isn't 0
-        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
-        const fossil_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[0], 6 ] ], fossil_modifier_increases)
-        const fossil_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[0], 2 ] ], fossil_modifier_increases)
-
-        const plate_modifier = new PlateModifier(SHARDS.map((shard) => [ shard, 1 ]))
-
-        const loot_pool_mapping = new Map<LootPool, LootPool>([
-            [ LootPool.POST_DEX_DIAMOND, LootPool.POST_DEX_PEARL ],
-            [ LootPool.POST_DEX_PEARL, LootPool.POST_DEX_DIAMOND ],
-            [ LootPool.PRE_DEX_DIAMOND, LootPool.PRE_DEX_PEARL ],
-            [ LootPool.PRE_DEX_PEARL, LootPool.PRE_DEX_DIAMOND ]
-        ])
-
-        const version = Settings.get_squashed_version()
-        const small_opposing_sphere = version === GameVersion.DIAMOND ? SMALL_SPHERES[4] : SMALL_SPHERES[3]
-        const large_opposing_sphere = version === GameVersion.DIAMOND ? LARGE_SPHERES[4] : LARGE_SPHERES[3]
-        const version_modifier_small = new LootPoolModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping)
-        const version_modifier_large = new LootPoolModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping)
 
         const flavour_text = element.appendChild(document.createElement('h3'))
         flavour_text.classList.add('inverted-text')
@@ -624,17 +375,7 @@ export class MiningGrid {
         flavour_text.style.marginTop = '0.5em'
         flavour_text.innerText = 'Welcome to the modifier shop!'
 
-        add_if_affordable(item_modifier_small, 'Increase items', 'pearl')
-        add_if_affordable(item_modifier_large, 'Increase items', 'pearl')
-        add_if_affordable(stone_modifier_small, 'Increase stones', 'diamond')
-        add_if_affordable(stone_modifier_large, 'Increase stones', 'diamond')
-        add_if_affordable(fossil_modifier_small, 'Increase fossils', 'platinum')
-        add_if_affordable(fossil_modifier_large, 'Increase fossils', 'platinum')
-        add_if_affordable(plate_modifier, 'Assemble pieces', 'pearl')
-
-        const opposing_button_class = version === GameVersion.DIAMOND ? 'pearl' : 'diamond'
-        add_if_affordable(version_modifier_small, 'Spacetime rift?', opposing_button_class)
-        add_if_affordable(version_modifier_large, 'Spacetime rift?', opposing_button_class)
+        Modifiers.get_guaranteed_modifiers().forEach((modifier) => { add_if_affordable(modifier) })
 
         if (modifier_count === 0) {
             const no_modifier_count = element.appendChild(document.createElement('h2'))
@@ -844,7 +585,7 @@ export class MiningGrid {
             this.try_add_object_at_random_valid_position(random_element(BEDROCK_OBJECTS))
         }
 
-        this._active_modifier = new Modifier([])
+        this._active_modifier = new Modifier([], '', '')
 
         this.display_messages([ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
     }
@@ -873,7 +614,7 @@ export class MiningGrid {
             }
             else {
                 if (current_message) current_message.dispose()
-                current_message = new MessageBox(overlay, messages[index])
+                current_message = new MessageBox(overlay, messages[index], GridObject.object_sheet)
                 if (instant) current_message.animated_text.skip()
                 index += 1
             }
