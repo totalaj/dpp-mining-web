@@ -30,7 +30,7 @@
       --text-invert: #FFFFFF;
       --text-invert-shadow: #AE9EBE;
       --text-highlight: #FFFF73;
-      --text-highlight-shadow: #393939
+      --text-highlight-shadow: #393939;
     }
 
     p,
@@ -69,6 +69,12 @@
     h6 {
       text-shadow: 1px 1px 0px var(--text-dark-shadow), 2px 2px 0px var(--text-dark-shadow);
       color: var(--text-dark);
+    }
+
+    mark {
+      color: var(--text-highlight);
+      text-shadow: 1px 1px 0px var(--text-highlight-shadow), 2px 2px 0px var(--text-highlight-shadow);
+      background-color: transparent;
     }
 
     body {

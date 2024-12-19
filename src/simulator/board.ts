@@ -125,6 +125,9 @@ export class MiningGrid {
         this.on_game_end?.(this.game_state)
         Statistics.rounds_played++
 
+        // Only reset if you failed last time
+        if (this.game_state.failed) this._active_modifier = new Modifier([], '', '')
+
         this.clear_screen_shakes()
 
         const item_obtained_messages: string[] = []
@@ -375,16 +378,20 @@ export class MiningGrid {
         flavour_text.style.marginTop = '0.5em'
         flavour_text.innerText = 'Welcome to the modifier shop!'
 
-        const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
-        const random_modifiers = random_element_set(Modifiers.get_optional_modifiers(), 3).filter((modifier) => modifier.can_afford())
-        const modifiers = [ ...guaranteed_modifiers, ...random_modifiers ]
+        if (this._active_modifier.title === '') {
+            const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
+            const random_modifiers = random_element_set(Modifiers.get_optional_modifiers(), 3).filter((modifier) => modifier.can_afford())
+            const modifiers = [ ...guaranteed_modifiers, ...random_modifiers ]
 
-        modifiers.forEach((modifier) => { add_if_affordable(modifier) })
-
+            modifiers.forEach((modifier) => { add_if_affordable(modifier) })
+        }
         if (modifier_count === 0) {
             const no_modifier_count = element.appendChild(document.createElement('h2'))
             no_modifier_count.classList.add('inverted-text')
-            if (Collection.get_all_items().every((item) => Collection.get_item_count(item) === 0)) {
+            if (this._active_modifier.title !== '') {
+                no_modifier_count.innerHTML = `Full clear!<br>The effects of <mark>${this._active_modifier.title}</mark> still linger...`
+            }
+            else if (Collection.get_all_items().every((item) => Collection.get_item_count(item) === 0)) {
                 if (Statistics.rounds_played === 0) {
                     no_modifier_count.innerText = 'Your journey into the underground begins...\nClick the screen to mine out terrain\nThere are surely treasures to be found underneath\nthe rich soils...'
                 }
@@ -543,8 +550,6 @@ export class MiningGrid {
 
         let total_chance = 0
         elegible_items.forEach((item) => {
-            if (this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool)) !== 0) console.log("Rate of", item.name, "changed from", item.rarity.get_rate(loot_pool), "to", this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool)))
-
             total_chance += this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool))
         })
 
@@ -590,8 +595,6 @@ export class MiningGrid {
         for (let index = 0; index < bedrock_count; index++) {
             this.try_add_object_at_random_valid_position(random_element(BEDROCK_OBJECTS))
         }
-
-        this._active_modifier = new Modifier([], '', '')
 
         this.display_messages([ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
     }

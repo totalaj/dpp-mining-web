@@ -7,7 +7,7 @@ import { GameVersion, LootPool, Settings } from "./settings"
 
 type ModifierCost = [GridObject, number][]
 export class Modifier {
-    constructor(public cost: ModifierCost, private _title: string, private _button_class: string) {
+    constructor(public cost: ModifierCost, public title: string, private _button_class: string) {
 
     }
 
@@ -31,7 +31,7 @@ export class Modifier {
         })
 
         const button = element.appendChild(document.createElement('button'))
-        button.innerText = this._title
+        button.innerText = this.title
         button.id = 'modifier-button'
         button.classList.add(this._button_class)
         button.onclick = (): void => return_value.on_click?.(this)
