@@ -2,7 +2,7 @@ import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import * as Noise from 'ts-perlin-simplex'
 import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, get_all_objects, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, trim_duplicates, WEATHER_STONES } from "./objects"
-import { random_element } from "../utils/array_utils"
+import { random_element, random_element_set } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
 import { GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark } from "./animations"
 import { HammerButton } from "./hammer_button"
@@ -375,7 +375,11 @@ export class MiningGrid {
         flavour_text.style.marginTop = '0.5em'
         flavour_text.innerText = 'Welcome to the modifier shop!'
 
-        Modifiers.get_guaranteed_modifiers().forEach((modifier) => { add_if_affordable(modifier) })
+        const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
+        const random_modifiers = random_element_set(Modifiers.get_optional_modifiers(), 3).filter((modifier) => modifier.can_afford())
+        const modifiers = [ ...guaranteed_modifiers, ...random_modifiers ]
+
+        modifiers.forEach((modifier) => { add_if_affordable(modifier) })
 
         if (modifier_count === 0) {
             const no_modifier_count = element.appendChild(document.createElement('h2'))
@@ -539,6 +543,8 @@ export class MiningGrid {
 
         let total_chance = 0
         elegible_items.forEach((item) => {
+            if (this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool)) !== 0) console.log("Rate of", item.name, "changed from", item.rarity.get_rate(loot_pool), "to", this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool)))
+
             total_chance += this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool))
         })
 

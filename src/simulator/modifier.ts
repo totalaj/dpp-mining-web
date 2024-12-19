@@ -101,6 +101,27 @@ export class LootPoolModifier extends Modifier {
     }
 }
 
+export class VersionChangeModifier extends Modifier {
+    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string) {
+        super(modifier_cost, title, button_class)
+    }
+
+    public override modify_rate(object: GridObject, rate: number): number {
+        const original_loot_pool = Settings.get_lootpool()
+        const target_loot_pool = this._loot_pool_map.get(original_loot_pool)
+        if (!target_loot_pool) {
+            console.warn("Version change loot pool map is missing an entry for", LootPool[original_loot_pool])
+            return rate
+        }
+
+        const target_pool_rate = object.rarity.get_rate(target_loot_pool)
+        let adjusted_rate = ((target_pool_rate - rate) > 0) ? target_pool_rate : 0
+        const basic_spheres = SMALL_SPHERES.slice(0, 2).concat(LARGE_SPHERES.slice(0, 2))
+        if (basic_spheres.includes(object)) adjusted_rate *= 0.3
+        return adjusted_rate
+    }
+}
+
 export class PlateModifier extends Modifier {
     constructor(modifier_cost: ModifierCost) {
         super(modifier_cost, 'Assemble pieces', 'platinum')
@@ -141,6 +162,17 @@ export class Modifiers {
         const fossil_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[0], 6 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
         const fossil_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[0], 2 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
 
+        return [
+            item_modifier_small,
+            item_modifier_large,
+            stone_modifier_small,
+            stone_modifier_large,
+            fossil_modifier_small,
+            fossil_modifier_large
+        ]
+    }
+
+    public static get_optional_modifiers(): Modifier[] {
         const plate_modifier = new PlateModifier(SHARDS.map((shard) => [ shard, 1 ]))
 
         const loot_pool_mapping = new Map<LootPool, LootPool>([
@@ -154,23 +186,9 @@ export class Modifiers {
         const opposing_button_class = version === GameVersion.DIAMOND ? 'pearl' : 'diamond'
         const small_opposing_sphere = version === GameVersion.DIAMOND ? SMALL_SPHERES[4] : SMALL_SPHERES[3]
         const large_opposing_sphere = version === GameVersion.DIAMOND ? LARGE_SPHERES[4] : LARGE_SPHERES[3]
-        const version_modifier_small = new LootPoolModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
-        const version_modifier_large = new LootPoolModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
+        const version_modifier_small = new VersionChangeModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
+        const version_modifier_large = new VersionChangeModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
 
-        return [
-            item_modifier_small,
-            item_modifier_large,
-            stone_modifier_small,
-            stone_modifier_large,
-            fossil_modifier_small,
-            fossil_modifier_large,
-            plate_modifier,
-            version_modifier_small,
-            version_modifier_large
-        ]
-    }
-
-    public static get_optional_modifiers(): Modifier[] {
-        return []
+        return [ plate_modifier, version_modifier_small, version_modifier_large ]
     }
 }
