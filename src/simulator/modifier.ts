@@ -140,6 +140,24 @@ export class PlateModifier extends Modifier {
     }
 }
 
+export function create_active_modifier_element(modifier: Modifier): HTMLElement {
+    const element = document.createElement('div')
+    element.id = 'active-modifier'
+    const small_sprites = new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 1)
+    modifier.cost.forEach((value) => {
+        new Sprite(element, small_sprites, value[0].start_tile, value[0].end_tile)
+        if (value[1] > 1) {
+            const amt_text = element.appendChild(document.createElement('span'))
+            amt_text.innerText = `x${value[1]}`
+            amt_text.classList.add('inverted-text')
+        }
+    })
+
+    const title = element.appendChild(document.createElement('p'))
+    title.innerText = modifier.title
+
+    return element
+}
 export class Modifiers {
     public static get_guaranteed_modifiers(): Modifier[] {
         const item_modifier_increases
