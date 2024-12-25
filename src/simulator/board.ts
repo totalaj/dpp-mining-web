@@ -126,8 +126,9 @@ export class MiningGrid {
         Statistics.rounds_played++
 
         // Only reset if you failed last time
-        if (this.game_state.failed) this._active_modifier = new Modifier([], '', '')
-
+        if (this.game_state.failed || !this._active_modifier.chainable) {
+            this._active_modifier = new Modifier([], '', '')
+        }
         this.clear_screen_shakes()
 
         const item_obtained_messages: string[] = []

@@ -7,7 +7,7 @@ import { GameVersion, LootPool, Settings } from "./settings"
 
 type ModifierCost = [GridObject, number][]
 export class Modifier {
-    constructor(public cost: ModifierCost, public title: string, private _button_class: string) {
+    constructor(public cost: ModifierCost, public title: string, private _button_class: string, public chainable: boolean = true) {
 
     }
 
@@ -68,8 +68,8 @@ export class Modifier {
 }
 
 export class DropRateModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _increases: Map<string, number>, title: string, button_class: string) {
-        super(modifier_cost, title, button_class)
+    constructor(modifier_cost: ModifierCost, private _increases: Map<string, number>, title: string, button_class: string, chainable: boolean = true) {
+        super(modifier_cost, title, button_class, chainable)
     }
 
     public override modify_rate(object: GridObject, rate: number): number {
@@ -87,8 +87,8 @@ export class DropRateModifier extends Modifier {
 }
 
 export class LootPoolModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string) {
-        super(modifier_cost, title, button_class)
+    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string, chainable: boolean = true) {
+        super(modifier_cost, title, button_class, chainable)
     }
 
     public override modify_loot_pool(loot_pool: LootPool): LootPool {
@@ -102,8 +102,8 @@ export class LootPoolModifier extends Modifier {
 }
 
 export class VersionChangeModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string) {
-        super(modifier_cost, title, button_class)
+    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string, chainable: boolean = true) {
+        super(modifier_cost, title, button_class, chainable)
     }
 
     public override modify_rate(object: GridObject, rate: number): number {
@@ -124,7 +124,7 @@ export class VersionChangeModifier extends Modifier {
 
 export class PlateModifier extends Modifier {
     constructor(modifier_cost: ModifierCost) {
-        super(modifier_cost, 'Assemble pieces', 'platinum')
+        super(modifier_cost, 'Assemble pieces', 'platinum', false)
     }
 
     public override can_afford(): boolean {
