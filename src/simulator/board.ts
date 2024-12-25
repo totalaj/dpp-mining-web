@@ -12,7 +12,7 @@ import { GameVersion, Progress, Settings, Statistics } from "./settings"
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
 import { ProgressBar } from "../components/progress_bar"
-import { Modifier, Modifiers, PlateModifier } from "./modifier"
+import { create_active_modifier_element, Modifier, Modifiers, PlateModifier } from "./modifier"
 import { GameState, HealthBar } from "./game_state"
 import { MessageBox } from "../components/message_box"
 
@@ -120,6 +120,12 @@ export class MiningGrid {
         return this._active_modifier
     }
     private set active_modifier(value: Modifier | undefined) {
+        if (this._active_modifier_element) this._active_modifier_element.remove()
+
+        if (value) {
+            this._active_modifier_element = this._parent.appendChild(create_active_modifier_element(value))
+            set_translation(this._active_modifier_element, 16 * 3, 16, -0.5)
+        }
         this._active_modifier = value
     }
 
@@ -136,7 +142,7 @@ export class MiningGrid {
 
         // Only reset if you failed last time
         if (this.game_state.failed || !this.active_modifier?.chainable) {
-            this.active_modifier = new Modifier([], '', '')
+            this.active_modifier = undefined
         }
         this.clear_screen_shakes()
 
@@ -289,8 +295,6 @@ export class MiningGrid {
 
         this._hammer = new Hammer(this._grid_element, this._sprite_sheet)
 
-        this._active_modifier = new Modifier([], '', '')
-
         for (let x_index = 0; x_index < this.WIDTH; x_index++) {
             this._cells.push([])
 
@@ -388,7 +392,7 @@ export class MiningGrid {
         flavour_text.style.marginTop = '0.5em'
         flavour_text.innerText = 'Welcome to the modifier shop!'
 
-        if (this.active_modifier) {
+        if (!this.active_modifier) {
             const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
             const random_modifiers = random_element_set(Modifiers.get_optional_modifiers(), 3).filter((modifier) => modifier.can_afford())
             const modifiers = [ ...guaranteed_modifiers, ...random_modifiers ]
