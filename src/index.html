@@ -99,6 +99,11 @@
       color: var(--text-invert);
     }
 
+    .red-text {
+      text-shadow: 1px 1px 0px var(--text-invert-shadow), 2px 2px 0px var(--text-invert-shadow);
+      color: var(--pearl-color-dark);
+    }
+
     button {
       width: fit-content;
       height: fit-content;
@@ -106,6 +111,11 @@
       border-style: outset;
       border-color: var(--background-color);
       cursor: pointer;
+    }
+
+    button:disabled {
+      background: var(--text-color);
+      border-color: var(--text-shadow);
     }
 
     #version-button {
@@ -185,6 +195,10 @@
 
     .sprite {
       image-rendering: pixelated;
+    }
+
+    .sprite.disabled {
+      filter: brightness(0.5);
     }
 
     .sprite.found {
@@ -444,6 +458,9 @@
       display: flex;
       flex-wrap: wrap;
       align-items: flex-end;
+      padding: 0px 5%;
+      transition-duration: 0.3s;
+      height: 100%;
       align-content: space-between;
       justify-content: space-around;
       transition: scale 0.3s ease-in, opacity 0.3s ease-in;

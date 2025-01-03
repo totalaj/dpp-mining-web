@@ -57,16 +57,20 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         element.id = 'modifier-option'
         const return_value: { element: HTMLElement, on_click?: (applied_modifier: Modifier) => void } = { element: element }
 
-        // const title = document.createElement('p')
         const item_list = element.appendChild(document.createElement('div'))
         item_list.id = 'modifier-cost'
 
+        const can_afford = this.can_afford()
+
         this.cost.forEach((value) => {
-            new Sprite(item_list, small_sprites, value[0].start_tile, value[0].end_tile)
+            const sprite = new Sprite(item_list, small_sprites, value[0].start_tile, value[0].end_tile)
+            if (!can_afford) {
+                sprite.element.classList.add('disabled')
+            }
             if (value[1] > 1) {
                 const amt_text = item_list.appendChild(document.createElement('span'))
                 amt_text.innerText = `x${value[1]}`
-                amt_text.classList.add('inverted-text')
+                amt_text.classList.add(can_afford ? 'inverted-text' : 'red-text')
             }
         })
 
@@ -74,6 +78,7 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         button.innerText = this.title
         button.id = 'modifier-button'
         button.classList.add(this._button_class)
+        button.disabled = !can_afford
         button.onclick = (): void => return_value.on_click?.(this)
 
         return return_value

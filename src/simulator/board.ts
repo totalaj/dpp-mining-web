@@ -356,18 +356,14 @@ export class MiningGrid {
             }, 300)
         }
 
-        let modifier_count = 0
-        const add_if_affordable = (modifier: Modifier): void => {
-            if (modifier.can_afford()) {
-                modifier_count++
-                const modifier_element = modifier.create_modifier_option()
-                element.appendChild(modifier_element.element)
-                modifier_element.on_click = (new_mod: Modifier): void => {
-                    Statistics.modifiers_purchased++
-                    new_mod.purchase()
-                    this._active_modifier = new_mod
-                    finalize_selection()
-                }
+        const add_modifier = (modifier: Modifier): void => {
+            const modifier_element = modifier.create_modifier_option()
+            element.appendChild(modifier_element.element)
+            modifier_element.on_click = (new_mod: Modifier): void => {
+                Statistics.modifiers_purchased++
+                new_mod.purchase()
+                this._active_modifier = new_mod
+                finalize_selection()
             }
         }
 
@@ -411,9 +407,9 @@ export class MiningGrid {
             const modifiers = [ ...guaranteed_modifiers, ...added_random_modifiers ]
 
             console.log(modifiers)
-            modifiers.forEach((modifier) => { add_if_affordable(modifier) })
+            modifiers.forEach((modifier) => { add_modifier(modifier) })
         }
-        if (modifier_count === 0) {
+        else {
             const no_modifier_count = element.appendChild(document.createElement('h2'))
             no_modifier_count.classList.add('inverted-text')
             if (this._active_modifier.title !== '') {
