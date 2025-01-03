@@ -7,7 +7,7 @@ import { GameVersion, LootPool, Settings } from "./settings"
 
 type ModifierCost = [GridObject, number][]
 export class Modifier {
-    constructor(public cost: ModifierCost, public title: string, private _button_class: string) {
+    constructor(public cost: ModifierCost, public title: string, private _button_class: string, public postgame: boolean = false, public repeatable: boolean = true) {
 
     }
 
@@ -68,8 +68,15 @@ export class Modifier {
 }
 
 export class DropRateModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _increases: Map<string, number>, title: string, button_class: string) {
-        super(modifier_cost, title, button_class)
+    constructor(
+        modifier_cost: ModifierCost,
+        private _increases: Map<string, number>,
+        title: string,
+        button_class: string,
+        postgame: boolean = false,
+        repeatable: boolean = true
+    ) {
+        super(modifier_cost, title, button_class, postgame, repeatable)
     }
 
     public override modify_rate(object: GridObject, rate: number): number {
@@ -87,8 +94,15 @@ export class DropRateModifier extends Modifier {
 }
 
 export class LootPoolModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string) {
-        super(modifier_cost, title, button_class)
+    constructor(
+        modifier_cost: ModifierCost,
+        private _loot_pool_map: Map<LootPool, LootPool>,
+        title: string,
+        button_class: string,
+        postgame: boolean = false,
+        repeatable: boolean = true
+    ) {
+        super(modifier_cost, title, button_class, postgame, repeatable)
     }
 
     public override modify_loot_pool(loot_pool: LootPool): LootPool {
@@ -102,8 +116,15 @@ export class LootPoolModifier extends Modifier {
 }
 
 export class VersionChangeModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string) {
-        super(modifier_cost, title, button_class)
+    constructor(
+        modifier_cost: ModifierCost,
+        private _loot_pool_map: Map<LootPool, LootPool>,
+        title: string,
+        button_class: string,
+        postgame: boolean = false,
+        repeatable: boolean = true
+    ) {
+        super(modifier_cost, title, button_class, postgame, repeatable)
     }
 
     public override modify_rate(object: GridObject, rate: number): number {
@@ -124,7 +145,7 @@ export class VersionChangeModifier extends Modifier {
 
 export class PlateModifier extends Modifier {
     constructor(modifier_cost: ModifierCost) {
-        super(modifier_cost, 'Assemble pieces', 'platinum')
+        super(modifier_cost, 'Assemble pieces', 'platinum', true, false)
     }
 
     public override can_afford(): boolean {
@@ -142,6 +163,10 @@ export class PlateModifier extends Modifier {
 
 export class Modifiers {
     public static get_guaranteed_modifiers(): Modifier[] {
+        return []
+    }
+
+    public static get_optional_modifiers(): Modifier[] {
         const item_modifier_increases
         = new Map<string, number>(ITEMS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
         // Costs red spheres
@@ -150,7 +175,7 @@ export class Modifiers {
 
         // Costs blue spheres
         const stone_modifier_increases
-        // Only incraese if normal rate isn't 0
+        // Only increase if normal rate isn't 0
         = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
         const stone_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[2], 6 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
         const stone_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[2], 2 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
@@ -162,17 +187,6 @@ export class Modifiers {
         const fossil_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[0], 6 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
         const fossil_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[0], 2 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
 
-        return [
-            item_modifier_small,
-            item_modifier_large,
-            stone_modifier_small,
-            stone_modifier_large,
-            fossil_modifier_small,
-            fossil_modifier_large
-        ]
-    }
-
-    public static get_optional_modifiers(): Modifier[] {
         const plate_modifier = new PlateModifier(SHARDS.map((shard) => [ shard, 1 ]))
 
         const loot_pool_mapping = new Map<LootPool, LootPool>([
@@ -189,6 +203,16 @@ export class Modifiers {
         const version_modifier_small = new VersionChangeModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
         const version_modifier_large = new VersionChangeModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
 
-        return [ plate_modifier, version_modifier_small, version_modifier_large ]
+        return [
+            plate_modifier,
+            version_modifier_small,
+            version_modifier_large,
+            item_modifier_small,
+            item_modifier_large,
+            stone_modifier_small,
+            stone_modifier_large,
+            fossil_modifier_small,
+            fossil_modifier_large
+        ]
     }
 }
