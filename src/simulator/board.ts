@@ -342,8 +342,6 @@ export class MiningGrid {
         parent_element.style.zIndex = '13'
         const element = parent_element.appendChild(document.createElement('div'))
         element.id = 'modifier-screen'
-        element.style.padding = '0 5%'
-        element.style.transitionDuration = '0.3s'
 
         const return_element: { element: HTMLElement, on_finalize?: () => void } = { element: parent_element }
 
@@ -366,7 +364,6 @@ export class MiningGrid {
                 finalize_selection()
             }
         }
-
 
         const flavour_text = element.appendChild(document.createElement('h3'))
         flavour_text.classList.add('inverted-text')
