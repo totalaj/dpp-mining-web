@@ -2,7 +2,7 @@ import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import * as Noise from 'ts-perlin-simplex'
 import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, get_all_objects, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, trim_duplicates, WEATHER_STONES } from "./objects"
-import { random_element, random_element_set } from "../utils/array_utils"
+import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
 import { GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark } from "./animations"
 import { HammerButton } from "./hammer_button"
@@ -15,6 +15,7 @@ import { ProgressBar } from "../components/progress_bar"
 import { Modifier, Modifiers, PlateModifier } from "./modifier"
 import { GameState, HealthBar } from "./game_state"
 import { MessageBox } from "../components/message_box"
+import { get_weighted_random } from "../utils/weighted_randomness"
 
 enum HitResult {
     NORMAL,
@@ -380,9 +381,36 @@ export class MiningGrid {
 
         if (this._active_modifier.title === '') {
             const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
-            const random_modifiers = random_element_set(Modifiers.get_optional_modifiers(), 3).filter((modifier) => modifier.can_afford())
-            const modifiers = [ ...guaranteed_modifiers, ...random_modifiers ]
+            const random_modifiers = Modifiers.get_optional_modifiers()
+            const added_random_modifiers: Modifier[] = []
 
+            let affordable_modifier_count = 0
+            random_modifiers.forEach((modifier) => { if (modifier.can_afford()) affordable_modifier_count++ })
+
+            let modifiers_to_generate = 1
+            if (affordable_modifier_count < 4) {
+                modifiers_to_generate = 2
+            }
+            else if (affordable_modifier_count < 6) {
+                modifiers_to_generate = 3
+            }
+            else if (affordable_modifier_count < 8) {
+                modifiers_to_generate = 4
+            }
+            else {
+                modifiers_to_generate = 5
+            }
+
+            for (let index = 0; index < modifiers_to_generate; index++) {
+                if (random_modifiers.length === 0) break
+                const random_modifier = get_weighted_random(random_modifiers, { postgame: Progress.postgame })
+                added_random_modifiers.push(random_modifier)
+                random_modifiers.splice(random_modifiers.indexOf(random_modifier), 1)
+            }
+
+            const modifiers = [ ...guaranteed_modifiers, ...added_random_modifiers ]
+
+            console.log(modifiers)
             modifiers.forEach((modifier) => { add_if_affordable(modifier) })
         }
         if (modifier_count === 0) {
@@ -548,26 +576,6 @@ export class MiningGrid {
             elegible_items = get_all_objects()
         }
 
-        let total_chance = 0
-        elegible_items.forEach((item) => {
-            total_chance += this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool))
-        })
-
-        const random_item = (): GridObject => {
-            const roll = Math.floor(Math.random() * total_chance)
-            let accumulation = 0
-
-            for (let index = 0; index < elegible_items.length; index++) {
-                const item = elegible_items[index]
-                accumulation += this._active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool))
-                if (accumulation > roll) {
-                    return item
-                }
-            }
-
-            return elegible_items[0] // We should NEVER get here, in theory
-        }
-
         const item_count = this._active_modifier.modify_item_amount(2 + random_in_range(0, 2, true))
 
         this.added_items = []
@@ -581,7 +589,7 @@ export class MiningGrid {
             let found_item: GridObject
 
             do {
-                found_item = random_item()
+                found_item = get_weighted_random(elegible_items, loot_pool)
             } while (disallowed_items.some((item) => found_item === item))
 
             const result = this.try_add_object_at_random_valid_position(found_item)

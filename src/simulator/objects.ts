@@ -1,5 +1,6 @@
 import { SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
+import { Weighted } from "../utils/weighted_randomness"
 import { LootPool } from "./settings"
 
 export enum ContentType {
@@ -35,9 +36,14 @@ class Rarity {
 }
 
 export type Genus = 'a' | 'an'
-export class GridObject {
+export class GridObject implements Weighted<LootPool> {
     public static object_sheet = new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 3)
     public extents: Vector2
+
+
+    public get_weight(loot_pool: LootPool): number {
+        return this.rarity.get_rate(loot_pool)
+    }
 
     // Use reverse indexing, (ie y,x rather than x,y) because of how data is inputed
     public collision: Array<Array<boolean>>

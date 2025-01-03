@@ -203,15 +203,15 @@ export function create_settings_element(): HTMLElement {
         const all_items = [ ...SMALL_SPHERES, ...LARGE_SPHERES, ...FOSSILS, ...EVOLUTION_STONES, ...SHARDS, ...WEATHER_STONES, ...ITEMS, ...PLATES ]
         let total_chance = 0
         all_items.forEach((item) => {
-            total_chance += item.rarity.get_rate(loot_pool)
+            total_chance += item.get_weight(loot_pool)
         })
 
-        all_items.sort((a, b) => b.rarity.get_rate(loot_pool) - a.rarity.get_rate(loot_pool))
+        all_items.sort((a, b) => b.get_weight(loot_pool) - a.get_weight(loot_pool))
 
         console.log("Total weight:", total_chance)
 
         all_items.forEach((item) => {
-            const weight = item.rarity.get_rate(loot_pool)
+            const weight = item.get_weight(loot_pool)
             const alpha = weight / total_chance
             const per_board_chance = 1 - Math.pow(1 - alpha, 3)
             const percentage = alpha * 100
