@@ -171,8 +171,8 @@ export class MiningGrid {
                 on_new_game = (): void => {
                     this.display_messages([
                         "You've discovered all item types!",
-                        "You have entered the postgame",
-                        "This means a greater variety\nof items will be available",
+                        "You have entered the postgame.",
+                        "This means a greater variety\nof items will be available.",
                         "Good luck!"
                     ]).on_completed = (): void => {
                         this.reset_board()
@@ -195,9 +195,9 @@ export class MiningGrid {
                 Progress.finished_collection = true
                 on_new_game = (): void => {
                     this.display_messages([
-                        "You've completed your collection",
+                        "You've completed your collection.",
                         "Congratulations!",
-                        "Very few people ever reach this point",
+                        "Very few people ever reach this point.",
                         "Thanks for playing!",
                         "What's left to do?",
                         "Well...",
