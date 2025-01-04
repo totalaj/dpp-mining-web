@@ -199,30 +199,38 @@ export function create_settings_element(): HTMLElement {
     const debug_print = create_button_input(settings_element, 'Print drop chances')
     debug_print.onclick = (): void => {
         // const loot_pool = Settings.calculate_lootpool(GameVersion.DIAMOND, true, false)
-        const loot_pool = LootPool.ALL
-        const all_items = [ ...SMALL_SPHERES, ...LARGE_SPHERES, ...FOSSILS, ...EVOLUTION_STONES, ...SHARDS, ...WEATHER_STONES, ...ITEMS, ...PLATES ]
-        let total_chance = 0
-        all_items.forEach((item) => {
-            total_chance += item.get_weight(loot_pool)
-        })
+        function print_loot_pool(loot_pool: LootPool): void {
+            console.log(`Printing loot pool: ${LootPool[loot_pool]}`)
+            const all_items = [ ...SMALL_SPHERES, ...LARGE_SPHERES, ...FOSSILS, ...EVOLUTION_STONES, ...SHARDS, ...WEATHER_STONES, ...ITEMS, ...PLATES ]
+            let total_chance = 0
+            all_items.forEach((item) => {
+                total_chance += item.get_weight(loot_pool)
+            })
 
-        all_items.sort((a, b) => b.get_weight(loot_pool) - a.get_weight(loot_pool))
+            all_items.sort((a, b) => b.get_weight(loot_pool) - a.get_weight(loot_pool))
 
-        console.log("Total weight:", total_chance)
+            console.log("Total weight:", total_chance)
 
-        all_items.forEach((item) => {
-            const weight = item.get_weight(loot_pool)
-            const alpha = weight / total_chance
-            const per_board_chance = 1 - Math.pow(1 - alpha, 3)
-            const percentage = alpha * 100
-            const percentage_text = `${Math.floor(percentage * 100) / 100}%`
-            if (weight > 0) {
-                console.log(`Chance of ${item.name}:`, weight, `${percentage_text}, about 1 in ${Math.floor(1 / per_board_chance)} in a board`)
-            }
-            else {
-                console.log(`Chance of ${item.name}:`, weight, `${percentage_text}, not available in the ${LootPool[loot_pool]} loot pool`)
-            }
-        })
+            all_items.forEach((item) => {
+                const weight = item.get_weight(loot_pool)
+                const alpha = weight / total_chance
+                const per_board_chance = 1 - Math.pow(1 - alpha, 3)
+                const percentage = alpha * 100
+                const percentage_text = `${Math.floor(percentage * 100) / 100}%`
+                if (weight > 0) {
+                    console.log(`Chance of ${item.name}:`, weight, `${percentage_text}, about 1 in ${Math.floor(1 / per_board_chance)} in a board`)
+                }
+                else {
+                    console.log(`Chance of ${item.name}:`, weight, `${percentage_text}, not available in the ${LootPool[loot_pool]} loot pool`)
+                }
+            })
+        }
+
+        print_loot_pool(LootPool.PRE_DEX_DIAMOND)
+        print_loot_pool(LootPool.PRE_DEX_PEARL)
+        print_loot_pool(LootPool.POST_DEX_DIAMOND)
+        print_loot_pool(LootPool.POST_DEX_PEARL)
+        print_loot_pool(LootPool.ALL)
     }
 
     return settings_element
