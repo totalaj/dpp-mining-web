@@ -117,10 +117,10 @@ export class MiningGrid {
 
     private _active_modifier_element?: HTMLElement | undefined
     private _active_modifier?: Modifier
-    private get active_modifier(): Modifier {
+    private get_active_modifier(): Modifier {
         return this._active_modifier ?? new Modifier([], '', '')
     }
-    private set active_modifier(value: Modifier | undefined) {
+    private set_active_modifier(value: Modifier | undefined): void {
         if (this._active_modifier_element) this._active_modifier_element.remove()
 
         if (value) {
@@ -142,8 +142,8 @@ export class MiningGrid {
         Statistics.rounds_played++
 
         // Only reset if you failed last time
-        if (this.game_state.failed || !this.active_modifier?.repeatable) {
-            this.active_modifier = undefined
+        if (this.game_state.failed || !this._active_modifier?.repeatable) {
+            this.set_active_modifier(undefined)
         }
         this.clear_screen_shakes()
 
@@ -374,7 +374,7 @@ export class MiningGrid {
             modifier_element.on_click = (new_mod: Modifier): void => {
                 Statistics.modifiers_purchased++
                 new_mod.purchase()
-                this._active_modifier = new_mod
+                this.set_active_modifier(new_mod)
                 finalize_selection()
             }
         }
@@ -386,7 +386,7 @@ export class MiningGrid {
         flavour_text.style.marginTop = '0.5em'
         flavour_text.innerText = 'Welcome to the modifier shop!'
 
-        if (!this.active_modifier) {
+        if (!this._active_modifier) {
             const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
             const random_modifiers = Modifiers.get_optional_modifiers()
             const added_random_modifiers: Modifier[] = []
@@ -423,8 +423,8 @@ export class MiningGrid {
         else {
             const no_modifier_count = element.appendChild(document.createElement('h2'))
             no_modifier_count.classList.add('inverted-text')
-            if (this.active_modifier) {
-                no_modifier_count.innerHTML = `Full clear!<br>The effects of <mark>${this.active_modifier.title}</mark> still linger...`
+            if (this._active_modifier) {
+                no_modifier_count.innerHTML = `Full clear!<br>The effects of <mark>${this._active_modifier.title}</mark> still linger...`
             }
             else if (Collection.get_all_items().every((item) => Collection.get_item_count(item) === 0)) {
                 if (Statistics.rounds_played === 0) {
@@ -567,7 +567,7 @@ export class MiningGrid {
         // We're not going to do that, instead we're gonna get all valid positions and place in one of those at random
         // Also, all items can appear any amount of times EXCEPT Plates. So we do a reroll if that happens
 
-        const active_modifier = this.active_modifier ?? new Modifier([], '', '')
+        const active_modifier = this.get_active_modifier()
 
         const loot_pool = active_modifier.modify_loot_pool(Settings.get_lootpool())
 
@@ -585,7 +585,7 @@ export class MiningGrid {
             elegible_items = get_all_objects()
         }
 
-        const item_count = this.active_modifier.modify_item_amount(2 + random_in_range(0, 2, true))
+        const item_count = active_modifier.modify_item_amount(2 + random_in_range(0, 2, true))
 
         this.added_items = []
 
