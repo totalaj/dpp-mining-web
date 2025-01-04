@@ -203,7 +203,7 @@ export class MiningGrid {
                         "Well...",
                         "Try getting 10 of each item?",
                         "Or contribute to the project\nand expand the game!",
-                        "Anyway, thanks again\nand havea good day!"
+                        "Anyway, thanks again\nand have a good day!"
                     ]).on_completed = (): void => {
                         this.reset_board()
                     }
