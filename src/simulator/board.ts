@@ -12,7 +12,7 @@ import { GameVersion, Progress, Settings, Statistics } from "./settings"
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
 import { ProgressBar } from "../components/progress_bar"
-import { Modifier, Modifiers, PlateModifier } from "./modifier"
+import { create_active_modifier_element, Modifier, Modifiers, PlateModifier } from "./modifier"
 import { GameState, HealthBar } from "./game_state"
 import { MessageBox } from "../components/message_box"
 import { get_weighted_random } from "../utils/weighted_randomness"
@@ -114,7 +114,22 @@ export class MiningGrid {
     private _hammer_type: HammerType = HammerType.LIGHT
     private _health_bar: HealthBar
     private _transition_element?: HTMLElement | undefined
-    private _active_modifier: Modifier
+
+    private _active_modifier_element?: HTMLElement | undefined
+    private _active_modifier?: Modifier
+    private get_active_modifier(): Modifier {
+        return this._active_modifier ?? new Modifier([], '', '')
+    }
+    private set_active_modifier(value: Modifier | undefined): void {
+        if (this._active_modifier_element) this._active_modifier_element.remove()
+
+        if (value) {
+            this._active_modifier_element = this._parent.appendChild(create_active_modifier_element(value))
+            set_translation(this._active_modifier_element, 16 * 3, 16, -0.5)
+        }
+        this._active_modifier = value
+    }
+
     private get transition_element(): HTMLElement | undefined {
         return this._transition_element
     }
@@ -127,8 +142,9 @@ export class MiningGrid {
         Statistics.rounds_played++
 
         // Only reset if you failed last time
-        if (this.game_state.failed) this._active_modifier = new Modifier([], '', '')
-
+        if (this.game_state.failed || !this._active_modifier?.repeatable) {
+            this.set_active_modifier(undefined)
+        }
         this.clear_screen_shakes()
 
         const item_obtained_messages: string[] = []
@@ -280,8 +296,6 @@ export class MiningGrid {
 
         this._hammer = new Hammer(this._grid_element, this._sprite_sheet)
 
-        this._active_modifier = new Modifier([], '', '')
-
         for (let x_index = 0; x_index < this.WIDTH; x_index++) {
             this._cells.push([])
 
@@ -360,7 +374,7 @@ export class MiningGrid {
             modifier_element.on_click = (new_mod: Modifier): void => {
                 Statistics.modifiers_purchased++
                 new_mod.purchase()
-                this._active_modifier = new_mod
+                this.set_active_modifier(new_mod)
                 finalize_selection()
             }
         }
@@ -372,7 +386,7 @@ export class MiningGrid {
         flavour_text.style.marginTop = '0.5em'
         flavour_text.innerText = 'Welcome to the modifier shop!'
 
-        if (this._active_modifier.title === '') {
+        if (!this._active_modifier) {
             const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
             const random_modifiers = Modifiers.get_optional_modifiers()
             const added_random_modifiers: Modifier[] = []
@@ -409,7 +423,7 @@ export class MiningGrid {
         else {
             const no_modifier_count = element.appendChild(document.createElement('h2'))
             no_modifier_count.classList.add('inverted-text')
-            if (this._active_modifier.title !== '') {
+            if (this._active_modifier) {
                 no_modifier_count.innerHTML = `Full clear!<br>The effects of <mark>${this._active_modifier.title}</mark> still linger...`
             }
             else if (Collection.get_all_items().every((item) => Collection.get_item_count(item) === 0)) {
@@ -553,10 +567,12 @@ export class MiningGrid {
         // We're not going to do that, instead we're gonna get all valid positions and place in one of those at random
         // Also, all items can appear any amount of times EXCEPT Plates. So we do a reroll if that happens
 
-        const loot_pool = this._active_modifier.modify_loot_pool(Settings.get_lootpool())
+        const active_modifier = this.get_active_modifier()
+
+        const loot_pool = active_modifier.modify_loot_pool(Settings.get_lootpool())
 
         let elegible_items: GridObject[] = get_all_objects()
-        if (this._active_modifier instanceof PlateModifier) {
+        if (active_modifier instanceof PlateModifier) {
             elegible_items = [ ...PLATES ]
         }
 
@@ -569,7 +585,7 @@ export class MiningGrid {
             elegible_items = get_all_objects()
         }
 
-        const item_count = this._active_modifier.modify_item_amount(2 + random_in_range(0, 2, true))
+        const item_count = active_modifier.modify_item_amount(2 + random_in_range(0, 2, true))
 
         this.added_items = []
 
