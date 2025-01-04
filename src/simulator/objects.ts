@@ -529,10 +529,10 @@ export const EVOLUTION_STONES = [
         new Vector2(33, 14), new Vector2(34, 17), ContentType.ITEM,
         new Rarity(2 / 2, 4 / 2, 3 / 2, 15 / 2), "Moon stone", // 90deg
         [
-            [ true, true, false ],
-            [ true, true, true ],
-            [ true, true, true ],
-            [ false, true, true ]
+            [ true, false ],
+            [ true, true ],
+            [ true, true ],
+            [ false, true ]
         ]
     ),
     new GridObject(
@@ -806,7 +806,7 @@ export const PLATES = [
         ]
     ),
     new GridObject(
-        new Vector2(42, 32), new Vector2(47, 34), ContentType.ITEM,
+        new Vector2(42, 32), new Vector2(45, 34), ContentType.ITEM,
         new Rarity(1, 1, 1, 1), "Spooky Plate",
         [
             [ true, true, true, true ],
