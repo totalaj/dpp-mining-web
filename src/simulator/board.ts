@@ -1,7 +1,7 @@
 import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import * as Noise from 'ts-perlin-simplex'
-import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, get_all_objects, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, trim_duplicates, WEATHER_STONES } from "./objects"
+import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, get_all_objects, GridObject, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, trim_duplicates, WEATHER_STONES } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
 import { GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark } from "./animations"
@@ -380,50 +380,53 @@ export class MiningGrid {
             }
         }
 
-        const shop_title_text = element.appendChild(document.createElement('h3'))
-        shop_title_text.classList.add('inverted-text')
-        shop_title_text.style.width = '100%'
-        shop_title_text.style.textAlign = 'center'
-        shop_title_text.style.marginTop = '0.5em'
-        shop_title_text.innerText = 'Welcome to the modifier shop!'
 
         let affordable_modifier_count = 0
         if (!this._active_modifier) {
-            const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
+            // const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
             const random_modifiers = Modifiers.get_optional_modifiers()
-            const added_random_modifiers: Modifier[] = []
+            const added_modifiers: Modifier[] = []
 
             random_modifiers.forEach((modifier) => { if (modifier.can_afford()) affordable_modifier_count++ })
 
-            console.log(affordable_modifier_count)
+            if (Statistics.modifiers_purchased === 0 && affordable_modifier_count !== 0) {
+                const affordable_modifiers = random_modifiers.filter((modifier) => modifier.can_afford())
+                added_modifiers.push(get_weighted_random(affordable_modifiers))
+            }
+            else {
+                let modifiers_to_generate = 0
+                if (affordable_modifier_count < 4) {
+                    modifiers_to_generate = 2
+                }
+                else if (affordable_modifier_count < 6) {
+                    modifiers_to_generate = 3
+                }
+                else if (affordable_modifier_count < 8) {
+                    modifiers_to_generate = 4
+                }
+                else if (affordable_modifier_count >= 8) {
+                    modifiers_to_generate = 5
+                }
 
-            let modifiers_to_generate = 0
-            if (affordable_modifier_count < 2) {
-                modifiers_to_generate = 0
-            }
-            else if (affordable_modifier_count < 4 && affordable_modifier_count > 2) {
-                modifiers_to_generate = 2
-            }
-            else if (affordable_modifier_count < 6) {
-                modifiers_to_generate = 3
-            }
-            else if (affordable_modifier_count < 8) {
-                modifiers_to_generate = 4
-            }
-            else if (affordable_modifier_count >= 8) {
-                modifiers_to_generate = 5
+                for (let index = 0; index < modifiers_to_generate; index++) {
+                    if (random_modifiers.length === 0) break
+                    const random_modifier = get_weighted_random(random_modifiers, { postgame: Progress.postgame })
+                    added_modifiers.push(random_modifier)
+                    random_modifiers.splice(random_modifiers.indexOf(random_modifier), 1)
+                }
             }
 
-            for (let index = 0; index < modifiers_to_generate; index++) {
-                if (random_modifiers.length === 0) break
-                const random_modifier = get_weighted_random(random_modifiers, { postgame: Progress.postgame })
-                added_random_modifiers.push(random_modifier)
-                random_modifiers.splice(random_modifiers.indexOf(random_modifier), 1)
+
+            if (affordable_modifier_count !== 0) {
+                const shop_title_text = element.appendChild(document.createElement('h3'))
+                shop_title_text.classList.add('inverted-text')
+                shop_title_text.style.width = '100%'
+                shop_title_text.style.textAlign = 'center'
+                shop_title_text.style.marginTop = '0.5em'
+                shop_title_text.innerText = 'Welcome to the modifier shop!'
             }
 
-            const modifiers = [ ...guaranteed_modifiers, ...added_random_modifiers ]
-
-            modifiers.forEach((modifier) => { add_modifier(modifier) })
+            added_modifiers.forEach((modifier) => { add_modifier(modifier) })
         }
 
         element.appendChild(create_flavour_text_element(this._active_modifier, affordable_modifier_count))
@@ -560,7 +563,7 @@ export class MiningGrid {
             let found_item: GridObject
 
             do {
-                found_item = get_weighted_random(elegible_items, loot_pool)
+                found_item = get_weighted_random<LootPoolWeightParameter, GridObject>(elegible_items, { loot_pool: loot_pool, modifier: active_modifier })
             } while (disallowed_items.some((item) => found_item === item))
 
             const result = this.try_add_object_at_random_valid_position(found_item)

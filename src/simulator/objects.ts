@@ -1,6 +1,7 @@
 import { SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import { Weighted } from "../utils/weighted_randomness"
+import { Modifier } from "./modifier"
 import { LootPool } from "./settings"
 
 export enum ContentType {
@@ -35,14 +36,22 @@ class Rarity {
     }
 }
 
+export type LootPoolWeightParameter = { loot_pool: LootPool, modifier?: Modifier } | LootPool
+
 export type Genus = 'a' | 'an'
-export class GridObject implements Weighted<LootPool> {
+export class GridObject implements Weighted<LootPoolWeightParameter> {
     public static object_sheet = new SpriteSheet(16, './assets/object_sheet.png', new Vector2(1024, 1024), 3)
     public extents: Vector2
 
 
-    public get_weight(loot_pool: LootPool): number {
-        return this.rarity.get_rate(loot_pool)
+    public get_weight(param: LootPoolWeightParameter): number {
+        if (typeof param === 'object') {
+            const rate = this.rarity.get_rate(param.loot_pool)
+            return param.modifier ? param.modifier.modify_rate(this, rate) : rate
+        }
+        else {
+            return this.rarity.get_rate(param)
+        }
     }
 
     // Use reverse indexing, (ie y,x rather than x,y) because of how data is inputed
