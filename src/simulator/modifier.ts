@@ -1,14 +1,54 @@
 import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
+import { Weighted } from "../utils/weighted_randomness"
 import { Collection } from "./collection"
 import { EVOLUTION_STONES, FOSSILS, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { GameVersion, LootPool, Settings } from "./settings"
 
 
-type ModifierCost = [GridObject, number][]
-export class Modifier {
-    constructor(public cost: ModifierCost, public title: string, private _button_class: string, public chainable: boolean = true) {
+enum GameStateAvailability {
+    PREGAME,
+    POSTGAME,
+    BOTH
+}
 
+export type ModifierWeightParams = { postgame: boolean }
+
+type ModifierCost = [GridObject, number][]
+export class Modifier implements Weighted<ModifierWeightParams> {
+    constructor(
+        public cost: ModifierCost,
+        public title: string,
+        private _button_class: string,
+        public postgame: GameStateAvailability = GameStateAvailability.BOTH,
+        public repeatable: boolean = true,
+        private _weight: number | (() => number) = 100
+    ) {
+
+    }
+
+    public get_weight(params: ModifierWeightParams): number {
+        let multiplier = 1
+        switch (this.postgame) {
+            case GameStateAvailability.BOTH:
+                multiplier *= 1
+                break
+            case GameStateAvailability.PREGAME:
+                multiplier *= (params.postgame ? 0 : 1)
+                break
+            case GameStateAvailability.POSTGAME:
+                multiplier *= (params.postgame ? 1 : 0)
+                break
+            default:
+                break
+        }
+
+        if (typeof this._weight === 'number') {
+            return this._weight * multiplier
+        }
+        else {
+            return this._weight() * multiplier
+        }
     }
 
     public create_modifier_option(): { element: HTMLElement, on_click?: (applied_modifier: Modifier) => void } {
@@ -17,16 +57,20 @@ export class Modifier {
         element.id = 'modifier-option'
         const return_value: { element: HTMLElement, on_click?: (applied_modifier: Modifier) => void } = { element: element }
 
-        // const title = document.createElement('p')
         const item_list = element.appendChild(document.createElement('div'))
         item_list.id = 'modifier-cost'
 
+        const can_afford = this.can_afford()
+
         this.cost.forEach((value) => {
-            new Sprite(item_list, small_sprites, value[0].start_tile, value[0].end_tile)
+            const sprite = new Sprite(item_list, small_sprites, value[0].start_tile, value[0].end_tile)
+            if (!can_afford) {
+                sprite.element.classList.add('disabled')
+            }
             if (value[1] > 1) {
                 const amt_text = item_list.appendChild(document.createElement('span'))
                 amt_text.innerText = `x${value[1]}`
-                amt_text.classList.add('inverted-text')
+                amt_text.classList.add(can_afford ? 'inverted-text' : 'red-text')
             }
         })
 
@@ -34,6 +78,7 @@ export class Modifier {
         button.innerText = this.title
         button.id = 'modifier-button'
         button.classList.add(this._button_class)
+        button.disabled = !can_afford
         button.onclick = (): void => return_value.on_click?.(this)
 
         return return_value
@@ -68,8 +113,15 @@ export class Modifier {
 }
 
 export class DropRateModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _increases: Map<string, number>, title: string, button_class: string, chainable: boolean = true) {
-        super(modifier_cost, title, button_class, chainable)
+    constructor(
+        modifier_cost: ModifierCost,
+        private _increases: Map<string, number>,
+        title: string,
+        button_class: string,
+        postgame: GameStateAvailability = GameStateAvailability.BOTH,
+        repeatable: boolean = true
+    ) {
+        super(modifier_cost, title, button_class, postgame, repeatable)
     }
 
     public override modify_rate(object: GridObject, rate: number): number {
@@ -87,8 +139,15 @@ export class DropRateModifier extends Modifier {
 }
 
 export class LootPoolModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string, chainable: boolean = true) {
-        super(modifier_cost, title, button_class, chainable)
+    constructor(
+        modifier_cost: ModifierCost,
+        private _loot_pool_map: Map<LootPool, LootPool>,
+        title: string,
+        button_class: string,
+        postgame: GameStateAvailability = GameStateAvailability.BOTH,
+        repeatable: boolean = true
+    ) {
+        super(modifier_cost, title, button_class, postgame, repeatable)
     }
 
     public override modify_loot_pool(loot_pool: LootPool): LootPool {
@@ -102,8 +161,15 @@ export class LootPoolModifier extends Modifier {
 }
 
 export class VersionChangeModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost, private _loot_pool_map: Map<LootPool, LootPool>, title: string, button_class: string, chainable: boolean = true) {
-        super(modifier_cost, title, button_class, chainable)
+    constructor(
+        modifier_cost: ModifierCost,
+        private _loot_pool_map: Map<LootPool, LootPool>,
+        title: string,
+        button_class: string,
+        postgame: GameStateAvailability = GameStateAvailability.BOTH,
+        repeatable: boolean = true
+    ) {
+        super(modifier_cost, title, button_class, postgame, repeatable)
     }
 
     public override modify_rate(object: GridObject, rate: number): number {
@@ -114,7 +180,7 @@ export class VersionChangeModifier extends Modifier {
             return rate
         }
 
-        const target_pool_rate = object.rarity.get_rate(target_loot_pool)
+        const target_pool_rate = object.get_weight(target_loot_pool)
         let adjusted_rate = ((target_pool_rate - rate) > 0) ? target_pool_rate : 0
         const basic_spheres = SMALL_SPHERES.slice(0, 2).concat(LARGE_SPHERES.slice(0, 2))
         if (basic_spheres.includes(object)) adjusted_rate *= 0.3
@@ -124,7 +190,7 @@ export class VersionChangeModifier extends Modifier {
 
 export class PlateModifier extends Modifier {
     constructor(modifier_cost: ModifierCost) {
-        super(modifier_cost, 'Assemble pieces', 'platinum', false)
+        super(modifier_cost, 'Assemble pieces', 'platinum', GameStateAvailability.POSTGAME, false)
     }
 
     public override can_afford(): boolean {
@@ -158,37 +224,30 @@ export function create_active_modifier_element(modifier: Modifier): HTMLElement 
 }
 export class Modifiers {
     public static get_guaranteed_modifiers(): Modifier[] {
+        return []
+    }
+
+    public static get_optional_modifiers(): Modifier[] {
         const item_modifier_increases
-        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
+        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
         // Costs red spheres
         const item_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[1], 6 ] ], item_modifier_increases, 'Increase Items', 'pearl')
         const item_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[1], 2 ] ], item_modifier_increases, 'Increase Items', 'pearl')
 
         // Costs blue spheres
         const stone_modifier_increases
-        // Only incraese if normal rate isn't 0
-        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
+        // Only increase if normal rate isn't 0
+        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
         const stone_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[2], 6 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
         const stone_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[2], 2 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
 
         // Costs green spheres
         const fossil_modifier_increases
         // Only increase if normal rate isn't 0
-        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.rarity.get_rate(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
+        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
         const fossil_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[0], 6 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
         const fossil_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[0], 2 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
 
-        return [
-            item_modifier_small,
-            item_modifier_large,
-            stone_modifier_small,
-            stone_modifier_large,
-            fossil_modifier_small,
-            fossil_modifier_large
-        ]
-    }
-
-    public static get_optional_modifiers(): Modifier[] {
         const plate_modifier = new PlateModifier(SHARDS.map((shard) => [ shard, 1 ]))
 
         const loot_pool_mapping = new Map<LootPool, LootPool>([
@@ -205,6 +264,16 @@ export class Modifiers {
         const version_modifier_small = new VersionChangeModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
         const version_modifier_large = new VersionChangeModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
 
-        return [ plate_modifier, version_modifier_small, version_modifier_large ]
+        return [
+            plate_modifier,
+            version_modifier_small,
+            version_modifier_large,
+            item_modifier_small,
+            item_modifier_large,
+            stone_modifier_small,
+            stone_modifier_large,
+            fossil_modifier_small,
+            fossil_modifier_large
+        ]
     }
 }
