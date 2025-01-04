@@ -16,6 +16,7 @@ import { create_active_modifier_element, Modifier, Modifiers, PlateModifier } fr
 import { GameState, HealthBar } from "./game_state"
 import { MessageBox } from "../components/message_box"
 import { get_weighted_random } from "../utils/weighted_randomness"
+import { get_flavour_text as create_flavour_text_element } from "../components/flavour_text"
 
 enum HitResult {
     NORMAL,
@@ -379,23 +380,28 @@ export class MiningGrid {
             }
         }
 
-        const flavour_text = element.appendChild(document.createElement('h3'))
-        flavour_text.classList.add('inverted-text')
-        flavour_text.style.width = '100%'
-        flavour_text.style.textAlign = 'center'
-        flavour_text.style.marginTop = '0.5em'
-        flavour_text.innerText = 'Welcome to the modifier shop!'
+        const shop_title_text = element.appendChild(document.createElement('h3'))
+        shop_title_text.classList.add('inverted-text')
+        shop_title_text.style.width = '100%'
+        shop_title_text.style.textAlign = 'center'
+        shop_title_text.style.marginTop = '0.5em'
+        shop_title_text.innerText = 'Welcome to the modifier shop!'
 
+        let affordable_modifier_count = 0
         if (!this._active_modifier) {
             const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
             const random_modifiers = Modifiers.get_optional_modifiers()
             const added_random_modifiers: Modifier[] = []
 
-            let affordable_modifier_count = 0
             random_modifiers.forEach((modifier) => { if (modifier.can_afford()) affordable_modifier_count++ })
 
-            let modifiers_to_generate = 1
-            if (affordable_modifier_count < 4) {
+            console.log(affordable_modifier_count)
+
+            let modifiers_to_generate = 0
+            if (affordable_modifier_count < 2) {
+                modifiers_to_generate = 0
+            }
+            else if (affordable_modifier_count < 4 && affordable_modifier_count > 2) {
                 modifiers_to_generate = 2
             }
             else if (affordable_modifier_count < 6) {
@@ -404,7 +410,7 @@ export class MiningGrid {
             else if (affordable_modifier_count < 8) {
                 modifiers_to_generate = 4
             }
-            else {
+            else if (affordable_modifier_count >= 8) {
                 modifiers_to_generate = 5
             }
 
@@ -417,54 +423,10 @@ export class MiningGrid {
 
             const modifiers = [ ...guaranteed_modifiers, ...added_random_modifiers ]
 
-            console.log(modifiers)
             modifiers.forEach((modifier) => { add_modifier(modifier) })
         }
-        else {
-            const no_modifier_count = element.appendChild(document.createElement('h2'))
-            no_modifier_count.classList.add('inverted-text')
-            if (this._active_modifier) {
-                no_modifier_count.innerHTML = `Full clear!<br>The effects of <mark>${this._active_modifier.title}</mark> still linger...`
-            }
-            else if (Collection.get_all_items().every((item) => Collection.get_item_count(item) === 0)) {
-                if (Statistics.rounds_played === 0) {
-                    no_modifier_count.innerText = 'Your journey into the underground begins...\nClick the screen to mine out terrain\nThere are surely treasures to be found underneath\nthe rich soils...'
-                }
-                else if (Statistics.rounds_played === 1) {
-                    no_modifier_count.innerText = 'That was a good attempt!\nTry mining the more shallow soil first'
-                }
-                else if (Statistics.rounds_played === 2) {
-                    no_modifier_count.innerText = 'An item will sparkle once it\nhas been fully unearthed.\nKeep at it!'
-                }
-                else if (Statistics.rounds_played === 3) {
-                    no_modifier_count.innerText = 'Sometimes you just get unlucky!\nKeep trying'
-                }
-                else if (Statistics.rounds_played === 4) {
-                    no_modifier_count.innerText = 'Even through hardship, persist'
-                }
-                else {
-                    no_modifier_count.innerText = "You've got it the next time!\nKeep digging"
-                }
-            }
-            else {
-                if (Statistics.rounds_played < 5) {
-                    no_modifier_count.innerText = 'Great work!\nYour journey underground continues...'
-                }
-                else if (Statistics.rounds_played < 20) {
-                    no_modifier_count.innerText = 'Once you collect some more items,\nyou can purchase modifiers here'
-                }
-                else {
-                    no_modifier_count.innerText = random_element([
-                        'When life gives you lemons\nThink about how you handle your economy',
-                        "Only through hardship do we learn\ntrue value",
-                        "Spare some change?",
-                        "Working hard or hardly working?",
-                        "I always keep a few\nspare spheres on me.\nDon't you?",
-                        "I would animate a moth flying out\nof your wallet, but I can't be bothered"
-                    ])
-                }
-            }
-        }
+
+        element.appendChild(create_flavour_text_element(this._active_modifier, affordable_modifier_count))
 
         const finalize_button = element.appendChild(document.createElement('button'))
         finalize_button.innerText = 'Continue'
