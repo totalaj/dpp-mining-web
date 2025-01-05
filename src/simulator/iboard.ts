@@ -2,6 +2,11 @@ import { Vector2 } from "../math"
 import { GridObject } from "./objects"
 import { LootPool } from "./settings"
 
+export class ActiveObject {
+    public has_been_found: boolean = false
+    constructor(public object_ref: GridObject, public position: Vector2) { }
+}
+
 export interface IMiningGrid {
 
     get_object_positions(object: GridObject, position: Vector2): Vector2[]
@@ -14,7 +19,7 @@ export interface IMiningGrid {
 
     try_add_object_at_random_valid_position(object: GridObject): Vector2 | undefined
 
-    place_items(item_count: number, elegible_items: GridObject[], loot_pool: LootPool): void
+    place_items(item_count: number, elegible_items: GridObject[], loot_pool: LootPool): ActiveObject[]
 
     place_bedrock(): void
 }

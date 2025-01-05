@@ -17,16 +17,11 @@ import { GameState, HealthBar } from "./game_state"
 import { MessageBox } from "../components/message_box"
 import { get_weighted_random } from "../utils/weighted_randomness"
 import { get_flavour_text as create_flavour_text_element } from "../components/flavour_text"
-import { IMiningGrid } from "./iboard"
+import { ActiveObject, IMiningGrid } from "./iboard"
 
 enum HitResult {
     NORMAL,
     BOTTOM
-}
-
-export class ActiveObject {
-    public has_been_found: boolean = false
-    constructor(public object_ref: GridObject, public position: Vector2) { }
 }
 
 class Cell {
@@ -520,13 +515,14 @@ export class MiningGrid implements IMiningGrid {
         }
     }
 
-    public place_items(item_count: number, elegible_items: GridObject[], loot_pool: LootPool): void {
+    public place_items(item_count: number, elegible_items: GridObject[], loot_pool: LootPool): ActiveObject[] {
         const active_modifier = this.get_active_modifier()
+        const newly_added_items: ActiveObject[] = []
 
         for (let index = 0; index < item_count; index++) {
             // Filter out plates that have already been added
             const disallowed_items: GridObject[] = [
-                ...this.added_items.filter((item) => PLATES.includes(item.object_ref)).map((item) => item.object_ref) // No duplicate of plates
+                ...newly_added_items.filter((item) => PLATES.includes(item.object_ref)).map((item) => item.object_ref) // No duplicate of plates
             ]
 
             let found_item: GridObject
@@ -537,9 +533,10 @@ export class MiningGrid implements IMiningGrid {
 
             const result = this.try_add_object_at_random_valid_position(found_item)
             if (result) {
-                this.added_items.push(new ActiveObject(found_item, result))
+                newly_added_items.push(new ActiveObject(found_item, result))
             }
         }
+        return newly_added_items
     }
 
     public place_bedrock(): void {
@@ -584,9 +581,7 @@ export class MiningGrid implements IMiningGrid {
 
         const item_count = active_modifier.modify_item_amount(2 + random_in_range(0, 2, true))
 
-        this.added_items = []
-
-        active_modifier.place_objects(this, item_count, elegible_items, loot_pool)
+        this.added_items = active_modifier.place_objects(this, item_count, elegible_items, loot_pool)
         active_modifier.place_bedrock(this)
 
         this.display_messages(active_modifier.get_intro_messages(this.added_items.length) ?? [ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])

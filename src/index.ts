@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { animate_remove_text, animate_text } from "./simulator/animations"
-import { ActiveObject, MiningGrid } from "./simulator/board"
+import { MiningGrid } from "./simulator/board"
 import { Collection } from "./simulator/collection"
 import { create_settings_element, GameVersion, Progress, Settings, Statistics } from "./simulator/settings"
 import { Vector2 } from "./math"

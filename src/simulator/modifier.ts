@@ -2,7 +2,7 @@ import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import { get_weighted_random, Weighted } from "../utils/weighted_randomness"
 import { Collection } from "./collection"
-import { IMiningGrid } from "./iboard"
+import { ActiveObject, IMiningGrid } from "./iboard"
 import { EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { GameVersion, LootPool, Settings } from "./settings"
 
@@ -28,8 +28,8 @@ export class Modifier implements Weighted<ModifierWeightParams> {
 
     }
 
-    public place_objects(mining_grid: IMiningGrid, item_count: number, elegible_items: GridObject[], loot_pool: LootPool): void {
-        mining_grid.place_items(item_count, elegible_items, loot_pool)
+    public place_objects(mining_grid: IMiningGrid, item_count: number, elegible_items: GridObject[], loot_pool: LootPool): ActiveObject[] {
+        return mining_grid.place_items(item_count, elegible_items, loot_pool)
     }
 
     public place_bedrock(mining_grid: IMiningGrid): void {
@@ -232,14 +232,26 @@ class FillSphereModifier extends Modifier {
         super(modifier_cost, title, button_class, postgame, repeatable)
     }
 
-    public override place_objects(mining_grid: IMiningGrid, item_count: number, elegible_items: GridObject[], loot_pool: LootPool): void {
+    public override get_weight(params: ModifierWeightParams): number {
+        return params.postgame ? 100 : 50
+    }
+
+    public override place_objects(mining_grid: IMiningGrid, item_count: number, elegible_items: GridObject[], loot_pool: LootPool): ActiveObject[] {
+        const added_items: ActiveObject[] = []
         while (true) {
             const object = get_weighted_random<LootPoolWeightParameter, GridObject>(this._fill_objects, { loot_pool: loot_pool })
             if (this._fill_objects.includes(object)) {
                 const placement_result = mining_grid.try_add_object_at_random_valid_position(object)
                 if (!placement_result) break
+                else added_items.push(new ActiveObject(object, placement_result))
             }
         }
+        return added_items
+    }
+
+    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+    public override get_intro_messages(item_count: number): string[] | undefined {
+        return [ "Something pinged in the wall!\n??? confirmed?" ]
     }
 }
 
