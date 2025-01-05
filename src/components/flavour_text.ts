@@ -125,6 +125,7 @@ export function get_flavour_text(active_modifier: Modifier | undefined, affordab
     }
 
     const flavour_text_element = document.createElement(element_type)
+    flavour_text_element.id = 'flavour-text'
     flavour_text_element.classList.add('inverted-text')
     flavour_text_element.innerHTML = flavour_text
     return flavour_text_element
