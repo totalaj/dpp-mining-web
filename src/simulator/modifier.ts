@@ -36,6 +36,7 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         mining_grid.place_bedrock()
     }
 
+    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     public get_intro_messages(item_count: number): string[] | undefined {
         return undefined
     }
