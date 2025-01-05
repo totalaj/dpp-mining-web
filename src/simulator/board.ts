@@ -586,10 +586,9 @@ export class MiningGrid implements IMiningGrid {
         this.added_items = []
 
         active_modifier.place_objects(this, item_count, elegible_items, loot_pool)
-
         active_modifier.place_bedrock(this)
 
-        this.display_messages([ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
+        this.display_messages(active_modifier.get_intro_messages(this.added_items.length) ?? [ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
     }
 
     private display_messages(messages: string[], instant: boolean = false): { on_completed?: () => void } {

@@ -36,6 +36,10 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         mining_grid.place_bedrock()
     }
 
+    public get_intro_messages(item_count: number): string[] | undefined {
+        return undefined
+    }
+
     public get_weight(params: ModifierWeightParams): number {
         let multiplier = 1
         switch (this.postgame) {
