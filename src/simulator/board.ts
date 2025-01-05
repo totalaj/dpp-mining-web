@@ -381,7 +381,6 @@ export class MiningGrid implements IMiningGrid {
             }
         }
 
-
         let affordable_modifier_count = 0
         if (!this._active_modifier) {
             // const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
@@ -390,9 +389,11 @@ export class MiningGrid implements IMiningGrid {
 
             random_modifiers.forEach((modifier) => { if (modifier.can_afford()) affordable_modifier_count++ })
 
-            if (Statistics.modifiers_purchased === 0 && affordable_modifier_count !== 0) {
-                const affordable_modifiers = random_modifiers.filter((modifier) => modifier.can_afford())
-                added_modifiers.push(get_weighted_random(affordable_modifiers))
+            if (Statistics.modifiers_purchased === 0) {
+                if (affordable_modifier_count !== 0) {
+                    const affordable_modifiers = random_modifiers.filter((modifier) => modifier.can_afford())
+                    added_modifiers.push(get_weighted_random(affordable_modifiers, { postgame: !!Progress.postgame }))
+                }
             }
             else {
                 let modifiers_to_generate = 0
@@ -411,7 +412,7 @@ export class MiningGrid implements IMiningGrid {
 
                 for (let index = 0; index < modifiers_to_generate; index++) {
                     if (random_modifiers.length === 0) break
-                    const random_modifier = get_weighted_random(random_modifiers, { postgame: Progress.postgame })
+                    const random_modifier = get_weighted_random(random_modifiers, { postgame: !!Progress.postgame })
                     added_modifiers.push(random_modifier)
                     random_modifiers.splice(random_modifiers.indexOf(random_modifier), 1)
                 }

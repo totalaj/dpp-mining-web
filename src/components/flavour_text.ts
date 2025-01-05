@@ -33,14 +33,12 @@ export function get_flavour_text(active_modifier: Modifier | undefined, affordab
         }
     }
     else { // Not a full clear, and at least one item has been collected
-        if (Statistics.rounds_played < 5) {
+        if (Statistics.rounds_played < 5 && affordable_modifier_count === 0) { // Played less than 5 rounds and can't afford any modifiers
             flavour_text = get_weighted_random([
                 new WeightedString('Great work!', 100),
                 new WeightedString('You are on the right track!', 70),
                 new WeightedString("Don't stop now!", 60),
-                new WeightedString('Your efforts will be rewarded soon.', 50),
-                new WeightedString('The underground is full of wonders.', 30),
-                new WeightedString('Your persistence will pay off.', 10)
+                new WeightedString('The underground is full of wonders.', 30)
             ]).value + '<br>Your journey underground continues...'
         }
         else if (Statistics.rounds_played < 20) { // Between 5 and 20 rounds
