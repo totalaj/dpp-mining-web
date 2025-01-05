@@ -2,6 +2,7 @@ import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import { Weighted } from "../utils/weighted_randomness"
 import { Collection } from "./collection"
+import { IMiningGrid } from "./iboard"
 import { EVOLUTION_STONES, FOSSILS, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { GameVersion, LootPool, Settings } from "./settings"
 
@@ -25,6 +26,14 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         private _weight: number | (() => number) = 100
     ) {
 
+    }
+
+    public place_objects(mining_grid: IMiningGrid, item_count: number, elegible_items: GridObject[], loot_pool: LootPool): void {
+        mining_grid.place_items(item_count, elegible_items, loot_pool)
+    }
+
+    public place_bedrock(mining_grid: IMiningGrid): void {
+        mining_grid.place_bedrock()
     }
 
     public get_weight(params: ModifierWeightParams): number {

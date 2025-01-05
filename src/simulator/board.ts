@@ -8,7 +8,7 @@ import { GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark } from "./
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
-import { GameVersion, Progress, Settings, Statistics } from "./settings"
+import { GameVersion, LootPool, Progress, Settings, Statistics } from "./settings"
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
 import { ProgressBar } from "../components/progress_bar"
@@ -17,6 +17,7 @@ import { GameState, HealthBar } from "./game_state"
 import { MessageBox } from "../components/message_box"
 import { get_weighted_random } from "../utils/weighted_randomness"
 import { get_flavour_text as create_flavour_text_element } from "../components/flavour_text"
+import { IMiningGrid } from "./iboard"
 
 enum HitResult {
     NORMAL,
@@ -93,7 +94,7 @@ class Cell {
     }
 }
 
-export class MiningGrid {
+export class MiningGrid implements IMiningGrid {
     public game_state: GameState
 
     public added_items: ActiveObject[] = []
@@ -518,6 +519,36 @@ export class MiningGrid {
         }
     }
 
+    public place_items(item_count: number, elegible_items: GridObject[], loot_pool: LootPool): void {
+        const active_modifier = this.get_active_modifier()
+
+        for (let index = 0; index < item_count; index++) {
+            // Filter out plates that have already been added
+            const disallowed_items: GridObject[] = [
+                ...this.added_items.filter((item) => PLATES.includes(item.object_ref)).map((item) => item.object_ref) // No duplicate of plates
+            ]
+
+            let found_item: GridObject
+
+            do {
+                found_item = get_weighted_random<LootPoolWeightParameter, GridObject>(elegible_items, { loot_pool: loot_pool, modifier: active_modifier })
+            } while (disallowed_items.some((item) => found_item === item))
+
+            const result = this.try_add_object_at_random_valid_position(found_item)
+            if (result) {
+                this.added_items.push(new ActiveObject(found_item, result))
+            }
+        }
+    }
+
+    public place_bedrock(): void {
+        const bedrock_count = Math.floor(Math.pow(Math.random() * 8, 0.5)) + 4
+
+        for (let index = 0; index < bedrock_count; index++) {
+            this.try_add_object_at_random_valid_position(random_element(BEDROCK_OBJECTS))
+        }
+    }
+
     private populate_board(): void {
         // Information source: https://bulbapedia.bulbagarden.net/wiki/Underground#Item_appearances
         // Chance is rolled out of total weight of all weights
@@ -554,29 +585,9 @@ export class MiningGrid {
 
         this.added_items = []
 
-        for (let index = 0; index < item_count; index++) {
-            // Filter out plates that have already been added
-            const disallowed_items: GridObject[] = [
-                ...this.added_items.filter((item) => PLATES.includes(item.object_ref)).map((item) => item.object_ref) // No duplicate of plates
-            ]
+        active_modifier.place_objects(this, item_count, elegible_items, loot_pool)
 
-            let found_item: GridObject
-
-            do {
-                found_item = get_weighted_random<LootPoolWeightParameter, GridObject>(elegible_items, { loot_pool: loot_pool, modifier: active_modifier })
-            } while (disallowed_items.some((item) => found_item === item))
-
-            const result = this.try_add_object_at_random_valid_position(found_item)
-            if (result) {
-                this.added_items.push(new ActiveObject(found_item, result))
-            }
-        }
-
-        const bedrock_count = Math.floor(Math.pow(Math.random() * 8, 0.5)) + 4
-
-        for (let index = 0; index < bedrock_count; index++) {
-            this.try_add_object_at_random_valid_position(random_element(BEDROCK_OBJECTS))
-        }
+        active_modifier.place_bedrock(this)
 
         this.display_messages([ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
     }
@@ -615,7 +626,7 @@ export class MiningGrid {
         return return_value
     }
 
-    private get_object_positions(object: GridObject, position: Vector2): Vector2[] {
+    public get_object_positions(object: GridObject, position: Vector2): Vector2[] {
         const output: Vector2[] = []
         for (let x_index = 0; x_index < object.extents.x; x_index++) {
             for (let y_index = 0; y_index < object.extents.y; y_index++) {
@@ -627,7 +638,7 @@ export class MiningGrid {
         return output
     }
 
-    private test_object_placement(object: GridObject, position: Vector2): boolean {
+    public test_object_placement(object: GridObject, position: Vector2): boolean {
         const positions = this.get_object_positions(object, position)
         for (let index = 0; index < positions.length; index++) {
             const pos = positions[index]
@@ -645,7 +656,7 @@ export class MiningGrid {
         return true
     }
 
-    private get_all_valid_object_positions(object: GridObject): Vector2[] {
+    public get_all_valid_object_positions(object: GridObject): Vector2[] {
         const output: Vector2[] = []
         for (let x_index = 0; x_index < this._cells.length; x_index++) {
             const cell_row = this._cells[x_index]
@@ -658,7 +669,7 @@ export class MiningGrid {
         return output
     }
 
-    private add_object_to_grid(object: GridObject, position: Vector2): void {
+    public add_object_to_grid(object: GridObject, position: Vector2): void {
         this.get_object_positions(object, position).forEach((pos) => {
             const local_object_position = pos.subtract(position)
             if (object.collision[local_object_position.y]?.[local_object_position.x]) {
@@ -670,7 +681,7 @@ export class MiningGrid {
         })
     }
 
-    private try_add_object_at_random_valid_position(object: GridObject): Vector2 | undefined {
+    public try_add_object_at_random_valid_position(object: GridObject): Vector2 | undefined {
         const valid_positions = this.get_all_valid_object_positions(object)
 
         if (valid_positions.length === 0) return undefined
