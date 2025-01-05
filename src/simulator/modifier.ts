@@ -1,9 +1,9 @@
 import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
-import { Weighted } from "../utils/weighted_randomness"
+import { get_weighted_random, Weighted } from "../utils/weighted_randomness"
 import { Collection } from "./collection"
 import { IMiningGrid } from "./iboard"
-import { EVOLUTION_STONES, FOSSILS, GridObject, ITEMS, LARGE_SPHERES, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
+import { EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { GameVersion, LootPool, Settings } from "./settings"
 
 
@@ -15,7 +15,7 @@ enum GameStateAvailability {
 
 export type ModifierWeightParams = { postgame: boolean }
 
-type ModifierCost = [GridObject, number][]
+type ModifierCost = [ItemName, number][]
 export class Modifier implements Weighted<ModifierWeightParams> {
     constructor(
         public cost: ModifierCost,
@@ -77,7 +77,7 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         const can_afford = this.can_afford()
 
         this.cost.forEach((value) => {
-            const sprite = new Sprite(item_list, small_sprites, value[0].start_tile, value[0].end_tile)
+            const sprite = new Sprite(item_list, small_sprites, get_item_by_name(value[0]).start_tile, get_item_by_name(value[0]).end_tile)
             if (!can_afford) {
                 sprite.element.classList.add('disabled')
             }
@@ -220,6 +220,29 @@ export class PlateModifier extends Modifier {
     }
 }
 
+class FillSphereModifier extends Modifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        private _fill_objects: GridObject[],
+        title: string,
+        button_class: string,
+        postgame: GameStateAvailability = GameStateAvailability.BOTH,
+        repeatable: boolean = true
+    ) {
+        super(modifier_cost, title, button_class, postgame, repeatable)
+    }
+
+    public override place_objects(mining_grid: IMiningGrid, item_count: number, elegible_items: GridObject[], loot_pool: LootPool): void {
+        while (true) {
+            const object = get_weighted_random<LootPoolWeightParameter, GridObject>(this._fill_objects, { loot_pool: loot_pool })
+            if (this._fill_objects.includes(object)) {
+                const placement_result = mining_grid.try_add_object_at_random_valid_position(object)
+                if (!placement_result) break
+            }
+        }
+    }
+}
+
 export function create_active_modifier_element(modifier: Modifier): HTMLElement {
     const element = document.createElement('div')
     element.id = 'active-modifier'
@@ -227,7 +250,7 @@ export function create_active_modifier_element(modifier: Modifier): HTMLElement 
     const first_cost = modifier.cost.values().next().value
 
     if (first_cost) {
-        new Sprite(element, small_sprites, first_cost[0].start_tile, first_cost[0].end_tile)
+        new Sprite(element, small_sprites, get_item_by_name(first_cost[0]).start_tile, get_item_by_name(first_cost[0]).end_tile)
     }
 
     const title = element.appendChild(document.createElement('p'))
@@ -243,26 +266,26 @@ export class Modifiers {
 
     public static get_optional_modifiers(): Modifier[] {
         const item_modifier_increases
-        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
+        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
         // Costs red spheres
-        const item_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[1], 6 ] ], item_modifier_increases, 'Increase Items', 'pearl')
-        const item_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[1], 2 ] ], item_modifier_increases, 'Increase Items', 'pearl')
+        const item_modifier_small = new DropRateModifier([ [ "Small Red Sphere", 3 ] ], item_modifier_increases, 'Increase Items', 'pearl')
+        const item_modifier_large = new DropRateModifier([ [ "Large Red Sphere", 1 ] ], item_modifier_increases, 'Increase Items', 'pearl')
 
         // Costs blue spheres
         const stone_modifier_increases
         // Only increase if normal rate isn't 0
-        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
-        const stone_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[2], 6 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
-        const stone_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[2], 2 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
+        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        const stone_modifier_small = new DropRateModifier([ [ "Small Blue Sphere", 3 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
+        const stone_modifier_large = new DropRateModifier([ [ "Large Blue Sphere", 1 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
 
         // Costs green spheres
         const fossil_modifier_increases
         // Only increase if normal rate isn't 0
-        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 100 : 0 ]))
-        const fossil_modifier_small = new DropRateModifier([ [ SMALL_SPHERES[0], 6 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
-        const fossil_modifier_large = new DropRateModifier([ [ LARGE_SPHERES[0], 2 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
+        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        const fossil_modifier_small = new DropRateModifier([ [ "Small Green Sphere", 3 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
+        const fossil_modifier_large = new DropRateModifier([ [ "Large Green Sphere", 1 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
 
-        const plate_modifier = new PlateModifier(SHARDS.map((shard) => [ shard, 1 ]))
+        const plate_modifier = new PlateModifier(SHARDS.map((shard) => [ shard.name, 1 ]))
 
         const loot_pool_mapping = new Map<LootPool, LootPool>([
             [ LootPool.POST_DEX_DIAMOND, LootPool.POST_DEX_PEARL ],
@@ -273,10 +296,12 @@ export class Modifiers {
 
         const version = Settings.get_squashed_version()
         const opposing_button_class = version === GameVersion.DIAMOND ? 'pearl' : 'diamond'
-        const small_opposing_sphere = version === GameVersion.DIAMOND ? SMALL_SPHERES[4] : SMALL_SPHERES[3]
-        const large_opposing_sphere = version === GameVersion.DIAMOND ? LARGE_SPHERES[4] : LARGE_SPHERES[3]
+        const small_opposing_sphere: ItemName = version === GameVersion.DIAMOND ? "Small Pale Sphere" : "Small Prism Sphere"
+        const large_opposing_sphere: ItemName = version === GameVersion.DIAMOND ? "Large Pale Sphere" : "Large Prism Sphere"
         const version_modifier_small = new VersionChangeModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
         const version_modifier_large = new VersionChangeModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
+
+        const fill_sphere_modifier = new FillSphereModifier([ [ "Light Clay", 1 ] ], [ ...SMALL_SPHERES, ...LARGE_SPHERES ], 'Sphere burst', 'platinum')
 
         return [
             plate_modifier,
@@ -287,7 +312,8 @@ export class Modifiers {
             stone_modifier_small,
             stone_modifier_large,
             fossil_modifier_small,
-            fossil_modifier_large
+            fossil_modifier_large,
+            fill_sphere_modifier
         ]
     }
 }

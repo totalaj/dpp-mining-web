@@ -3,7 +3,9 @@ import { Vector2 } from "../math"
 import {
     EVOLUTION_STONES,
     FOSSILS,
+    get_item_by_name,
     GridObject,
+    ItemName,
     ITEMS,
     LARGE_SPHERES,
     PLATES,
@@ -131,13 +133,15 @@ export class Collection {
         return "Collection." + object.name
     }
 
-    private static set_item_count(object: GridObject, count: number): void {
+    private static set_item_count(object: GridObject | ItemName, count: number): void {
+        if (typeof object === 'string') object = get_item_by_name(object)
         this._loaded_values.set(this.item_key(object), count)
         window.localStorage.setItem(this.item_key(object), count.toString())
         this.on_object_count_changed(object, count)
     }
 
-    public static get_item_count(object: GridObject): number {
+    public static get_item_count(object: GridObject | ItemName): number {
+        if (typeof object === 'string') object = get_item_by_name(object)
         if (this._loaded_values.has(this.item_key(object))) return this._loaded_values.get(this.item_key(object))!
         const loaded_value = window.localStorage.getItem(this.item_key(object)) ?? "0"
         const count = Number.parseInt(loaded_value)
@@ -158,13 +162,15 @@ export class Collection {
         return entries
     }
 
-    public static add_item(object: GridObject, count: number = 1): number {
+    public static add_item(object: GridObject | ItemName, count: number = 1): number {
+        if (typeof object === 'string') object = get_item_by_name(object)
         const new_count = this.get_item_count(object) + count
         this.set_item_count(object, new_count)
         return new_count
     }
 
-    public static remove_item(object: GridObject, count: number = 1): number {
+    public static remove_item(object: GridObject | ItemName, count: number = 1): number {
+        if (typeof object === 'string') object = get_item_by_name(object)
         const new_count = this.get_item_count(object) - count
         console.log("Reducing item", object.name, "by", count, "to", new_count)
         this.set_item_count(object, new_count)
