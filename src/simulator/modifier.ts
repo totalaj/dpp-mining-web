@@ -218,6 +218,10 @@ export class PlateModifier extends Modifier {
     public override modify_item_amount(): number {
         return 1
     }
+
+    public override get_intro_messages(): string[] {
+        return [ "Something pinged in the wall!\nPlate confirmed!" ]
+    }
 }
 
 class FillSphereModifier extends Modifier {
