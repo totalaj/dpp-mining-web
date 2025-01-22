@@ -23,7 +23,8 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         private _button_class: string,
         public postgame: GameStateAvailability = GameStateAvailability.BOTH,
         public repeatable: boolean = true,
-        private _weight: number | (() => number) = 100
+        private _weight: number | (() => number) = 100,
+        private _guaranteed_chance: number = 0.8
     ) {
 
     }
@@ -123,6 +124,10 @@ export class Modifier implements Weighted<ModifierWeightParams> {
 
     public modify_item_amount(item_amount: number): number {
         return item_amount
+    }
+
+    public get_guaranteed_chance(): number {
+        return this._guaranteed_chance
     }
 }
 

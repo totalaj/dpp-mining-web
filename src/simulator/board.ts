@@ -519,6 +519,25 @@ export class MiningGrid implements IMiningGrid {
         const active_modifier = this.get_active_modifier()
         const newly_added_items: ActiveObject[] = []
 
+        console.log("Active modifier", active_modifier)
+
+        // Filter for items whose rate is modified by the active modifier
+        const elegible_guaranteed_items
+        = elegible_items.filter((item) => active_modifier.modify_rate(item, item.rarity.get_rate(loot_pool)) > item.rarity.get_rate(loot_pool))
+
+        console.log("Elegible guaranteed items", elegible_guaranteed_items)
+
+        const should_add_guaranteed_item = active_modifier.get_guaranteed_chance() > Math.random()
+        const guaranteed_item
+        = (elegible_guaranteed_items.length > 0 && should_add_guaranteed_item)
+            ? get_weighted_random<LootPoolWeightParameter, GridObject>(
+                elegible_guaranteed_items,
+                { loot_pool: loot_pool, modifier: active_modifier }
+            )
+            : undefined
+
+        console.log("Guaranteed item", guaranteed_item)
+
         for (let index = 0; index < item_count; index++) {
             // Filter out plates that have already been added
             const disallowed_items: GridObject[] = [
@@ -528,7 +547,15 @@ export class MiningGrid implements IMiningGrid {
             let found_item: GridObject
 
             do {
-                found_item = get_weighted_random<LootPoolWeightParameter, GridObject>(elegible_items, { loot_pool: loot_pool, modifier: active_modifier })
+                // On the first iteration, if a guaranteed item is available, add it
+                if (index === 0 && guaranteed_item && !disallowed_items.includes(guaranteed_item)) {
+                    console.log("Adding guaranteed item", guaranteed_item)
+                    found_item = guaranteed_item
+                }
+                else {
+                    found_item = get_weighted_random<LootPoolWeightParameter, GridObject>(elegible_items, { loot_pool: loot_pool, modifier: active_modifier })
+                    console.log("Rolling for random item", found_item)
+                }
             } while (disallowed_items.some((item) => found_item === item))
 
             const result = this.try_add_object_at_random_valid_position(found_item)

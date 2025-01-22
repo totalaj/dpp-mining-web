@@ -39,13 +39,13 @@ class CollectionSection {
             collection_element.update_style(item)
         })
 
-        this.update_style(loaded_items.some((entry) => entry[1] > 0))
+        this.update_style(loaded_items.some((entry) => Collection.get_item_ever_found(entry[0])))
     }
 
     public update_style(visible: boolean): void {
         let count = 0
         this._objects.forEach((object) => {
-            if (Collection.get_item_count(object) > 0) {
+            if (Collection.get_item_ever_found(object)) {
                 count++
             }
         })
@@ -74,18 +74,19 @@ class CollectionElement {
 
         this._name_element = this.element.appendChild(document.createElement('p'))
         this._name_element.id = "collection-text"
-        this._name_element.className = "inverted-text"
 
         this._number_element = this.element.appendChild(document.createElement('p'))
         this._number_element.id = "collection-text"
-        this._number_element.className = "inverted-text"
     }
 
     public update_style(entry: CollectionEntry): void {
         this._name_element.innerText = entry[0].name
         this._number_element.innerHTML = "×" + entry[1].toString()
         this._number_element.style.fontSize = "1.2em"
-        this.element.style.display = entry[1] > 0 ? "" : "none"
+        this._name_element.className = entry[1] === 0 ? 'inverted-text-dark' : 'inverted-text'
+        this._number_element.className = entry[1] === 0 ? 'inverted-text-dark' : 'inverted-text'
+
+        this.element.style.display = Collection.get_item_ever_found(entry[0]) ? "" : "none"
     }
 }
 
@@ -140,6 +141,11 @@ export class Collection {
         this.on_object_count_changed(object, count)
     }
 
+    public static get_item_ever_found(object: GridObject | ItemName): boolean {
+        if (typeof object === 'string') object = get_item_by_name(object)
+        return window.localStorage.getItem(this.item_key(object)) !== null
+    }
+
     public static get_item_count(object: GridObject | ItemName): number {
         if (typeof object === 'string') object = get_item_by_name(object)
         if (this._loaded_values.has(this.item_key(object))) return this._loaded_values.get(this.item_key(object))!
@@ -156,7 +162,9 @@ export class Collection {
     public static load_items(items: GridObject[]): CollectionEntry[] {
         const entries: CollectionEntry[] = []
         items.forEach((item) => {
-            entries.push([ item, this.get_item_count(item) ])
+            if (this.get_item_ever_found(item)) {
+                entries.push([ item, this.get_item_count(item) ])
+            }
         })
 
         return entries
