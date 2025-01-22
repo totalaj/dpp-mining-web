@@ -98,7 +98,12 @@ export class Collection {
     private static _title: HTMLHeadingElement
 
     private static on_object_count_changed(object: GridObject, count: number): void {
-        const element = this._object_element_map.get(object.name)!
+        const element = this._object_element_map.get(object.name)
+        if (!element) {
+            console.log(this._object_element_map)
+            console.error("Element not found for object", object.name, object)
+            return
+        }
         element.update_style([ object, count ])
         this._object_section_map.filter((objects) => objects[0].includes(object)).forEach((section) => {
             section[1].update_style(true)
@@ -162,9 +167,7 @@ export class Collection {
     public static load_items(items: GridObject[]): CollectionEntry[] {
         const entries: CollectionEntry[] = []
         items.forEach((item) => {
-            if (this.get_item_ever_found(item)) {
-                entries.push([ item, this.get_item_count(item) ])
-            }
+            entries.push([ item, this.get_item_count(item) ])
         })
 
         return entries
