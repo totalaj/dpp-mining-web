@@ -399,6 +399,71 @@ export class Modifiers {
         odd_keystone_modifier.modify_item_amount = (): number => 1
         odd_keystone_modifier.check_appearance_conditions = ((): boolean => Collection.get_item_count("Odd Keystone") === 0)
 
+        const rare_bone_modifier = new DropRateModifier(
+            [ [ "Everstone", 1 ], [ "Helix Fossil", 1 ], [ "Thunder Stone", 1 ], [ "Green Shard", 1 ] ],
+            new Map<ItemName, number>([ [ "Rare Bone", 100 ] ]),
+            'Increase rare bone', 'platinum'
+        )
+
+        rare_bone_modifier.availability = GameStateAvailability.POSTGAME
+
+        const minerals: ItemName[] = [ "Icy Rock", "Smooth Rock", "Heat Rock", "Damp Rock" ]
+        const mineral_increase_modifier = new DropRateModifier(
+            [ [ "Root Fossil", 1 ], [ "Star Piece", 1 ], [ "Red Shard", 1 ] ],
+            new Map<ItemName, number>(minerals.map((item: ItemName) => [ item, 100 ])),
+            'Increase minerals', 'platinum'
+        )
+        mineral_increase_modifier.availability = GameStateAvailability.POSTGAME
+
+        const medicine: ItemName[] = [ "Revive", "Max Revive" ]
+        const medicine_increase_modifier = new DropRateModifier(
+            [ [ "Root Fossil", 1 ], [ "Leaf Stone", 1 ], [ "Blue Shard", 1 ] ],
+            new Map<ItemName, number>(medicine.map((item: ItemName) => [ item, 100 ])),
+            'Increase medicine', 'platinum'
+        )
+        medicine_increase_modifier.availability = GameStateAvailability.POSTGAME
+
+        const increase_everything_modifier = new DropRateModifier(
+            [ [ "Dome Fossil", 1 ], [ "Heat Rock", 1 ], [ "Damp Rock", 1 ], [ "Yellow Shard", 1 ] ],
+            new Map<ItemName, number>(),
+            'Increase everything', 'platinum'
+        )
+        increase_everything_modifier.availability = GameStateAvailability.POSTGAME
+        increase_everything_modifier.modify_item_amount = (amount: number): number => amount * 2
+
+        const increase_heart_scale_modifier = new DropRateModifier(
+            [ [ "Old Amber", 1 ], [ "Max Revive", 2 ] ],
+            new Map<ItemName, number>([ [ "Heart Scale", 100 ] ]),
+            'Increase heart scales', 'platinum'
+        )
+        increase_heart_scale_modifier.availability = GameStateAvailability.POSTGAME
+
+        const increase_iron_ball_modifier = new DropRateModifier(
+            [ [ "Light Clay", 1 ], [ "Heart Scale", 2 ] ],
+            new Map<ItemName, number>([ [ "Iron Ball", 100 ] ]),
+            'Compressed clay', 'diamond'
+        )
+        increase_iron_ball_modifier.weight = (Collection.get_item_count("Iron Ball") === 0 && Collection.get_item_count("Light Clay") > 2) ? 100 : 30
+
+        const increase_light_clay_modifier = new DropRateModifier(
+            [ [ "Iron Ball", 1 ], [ "Heart Scale", 2 ] ],
+            new Map<ItemName, number>([ [ "Light Clay", 100 ] ]),
+            'Weakened iron', 'pearl'
+        )
+        increase_light_clay_modifier.weight = (Collection.get_item_count("Light Clay") === 0 && Collection.get_item_count("Iron Ball") > 2) ? 100 : 30
+
+        const transmuation_table = new Map<ItemName, ItemName[]>(version === GameVersion.DIAMOND
+        // Prism -> Pale in diamond
+            ? [ [ "Small Prism Sphere", [ "Small Pale Sphere", "Large Pale Sphere" ] ],
+                [ "Large Prism Sphere", [ "Small Pale Sphere", "Large Pale Sphere" ] ] ]
+        // Pale -> Prism in pearl
+            : [ [ "Small Pale Sphere", [ "Small Prism Sphere", "Large Prism Sphere" ] ],
+                [ "Small Pale Sphere", [ "Small Prism Sphere", "Large Prism Sphere" ] ] ])
+
+        const transmutation_modifiers: Modifier[] = Array.from(transmuation_table.entries()).map((value) => {
+            return new DropRateModifier([ [ value[0], 1 ] ], new Map<ItemName, number>(value[1].map((item) => [ item, 100 ])), 'Transmute sphere', opposing_button_class)
+        })
+
         return [
             plate_modifier,
             version_modifier_small,
@@ -414,7 +479,13 @@ export class Modifiers {
             harsh_terrain_modifier,
             sphere_increase_modifier,
             shard_increase_modifier,
-            odd_keystone_modifier
+            odd_keystone_modifier,
+            mineral_increase_modifier,
+            medicine_increase_modifier,
+            increase_everything_modifier,
+            increase_heart_scale_modifier,
+            version === GameVersion.DIAMOND ? increase_light_clay_modifier : increase_iron_ball_modifier,
+            ...transmutation_modifiers
         ]
     }
 }
