@@ -454,14 +454,19 @@ export class Modifiers {
 
         const transmuation_table = new Map<ItemName, ItemName[]>(version === GameVersion.DIAMOND
         // Prism -> Pale in diamond
-            ? [ [ "Small Prism Sphere", [ "Small Pale Sphere", "Large Pale Sphere" ] ],
-                [ "Large Prism Sphere", [ "Small Pale Sphere", "Large Pale Sphere" ] ] ]
+            ? [ [ "Large Prism Sphere", [ "Small Pale Sphere", "Large Pale Sphere" ] ],
+                [ "Small Prism Sphere", [ "Small Pale Sphere", "Large Pale Sphere" ] ] ]
         // Pale -> Prism in pearl
-            : [ [ "Small Pale Sphere", [ "Small Prism Sphere", "Large Prism Sphere" ] ],
+            : [ [ "Large Pale Sphere", [ "Small Prism Sphere", "Large Prism Sphere" ] ],
                 [ "Small Pale Sphere", [ "Small Prism Sphere", "Large Prism Sphere" ] ] ])
 
-        const transmutation_modifiers: Modifier[] = Array.from(transmuation_table.entries()).map((value) => {
-            return new DropRateModifier([ [ value[0], 1 ] ], new Map<ItemName, number>(value[1].map((item) => [ item, 100 ])), 'Transmute sphere', opposing_button_class)
+        const transmutation_modifiers: Modifier[] = Array.from(transmuation_table.entries()).map((value, index) => {
+            return new DropRateModifier(
+                // Costs 2 small spheres, 1 large sphere
+                [ [ value[0], index + 1 ] ],
+                new Map<ItemName, number>(value[1].map((item) => [ item, 100 ])),
+                'Transmute sphere', opposing_button_class
+            )
         })
 
         return [
