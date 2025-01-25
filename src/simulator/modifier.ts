@@ -156,7 +156,7 @@ export class Modifier implements Weighted<ModifierWeightParams> {
 class DropRateModifier extends Modifier {
     constructor(
         modifier_cost: ModifierCost,
-        private _increases: Map<string, number>,
+        private _increases: Map<ItemName, number>,
         title: string,
         button_class: string,
         postgame: GameStateAvailability = GameStateAvailability.BOTH,
@@ -166,7 +166,7 @@ class DropRateModifier extends Modifier {
     }
 
     public override modify_rate(object: GridObject, rate: number): number {
-        if (this._increases.has(object.name)) {
+        if (this._increases.has(object.name) && rate > 0) {
             return rate + this._increases.get(object.name)!
         }
         else {
@@ -288,6 +288,22 @@ class TerrainScaleModifier extends Modifier {
     public override modify_item_amount(item_amount: number): number {
         return item_amount + this._item_amount_modifier
     }
+
+    public override modify_rate(object: GridObject, rate: number): number {
+        const rate_scaling = 200
+        let rate_alpha = rate / rate_scaling
+
+        if (this._scale_modifier > 0) {
+            // Bump up the rate of rare items
+            rate_alpha = Math.pow(rate_alpha, 0.5)
+        }
+        else if (this._scale_modifier < 0) {
+            // Bump up the rate of common items
+            rate_alpha = Math.pow(rate_alpha, 1.5)
+        }
+
+        return rate_alpha * rate_scaling
+    }
 }
 
 export function create_active_modifier_element(modifier: Modifier): HTMLElement {
@@ -313,7 +329,7 @@ export class Modifiers {
 
     public static get_optional_modifiers(): Modifier[] {
         const item_modifier_increases
-        = new Map<string, number>(ITEMS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        = new Map<ItemName, number>(ITEMS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
         // Costs red spheres
         const item_modifier_small = new DropRateModifier([ [ "Small Red Sphere", 3 ] ], item_modifier_increases, 'Increase Items', 'pearl')
         const item_modifier_large = new DropRateModifier([ [ "Large Red Sphere", 1 ] ], item_modifier_increases, 'Increase Items', 'pearl')
@@ -321,14 +337,14 @@ export class Modifiers {
         // Costs blue spheres
         const stone_modifier_increases
         // Only increase if normal rate isn't 0
-        = new Map<string, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        = new Map<ItemName, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
         const stone_modifier_small = new DropRateModifier([ [ "Small Blue Sphere", 3 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
         const stone_modifier_large = new DropRateModifier([ [ "Large Blue Sphere", 1 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
 
         // Costs green spheres
         const fossil_modifier_increases
         // Only increase if normal rate isn't 0
-        = new Map<string, number>(FOSSILS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        = new Map<ItemName, number>(FOSSILS.map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
         const fossil_modifier_small = new DropRateModifier([ [ "Small Green Sphere", 3 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
         const fossil_modifier_large = new DropRateModifier([ [ "Large Green Sphere", 1 ] ], fossil_modifier_increases, 'Increase fossils', 'platinum')
 
@@ -350,8 +366,14 @@ export class Modifiers {
 
         const fill_sphere_modifier = new FillSphereModifier([ [ "Light Clay", 1 ] ], [ ...SMALL_SPHERES, ...LARGE_SPHERES ], 'Sphere burst', 'platinum')
 
-        const mild_terrain_modifier = new TerrainScaleModifier([ [ "Everstone", 2 ], [ "Skull Fossil", 1 ], [ "Heart Scale", 1 ] ], -1, 3, 'Mild terrain', 'diamond')
+        const mild_terrain_modifier = new TerrainScaleModifier([ [ "Everstone", 2 ], [ "Skull Fossil", 1 ], [ "Heart Scale", 1 ] ], -1, -1, 'Mild terrain', 'diamond')
         const harsh_terrain_modifier = new TerrainScaleModifier([ [ "Hard Stone", 2 ], [ "Armor Fossil", 1 ], [ "Heart Scale", 1 ] ], 1, 3, 'Harsh terrain', 'pearl')
+
+        const sphere_increase_modifier = new DropRateModifier(
+            [ [ "Heart Scale", 1 ], [ version === GameVersion.DIAMOND ? "Sun Stone" : "Moon stone", 1 ] ],
+            new Map<ItemName, number>([ ...SMALL_SPHERES, ...LARGE_SPHERES ].map((item) => [ item.name, 50 ])),
+            'Increase spheres', 'platinum'
+        )
 
         return [
             plate_modifier,
@@ -365,7 +387,8 @@ export class Modifiers {
             fossil_modifier_large,
             fill_sphere_modifier,
             mild_terrain_modifier,
-            harsh_terrain_modifier
+            harsh_terrain_modifier,
+            sphere_increase_modifier
         ]
     }
 }
