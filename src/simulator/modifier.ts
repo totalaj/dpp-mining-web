@@ -386,6 +386,18 @@ export class Modifiers {
         shard_increase_modifier.weight = PLATES.every((plate) => Collection.get_item_count(plate) > 0) ? 30 : 100
         shard_increase_modifier.availability = GameStateAvailability.POSTGAME
 
+        const odd_keystone_modifier = new DropRateModifier(
+            FOSSILS.map((fossil) => [ fossil.name, 1 ])
+            , new Map<ItemName, number>([ [ "Odd Keystone", 1 ] ]),
+            'Summon spirit', 'platinum'
+        )
+        // Always spawns keystone, if not already collected
+        // Only one item, only postgame
+        odd_keystone_modifier.availability = GameStateAvailability.POSTGAME
+        odd_keystone_modifier.guaranteed_chance = 1
+        odd_keystone_modifier.repeatable = false
+        odd_keystone_modifier.modify_item_amount = (): number => 1
+        odd_keystone_modifier.check_appearance_conditions = ((): boolean => Collection.get_item_count("Odd Keystone") === 0)
 
         return [
             plate_modifier,
@@ -401,7 +413,8 @@ export class Modifiers {
             mild_terrain_modifier,
             harsh_terrain_modifier,
             sphere_increase_modifier,
-            shard_increase_modifier
+            shard_increase_modifier,
+            odd_keystone_modifier
         ]
     }
 }
