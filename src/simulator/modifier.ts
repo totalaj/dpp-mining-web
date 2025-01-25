@@ -24,9 +24,18 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         public postgame: GameStateAvailability = GameStateAvailability.BOTH,
         public repeatable: boolean = true,
         private _weight: number | (() => number) = 100,
-        private _guaranteed_chance: number = 0.8
+        private _guaranteed_chance: number = 0.8,
+        private _check_appearance_conditions?: () => boolean
     ) {
 
+    }
+
+    public generate_terrain(mining_grid: IMiningGrid): void {
+        mining_grid.generate_terrain()
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public pre_object_placement(mining_grid: IMiningGrid): void {
     }
 
     public place_objects(mining_grid: IMiningGrid, item_count: number, elegible_items: GridObject[], loot_pool: LootPool): ActiveObject[] {
@@ -43,6 +52,9 @@ export class Modifier implements Weighted<ModifierWeightParams> {
     }
 
     public get_weight(params: ModifierWeightParams): number {
+        // If the function exists, and returns false, return a weight of 0. Effectively hiding the modifier
+        if (this._check_appearance_conditions && !this._check_appearance_conditions()) return 0
+
         let multiplier = 1
         switch (this.postgame) {
             case GameStateAvailability.BOTH:
@@ -126,6 +138,16 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         return item_amount
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public modify_terrain_noise(noise_value: number, x_index: number, y_index: number): number {
+        return noise_value
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public modify_terrain_level(cell_level: number, x_index: number, y_index: number): number {
+        return cell_level
+    }
+
     public get_guaranteed_chance(): number {
         return this._guaranteed_chance
     }
@@ -164,9 +186,10 @@ export class LootPoolModifier extends Modifier {
         title: string,
         button_class: string,
         postgame: GameStateAvailability = GameStateAvailability.BOTH,
-        repeatable: boolean = true
+        repeatable: boolean = true,
+        check_appearance_conditions?: () => boolean
     ) {
-        super(modifier_cost, title, button_class, postgame, repeatable)
+        super(modifier_cost, title, button_class, postgame, repeatable, undefined, undefined, check_appearance_conditions)
     }
 
     public override modify_loot_pool(loot_pool: LootPool): LootPool {
@@ -208,8 +231,11 @@ export class VersionChangeModifier extends Modifier {
 }
 
 export class PlateModifier extends Modifier {
-    constructor(modifier_cost: ModifierCost) {
-        super(modifier_cost, 'Assemble pieces', 'platinum', GameStateAvailability.POSTGAME, false)
+    constructor(
+        modifier_cost: ModifierCost,
+        check_appearance_conditions?: () => boolean
+    ) {
+        super(modifier_cost, 'Assemble pieces', 'platinum', GameStateAvailability.POSTGAME, false, undefined, undefined, check_appearance_conditions)
     }
 
     public override can_afford(): boolean {
@@ -236,9 +262,10 @@ class FillSphereModifier extends Modifier {
         title: string,
         button_class: string,
         postgame: GameStateAvailability = GameStateAvailability.BOTH,
-        repeatable: boolean = true
+        repeatable: boolean = true,
+        check_appearance_conditions?: () => boolean
     ) {
-        super(modifier_cost, title, button_class, postgame, repeatable)
+        super(modifier_cost, title, button_class, postgame, repeatable, undefined, undefined, check_appearance_conditions)
     }
 
     public override get_weight(params: ModifierWeightParams): number {

@@ -19,6 +19,8 @@ export interface IMiningGrid {
 
     try_add_object_at_random_valid_position(object: GridObject): Vector2 | undefined
 
+    generate_terrain(): void
+
     place_items(item_count: number, elegible_items: GridObject[], loot_pool: LootPool): ActiveObject[]
 
     place_bedrock(): void

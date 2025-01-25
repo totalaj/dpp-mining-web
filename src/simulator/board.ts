@@ -97,8 +97,8 @@ export class MiningGrid implements IMiningGrid {
     public on_game_start?: (objects: ActiveObject[]) => void
     public on_version_selected?: (version: GameVersion) => void
 
-    private readonly HEIGHT = 10
-    private readonly WIDTH = 13
+    public readonly HEIGHT = 10
+    public readonly WIDTH = 13
 
     private _postgame_title?: HTMLElement
     private _postgame_progress?: ProgressBar
@@ -472,7 +472,7 @@ export class MiningGrid implements IMiningGrid {
         modifier_interface.on_finalize = (): void => {
             this.clear_screen_shakes()
             this.clear_board()
-            this.setup_terrain()
+            this.generate_terrain()
             this.populate_board()
             this.game_state = new GameState(this._health_bar)
             this.transition_element = circle_animation(this._background_sprite.element, false)
@@ -493,7 +493,8 @@ export class MiningGrid implements IMiningGrid {
         }
     }
 
-    private setup_terrain(): void {
+    public generate_terrain(): void {
+        const active_modifier = this.get_active_modifier()
         const noise = new Noise.SimplexNoise()
         const seed = Math.random()
         function sample_noise(x: number, y: number): number {
@@ -509,8 +510,11 @@ export class MiningGrid implements IMiningGrid {
         for (let x_index = 0; x_index < this.WIDTH; x_index++) {
             for (let y_index = 0; y_index < this.HEIGHT; y_index++) {
                 const cell = this._cells[x_index][y_index]
-                cell.level = 2 + (Math.floor((sample_noise(x_index, y_index) * 3)) * 2)
-                // cell.level = 0
+                let noise_value = sample_noise(x_index, y_index)
+                noise_value = active_modifier.modify_terrain_noise(noise_value, x_index, y_index)
+                let cell_level = 2 + (Math.floor((noise_value * 3)) * 2)
+                cell_level = active_modifier.modify_terrain_level(cell_level, x_index, y_index)
+                cell.level = cell_level
             }
         }
     }
