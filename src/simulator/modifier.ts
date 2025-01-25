@@ -21,11 +21,11 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         public cost: ModifierCost,
         public title: string,
         private _button_class: string,
-        public postgame: GameStateAvailability = GameStateAvailability.BOTH,
+        public availability: GameStateAvailability = GameStateAvailability.BOTH,
         public repeatable: boolean = true,
-        private _weight: number | (() => number) = 100,
-        private _guaranteed_chance: number = 0.8,
-        private _check_appearance_conditions?: () => boolean
+        public weight: number | (() => number) = 100,
+        public guaranteed_chance: number = 0.8,
+        public check_appearance_conditions?: () => boolean
     ) {
 
     }
@@ -53,10 +53,10 @@ export class Modifier implements Weighted<ModifierWeightParams> {
 
     public get_weight(params: ModifierWeightParams): number {
         // If the function exists, and returns false, return a weight of 0. Effectively hiding the modifier
-        if (this._check_appearance_conditions && !this._check_appearance_conditions()) return 0
+        if (this.check_appearance_conditions && !this.check_appearance_conditions()) return 0
 
         let multiplier = 1
-        switch (this.postgame) {
+        switch (this.availability) {
             case GameStateAvailability.BOTH:
                 multiplier *= 1
                 break
@@ -70,11 +70,11 @@ export class Modifier implements Weighted<ModifierWeightParams> {
                 break
         }
 
-        if (typeof this._weight === 'number') {
-            return this._weight * multiplier
+        if (typeof this.weight === 'number') {
+            return this.weight * multiplier
         }
         else {
-            return this._weight() * multiplier
+            return this.weight() * multiplier
         }
     }
 
@@ -149,7 +149,7 @@ export class Modifier implements Weighted<ModifierWeightParams> {
     }
 
     public get_guaranteed_chance(): number {
-        return this._guaranteed_chance
+        return this.guaranteed_chance
     }
 }
 
@@ -364,7 +364,7 @@ export class Modifiers {
         const version_modifier_small = new VersionChangeModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
         const version_modifier_large = new VersionChangeModifier([ [ large_opposing_sphere, 1 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
 
-        const fill_sphere_modifier = new FillSphereModifier([ [ "Light Clay", 1 ] ], [ ...SMALL_SPHERES, ...LARGE_SPHERES ], 'Sphere burst', 'platinum')
+        const fill_sphere_modifier = new FillSphereModifier([ [ "Light Clay", 2 ] ], [ ...SMALL_SPHERES, ...LARGE_SPHERES ], 'Sphere burst', 'platinum')
 
         const mild_terrain_modifier = new TerrainScaleModifier([ [ "Everstone", 2 ], [ "Skull Fossil", 1 ], [ "Heart Scale", 1 ] ], -1, -1, 'Mild terrain', 'diamond')
         const harsh_terrain_modifier = new TerrainScaleModifier([ [ "Hard Stone", 2 ], [ "Armor Fossil", 1 ], [ "Heart Scale", 1 ] ], 1, 3, 'Harsh terrain', 'pearl')
@@ -374,6 +374,18 @@ export class Modifiers {
             new Map<ItemName, number>([ ...SMALL_SPHERES, ...LARGE_SPHERES ].map((item) => [ item.name, 50 ])),
             'Increase spheres', 'platinum'
         )
+        // Decrease the weight of the modifier if many spheres are collected
+        sphere_increase_modifier.weight = [ ...SMALL_SPHERES, ...LARGE_SPHERES ].every((sphere) => Collection.get_item_count(sphere) > 10) ? 10 : 100
+
+        const shard_increase_modifier = new DropRateModifier(
+            [ [ "Revive", 1 ], [ "Hard Stone", 1 ], [ "Star Piece", 1 ] ],
+            new Map<ItemName, number>([ ...SHARDS ].map((item) => [ item.name, 100 ])),
+            'Increase shards', 'platinum'
+        )
+        // Decrease the weight of the modifier if all plates are collected
+        shard_increase_modifier.weight = PLATES.every((plate) => Collection.get_item_count(plate) > 0) ? 30 : 100
+        shard_increase_modifier.availability = GameStateAvailability.POSTGAME
+
 
         return [
             plate_modifier,
@@ -388,7 +400,8 @@ export class Modifiers {
             fill_sphere_modifier,
             mild_terrain_modifier,
             harsh_terrain_modifier,
-            sphere_increase_modifier
+            sphere_increase_modifier,
+            shard_increase_modifier
         ]
     }
 }
