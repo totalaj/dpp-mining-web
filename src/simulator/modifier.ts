@@ -153,7 +153,7 @@ export class Modifier implements Weighted<ModifierWeightParams> {
     }
 }
 
-export class DropRateModifier extends Modifier {
+class DropRateModifier extends Modifier {
     constructor(
         modifier_cost: ModifierCost,
         private _increases: Map<string, number>,
@@ -179,30 +179,7 @@ export class DropRateModifier extends Modifier {
     }
 }
 
-export class LootPoolModifier extends Modifier {
-    constructor(
-        modifier_cost: ModifierCost,
-        private _loot_pool_map: Map<LootPool, LootPool>,
-        title: string,
-        button_class: string,
-        postgame: GameStateAvailability = GameStateAvailability.BOTH,
-        repeatable: boolean = true,
-        check_appearance_conditions?: () => boolean
-    ) {
-        super(modifier_cost, title, button_class, postgame, repeatable, undefined, undefined, check_appearance_conditions)
-    }
-
-    public override modify_loot_pool(loot_pool: LootPool): LootPool {
-        if (this._loot_pool_map.has(loot_pool)) {
-            return this._loot_pool_map.get(loot_pool)!
-        }
-        else {
-            return loot_pool
-        }
-    }
-}
-
-export class VersionChangeModifier extends Modifier {
+class VersionChangeModifier extends Modifier {
     constructor(
         modifier_cost: ModifierCost,
         private _loot_pool_map: Map<LootPool, LootPool>,
@@ -291,6 +268,28 @@ class FillSphereModifier extends Modifier {
     }
 }
 
+class TerrainScaleModifier extends Modifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        private _scale_modifier: number,
+        private _item_amount_modifier: number,
+        title: string,
+        button_class: string,
+        postgame: GameStateAvailability = GameStateAvailability.BOTH,
+        repeatable: boolean = true
+    ) {
+        super(modifier_cost, title, button_class, postgame, repeatable)
+    }
+
+    public override modify_terrain_level(cell_level: number): number {
+        return cell_level + this._scale_modifier
+    }
+
+    public override modify_item_amount(item_amount: number): number {
+        return item_amount + this._item_amount_modifier
+    }
+}
+
 export function create_active_modifier_element(modifier: Modifier): HTMLElement {
     const element = document.createElement('div')
     element.id = 'active-modifier'
@@ -351,6 +350,9 @@ export class Modifiers {
 
         const fill_sphere_modifier = new FillSphereModifier([ [ "Light Clay", 1 ] ], [ ...SMALL_SPHERES, ...LARGE_SPHERES ], 'Sphere burst', 'platinum')
 
+        const mild_terrain_modifier = new TerrainScaleModifier([ [ "Everstone", 2 ], [ "Skull Fossil", 1 ], [ "Heart Scale", 1 ] ], -1, 3, 'Mild terrain', 'diamond')
+        const harsh_terrain_modifier = new TerrainScaleModifier([ [ "Hard Stone", 2 ], [ "Armor Fossil", 1 ], [ "Heart Scale", 1 ] ], 1, 3, 'Harsh terrain', 'pearl')
+
         return [
             plate_modifier,
             version_modifier_small,
@@ -361,7 +363,9 @@ export class Modifiers {
             stone_modifier_large,
             fossil_modifier_small,
             fossil_modifier_large,
-            fill_sphere_modifier
+            fill_sphere_modifier,
+            mild_terrain_modifier,
+            harsh_terrain_modifier
         ]
     }
 }

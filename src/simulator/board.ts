@@ -25,6 +25,9 @@ enum HitResult {
 }
 
 class Cell {
+    public static readonly MIN_LEVEL = 0
+    public static readonly MAX_LEVEL = 6
+
     private _background_sprite: Sprite
     private _terrain_sprite: Sprite
     private _object_sprite?: Sprite
@@ -84,7 +87,7 @@ class Cell {
     }
 
     public set level(value: number) {
-        this._level = Math.max(0, Math.floor(value))
+        this._level = Math.max(Cell.MIN_LEVEL, Math.min(Cell.MAX_LEVEL, Math.floor(value)))
         this._terrain_sprite.set_tile(new Vector2(this.level !== 0 ? 1 + this._level : 0, 0))
     }
 }
@@ -509,11 +512,13 @@ export class MiningGrid implements IMiningGrid {
         }
         for (let x_index = 0; x_index < this.WIDTH; x_index++) {
             for (let y_index = 0; y_index < this.HEIGHT; y_index++) {
+                // Terrrain level can range from 0 to 4
                 const cell = this._cells[x_index][y_index]
                 let noise_value = sample_noise(x_index, y_index)
                 noise_value = active_modifier.modify_terrain_noise(noise_value, x_index, y_index)
-                let cell_level = 2 + (Math.floor((noise_value * 3)) * 2)
+                let cell_level = 2 + (Math.floor((noise_value * 3)) * 2) // Range from 2 to 6
                 cell_level = active_modifier.modify_terrain_level(cell_level, x_index, y_index)
+
                 cell.level = cell_level
             }
         }
