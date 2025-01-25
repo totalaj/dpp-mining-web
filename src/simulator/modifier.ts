@@ -398,6 +398,7 @@ export class Modifiers {
         odd_keystone_modifier.repeatable = false
         odd_keystone_modifier.modify_item_amount = (): number => 1
         odd_keystone_modifier.check_appearance_conditions = ((): boolean => Collection.get_item_count("Odd Keystone") === 0)
+        odd_keystone_modifier.get_intro_messages = (): string[] => [ "Something pinged in the wall!\nA strange stone confirmed...?" ]
 
         const rare_bone_modifier = new DropRateModifier(
             [ [ "Everstone", 1 ], [ "Helix Fossil", 1 ], [ "Thunder Stone", 1 ], [ "Green Shard", 1 ] ],
@@ -444,6 +445,7 @@ export class Modifiers {
             'Compressed clay', 'diamond'
         )
         increase_iron_ball_modifier.weight = (Collection.get_item_count("Iron Ball") === 0 && Collection.get_item_count("Light Clay") > 2) ? 100 : 30
+        increase_iron_ball_modifier.guaranteed_chance = 1
 
         const increase_light_clay_modifier = new DropRateModifier(
             [ [ "Iron Ball", 1 ], [ "Heart Scale", 2 ] ],
@@ -451,6 +453,7 @@ export class Modifiers {
             'Weakened iron', 'pearl'
         )
         increase_light_clay_modifier.weight = (Collection.get_item_count("Light Clay") === 0 && Collection.get_item_count("Iron Ball") > 2) ? 100 : 30
+        increase_light_clay_modifier.guaranteed_chance = 1
 
         const transmuation_table = new Map<ItemName, ItemName[]>(version === GameVersion.DIAMOND
         // Prism -> Pale in diamond
@@ -461,13 +464,17 @@ export class Modifiers {
                 [ "Small Pale Sphere", [ "Small Prism Sphere", "Large Prism Sphere" ] ] ])
 
         const transmutation_modifiers: Modifier[] = Array.from(transmuation_table.entries()).map((value, index) => {
-            return new DropRateModifier(
+            const new_modifier = new DropRateModifier(
                 // Costs 2 small spheres, 1 large sphere
                 [ [ value[0], index + 1 ] ],
-                new Map<ItemName, number>(value[1].map((item) => [ item, 100 ])),
+                new Map<ItemName, number>(value[1].map((item) => [ item, 200 ])),
                 'Transmute sphere', opposing_button_class
             )
+            new_modifier.guaranteed_chance = 1
+            new_modifier.modify_item_amount = (amount: number): number => amount + 2
+            return new_modifier
         })
+
 
         return [
             plate_modifier,
