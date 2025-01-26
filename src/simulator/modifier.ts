@@ -151,6 +151,10 @@ export class Modifier implements Weighted<ModifierWeightParams> {
     public get_guaranteed_chance(): number {
         return this.guaranteed_chance
     }
+
+    public modify_hammer_damage(damage: number): number {
+        return damage
+    }
 }
 
 class DropRateModifier extends Modifier {
@@ -303,6 +307,21 @@ class TerrainScaleModifier extends Modifier {
         }
 
         return rate_alpha * rate_scaling
+    }
+}
+
+class HammerDamageModifier extends Modifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        private _damage_modifier: number,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, title, button_class, GameStateAvailability.BOTH, true)
+    }
+
+    public override modify_hammer_damage(damage: number): number {
+        return damage * this._damage_modifier
     }
 }
 
@@ -478,6 +497,10 @@ export class Modifiers {
             return new_modifier
         })
 
+        const reinforced_hammers_modifier = new HammerDamageModifier(
+            [ [ "Heat Rock", 1 ], [ "Icy Rock", 1 ], [ "Moon stone", 1 ] ]
+            , 0.8, 'Reinforce hammers', 'platinum'
+        )
 
         return [
             plate_modifier,
@@ -495,12 +518,14 @@ export class Modifiers {
             sphere_increase_modifier,
             shard_increase_modifier,
             odd_keystone_modifier,
+            rare_bone_modifier,
             mineral_increase_modifier,
             medicine_increase_modifier,
             increase_everything_modifier,
             increase_heart_scale_modifier,
             version === GameVersion.DIAMOND ? increase_light_clay_modifier : increase_iron_ball_modifier,
-            ...transmutation_modifiers
+            ...transmutation_modifiers,
+            reinforced_hammers_modifier
         ]
     }
 }

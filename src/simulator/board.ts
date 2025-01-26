@@ -799,6 +799,7 @@ export class MiningGrid implements IMiningGrid {
     }
 
     private clicked_cell(x_pos: number, y_pos: number): void {
+        const active_modifier = this.get_active_modifier()
         if (this.game_state.is_over) return
         const target_cell = this._cells[x_pos][y_pos]
         const result = target_cell.decrease(2)
@@ -857,7 +858,9 @@ export class MiningGrid implements IMiningGrid {
         }
 
         if (!this.game_state.is_over) {
-            const health_result = this.game_state.reduce_health(this._hammer_type === HammerType.LIGHT ? 1 : 2)
+            let hammer_damage = (this._hammer_type === HammerType.LIGHT ? 1 : 2)
+            hammer_damage = active_modifier.modify_hammer_damage(hammer_damage)
+            const health_result = this.game_state.reduce_health(hammer_damage)
 
             if (!health_result) {
                 this.game_over_internal()
