@@ -338,6 +338,9 @@ export class Modifiers {
         const stone_modifier_increases
         // Only increase if normal rate isn't 0
         = new Map<ItemName, number>([ ...EVOLUTION_STONES, ...WEATHER_STONES ].map((item) => [ item.name, item.get_weight(Settings.get_lootpool()) > 0 ? 50 : 0 ]))
+        if (get_item_by_name("Everstone").get_weight(Settings.get_lootpool()) > 0) stone_modifier_increases.set("Everstone", 50)
+        if (get_item_by_name("Hard Stone").get_weight(Settings.get_lootpool()) > 0) stone_modifier_increases.set("Hard Stone", 50)
+        if (get_item_by_name("Odd Keystone").get_weight(Settings.get_lootpool()) > 0) stone_modifier_increases.set("Odd Keystone", 1)
         const stone_modifier_small = new DropRateModifier([ [ "Small Blue Sphere", 3 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
         const stone_modifier_large = new DropRateModifier([ [ "Large Blue Sphere", 1 ] ], stone_modifier_increases, 'Increase stones', 'diamond')
 
