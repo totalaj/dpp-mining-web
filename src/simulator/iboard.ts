@@ -7,6 +7,9 @@ export class ActiveObject {
     constructor(public object_ref: GridObject, public position: Vector2) { }
 }
 
+export const GRID_HEIGHT = 10
+export const GRID_WIDTH = 13
+
 export interface IMiningGrid {
 
     get_object_positions(object: GridObject, position: Vector2): Vector2[]

@@ -17,7 +17,7 @@ import { GameState, HealthBar } from "./game_state"
 import { MessageBox } from "../components/message_box"
 import { get_weighted_random } from "../utils/weighted_randomness"
 import { get_flavour_text as create_flavour_text_element } from "../components/flavour_text"
-import { ActiveObject, IMiningGrid } from "./iboard"
+import { ActiveObject, GRID_HEIGHT, GRID_WIDTH, IMiningGrid } from "./iboard"
 import { HEAVY_HAMMER, LIGHT_HAMMER } from "./hammer"
 
 enum HitResult {
@@ -100,9 +100,6 @@ export class MiningGrid implements IMiningGrid {
     public on_game_end?: (game_state: GameState) => void
     public on_game_start?: (objects: ActiveObject[]) => void
     public on_version_selected?: (version: GameVersion) => void
-
-    public readonly HEIGHT = 10
-    public readonly WIDTH = 13
 
     private _postgame_title?: HTMLElement
     private _postgame_progress?: ProgressBar
@@ -297,10 +294,10 @@ export class MiningGrid implements IMiningGrid {
 
         this._hammer = new HammerAnimationManager(this._grid_element, this._sprite_sheet)
 
-        for (let x_index = 0; x_index < this.WIDTH; x_index++) {
+        for (let x_index = 0; x_index < GRID_WIDTH; x_index++) {
             this._cells.push([])
 
-            for (let y_index = 0; y_index < this.HEIGHT; y_index++) {
+            for (let y_index = 0; y_index < GRID_HEIGHT; y_index++) {
                 this._cells[x_index].push(new Cell(this._grid_element, this._sprite_sheet, x_index + 1, y_index + 1, (x, y) => this.clicked_cell(x, y)))
             }
         }
@@ -489,8 +486,8 @@ export class MiningGrid implements IMiningGrid {
     }
 
     private clear_board(): void {
-        for (let x_index = 0; x_index < this.WIDTH; x_index++) {
-            for (let y_index = 0; y_index < this.HEIGHT; y_index++) {
+        for (let x_index = 0; x_index < GRID_WIDTH; x_index++) {
+            for (let y_index = 0; y_index < GRID_HEIGHT; y_index++) {
                 const cell = this._cells[x_index][y_index]
                 cell.clear_object()
             }
@@ -511,8 +508,8 @@ export class MiningGrid implements IMiningGrid {
             // Use 0.99 to prevent hitting the ceiling
             return Math.min(0.99, Math.max(0, noise_val))
         }
-        for (let x_index = 0; x_index < this.WIDTH; x_index++) {
-            for (let y_index = 0; y_index < this.HEIGHT; y_index++) {
+        for (let x_index = 0; x_index < GRID_WIDTH; x_index++) {
+            for (let y_index = 0; y_index < GRID_HEIGHT; y_index++) {
                 // Terrrain level can range from 0 to 4
                 const cell = this._cells[x_index][y_index]
                 let noise_value = sample_noise(x_index, y_index)
@@ -610,6 +607,8 @@ export class MiningGrid implements IMiningGrid {
             console.warn("No elegible items! This might be an error, perhaps plate modifier was available when it shouldn't have been")
             elegible_items = get_all_objects()
         }
+
+        active_modifier.pre_object_placement(this)
 
         const item_count = active_modifier.modify_item_amount(2 + random_in_range(0, 2, true))
 

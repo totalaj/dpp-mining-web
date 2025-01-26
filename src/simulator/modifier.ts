@@ -4,7 +4,7 @@ import { get_weighted_random, Weighted } from "../utils/weighted_randomness"
 import { HammerType } from "./animations"
 import { Collection } from "./collection"
 import { ALTERNATE_HEAVY_HAMMER, ALTERNATE_LIGHT_HAMMER, Hammer } from "./hammer"
-import { ActiveObject, IMiningGrid } from "./iboard"
+import { ActiveObject, GRID_HEIGHT, GRID_WIDTH, IMiningGrid } from "./iboard"
 import { EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { GameVersion, LootPool, Settings } from "./settings"
 
@@ -364,6 +364,34 @@ class StrongHammersModifier extends Modifier {
     }
 }
 
+class NarrowSearchModifier extends Modifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, title, button_class, GameStateAvailability.BOTH, true)
+    }
+
+    public override pre_object_placement(mining_grid: IMiningGrid): void {
+        mining_grid.add_object_to_grid(get_item_by_name("4-tall I"), new Vector2(0, 1))
+        mining_grid.add_object_to_grid(get_item_by_name("4-tall I"), new Vector2(0, 5))
+        mining_grid.add_object_to_grid(get_item_by_name("4-tall I"), new Vector2(12, 1))
+        mining_grid.add_object_to_grid(get_item_by_name("4-tall I"), new Vector2(12, 5))
+        mining_grid.add_object_to_grid(get_item_by_name("4-wide line"), new Vector2(0, 0))
+        mining_grid.add_object_to_grid(get_item_by_name("4-wide line"), new Vector2(4, 0))
+        mining_grid.add_object_to_grid(get_item_by_name("4-wide line"), new Vector2(8, 0))
+        mining_grid.add_object_to_grid(get_item_by_name("4-wide line"), new Vector2(0, 9))
+        mining_grid.add_object_to_grid(get_item_by_name("4-wide line"), new Vector2(4, 9))
+        mining_grid.add_object_to_grid(get_item_by_name("4-wide line"), new Vector2(8, 9))
+    }
+
+    public override modify_terrain_level(cell_level: number, x_index: number, y_index: number): number {
+        if (x_index === 0 || x_index === GRID_WIDTH - 1 || y_index === 0 || y_index === GRID_HEIGHT - 1) return 1
+        return cell_level
+    }
+}
+
 export function create_active_modifier_element(modifier: Modifier): HTMLElement {
     const element = document.createElement('div')
     element.id = 'active-modifier'
@@ -551,6 +579,11 @@ export class Modifiers {
             'Strong hammers', 'platinum'
         )
 
+        const narrow_search_modifier = new NarrowSearchModifier(
+            [ [ "Water Stone", 1 ], [ "Everstone", 1 ], [ "Revive", 1 ] ],
+            'Narrow search', 'platinum'
+        )
+
         return [
             plate_modifier,
             version_modifier_small,
@@ -576,7 +609,8 @@ export class Modifiers {
             ...transmutation_modifiers,
             reinforced_hammers_modifier,
             alternate_hammer_modifier,
-            strong_hammers_modifier
+            strong_hammers_modifier,
+            narrow_search_modifier
         ]
     }
 }

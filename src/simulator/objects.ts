@@ -91,7 +91,7 @@ export function get_all_objects(): GridObject[] {
 }
 
 export function get_item_by_name(name: ItemName): GridObject {
-    const result = get_all_objects().find((object) => object.name === name)
+    const result = get_all_objects().concat(BEDROCK_OBJECTS).find((object) => object.name === name)
     if (result) return result
     else {
         console.error(`Could not find object with name ${name}`)
