@@ -4,7 +4,7 @@ import * as Noise from 'ts-perlin-simplex'
 import { BEDROCK_OBJECTS, ContentType, EVOLUTION_STONES, FOSSILS, get_all_objects, GridObject, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, trim_duplicates, WEATHER_STONES } from "./objects"
 import { random_element } from "../utils/array_utils"
 import { random_in_range } from "../utils/random"
-import { GLOBAL_FRAME_RATE, Hammer, HammerType, play_item_found_spark } from "./animations"
+import { GLOBAL_FRAME_RATE, HammerAnimationManager, HammerType, play_item_found_spark } from "./animations"
 import { HammerButton } from "./hammer_button"
 import { set_translation } from "../utils/dom_util"
 import { circle_animation, CIRCLE_ANIMATION_FRAMES, shutter_animation, SHUTTER_ANIMATION_FRAMES } from "../components/screen_transition"
@@ -18,6 +18,7 @@ import { MessageBox } from "../components/message_box"
 import { get_weighted_random } from "../utils/weighted_randomness"
 import { get_flavour_text as create_flavour_text_element } from "../components/flavour_text"
 import { ActiveObject, IMiningGrid } from "./iboard"
+import { HEAVY_HAMMER, LIGHT_HAMMER } from "./hammer"
 
 enum HitResult {
     NORMAL,
@@ -110,7 +111,7 @@ export class MiningGrid implements IMiningGrid {
     private _grid_element: HTMLDivElement
     private _background_sprite: Sprite
     private _cells: Array<Array<Cell>> = []
-    private _hammer: Hammer
+    private _hammer: HammerAnimationManager
     private _hammer_type: HammerType = HammerType.LIGHT
     private _health_bar: HealthBar
     private _transition_element?: HTMLElement | undefined
@@ -294,7 +295,7 @@ export class MiningGrid implements IMiningGrid {
         shadow_overlay.style.zIndex = '15'
         shadow_overlay.style.boxShadow = 'inset 0 0 5em 1px rgb(0 0 0 / 78%), inset 0 0 1em 4px rgb(0 0 0)'
 
-        this._hammer = new Hammer(this._grid_element, this._sprite_sheet)
+        this._hammer = new HammerAnimationManager(this._grid_element, this._sprite_sheet)
 
         for (let x_index = 0; x_index < this.WIDTH; x_index++) {
             this._cells.push([])
@@ -799,8 +800,11 @@ export class MiningGrid implements IMiningGrid {
     }
 
     private clicked_cell(x_pos: number, y_pos: number): void {
-        const active_modifier = this.get_active_modifier()
         if (this.game_state.is_over) return
+        const active_modifier = this.get_active_modifier()
+        let current_hammer = this._hammer_type === HammerType.LIGHT ? LIGHT_HAMMER : HEAVY_HAMMER
+        current_hammer = active_modifier.modify_hammer(current_hammer)
+
         const target_cell = this._cells[x_pos][y_pos]
         const result = target_cell.decrease(2)
 
@@ -835,24 +839,18 @@ export class MiningGrid implements IMiningGrid {
         }
 
 
+        // If the cell was bedrock and the hammer hit the bottom, don't do any more hits
         if (!(result === HitResult.BOTTOM && target_cell.content === ContentType.BEDROCK)) {
-            if (this._hammer_type === HammerType.LIGHT) {
-                this._cells[x_pos + 1]?.[y_pos]?.decrease()
-                this._cells[x_pos - 1]?.[y_pos]?.decrease()
-                this._cells[x_pos]?.[y_pos + 1]?.decrease()
-                this._cells[x_pos]?.[y_pos - 1]?.decrease()
-            }
-            else {
-                this._cells[x_pos + 1]?.[y_pos]?.decrease(2)
-                this._cells[x_pos - 1]?.[y_pos]?.decrease(2)
-                this._cells[x_pos]?.[y_pos + 1]?.decrease(2)
-                this._cells[x_pos]?.[y_pos - 1]?.decrease(2)
+            current_hammer.get_mining_area().forEach((mining_action) => {
+                // Ignore the 0, 0 position
+                if (mining_action[0].x === 0 && mining_action[0].y === 0) return
+                const action_target_x = mining_action[0].x + x_pos
+                const action_target_y = mining_action[0].y + y_pos
 
-                this._cells[x_pos + 1]?.[y_pos + 1]?.decrease()
-                this._cells[x_pos + 1]?.[y_pos - 1]?.decrease()
-                this._cells[x_pos - 1]?.[y_pos + 1]?.decrease()
-                this._cells[x_pos - 1]?.[y_pos - 1]?.decrease()
-            }
+                const action_target_cell = this._cells[action_target_x]?.[action_target_y]
+                if (!action_target_cell) return
+                action_target_cell.decrease(mining_action[1])
+            })
 
             this.check_items_found()
         }

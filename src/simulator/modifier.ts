@@ -1,7 +1,9 @@
 import { Sprite, SpriteSheet } from "../components/sprite"
 import { Vector2 } from "../math"
 import { get_weighted_random, Weighted } from "../utils/weighted_randomness"
+import { HammerType } from "./animations"
 import { Collection } from "./collection"
+import { ALTERNATE_HEAVY_HAMMER, ALTERNATE_LIGHT_HAMMER, Hammer } from "./hammer"
 import { ActiveObject, IMiningGrid } from "./iboard"
 import { EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { GameVersion, LootPool, Settings } from "./settings"
@@ -154,6 +156,10 @@ export class Modifier implements Weighted<ModifierWeightParams> {
 
     public modify_hammer_damage(damage: number): number {
         return damage
+    }
+
+    public modify_hammer(hammer: Hammer): Hammer {
+        return hammer
     }
 }
 
@@ -322,6 +328,20 @@ class HammerDamageModifier extends Modifier {
 
     public override modify_hammer_damage(damage: number): number {
         return damage * this._damage_modifier
+    }
+}
+
+class AlternateHamerModifier extends Modifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, title, button_class, GameStateAvailability.BOTH, true)
+    }
+
+    public override modify_hammer(hammer: Hammer): Hammer {
+        return hammer.get_hammer_type() === HammerType.LIGHT ? ALTERNATE_LIGHT_HAMMER : ALTERNATE_HEAVY_HAMMER
     }
 }
 
@@ -499,7 +519,12 @@ export class Modifiers {
 
         const reinforced_hammers_modifier = new HammerDamageModifier(
             [ [ "Heat Rock", 1 ], [ "Icy Rock", 1 ], [ "Moon stone", 1 ] ]
-            , 0.8, 'Reinforce hammers', 'platinum'
+            , 0.8, 'Reinforce hammers', 'diamond'
+        )
+
+        const alternate_hammer_modifier = new AlternateHamerModifier(
+            [ [ "Damp Rock", 1 ], [ "Smooth Rock", 1 ], [ "Sun Stone", 1 ] ],
+            'Alternate hammer', 'pearl'
         )
 
         return [
@@ -525,7 +550,8 @@ export class Modifiers {
             increase_heart_scale_modifier,
             version === GameVersion.DIAMOND ? increase_light_clay_modifier : increase_iron_ball_modifier,
             ...transmutation_modifiers,
-            reinforced_hammers_modifier
+            reinforced_hammers_modifier,
+            alternate_hammer_modifier
         ]
     }
 }

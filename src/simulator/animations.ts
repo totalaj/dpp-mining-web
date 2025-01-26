@@ -14,7 +14,7 @@ type AnimationFrame = {
     frame?: number // 0: down 1: up
 }
 
-export class Hammer {
+export class HammerAnimationManager {
     private _container?: HTMLElement
     private _tile_unit: number
     private _removal_timeout?: NodeJS.Timeout
