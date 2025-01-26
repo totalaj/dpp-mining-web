@@ -806,7 +806,8 @@ export class MiningGrid implements IMiningGrid {
         current_hammer = active_modifier.modify_hammer(current_hammer)
 
         const target_cell = this._cells[x_pos][y_pos]
-        const result = target_cell.decrease(2)
+        const center_hit = current_hammer.get_mining_area().find((mining_action) => mining_action[0].x === 0 && mining_action[0].y === 0)
+        const result = target_cell.decrease(center_hit?.[1] ?? 2)
 
         this._hammer.play_hammer_animation(
             new Vector2(x_pos, y_pos),

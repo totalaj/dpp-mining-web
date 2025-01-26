@@ -331,7 +331,7 @@ class HammerDamageModifier extends Modifier {
     }
 }
 
-class AlternateHamerModifier extends Modifier {
+class AlternateHammerModifier extends Modifier {
     constructor(
         modifier_cost: ModifierCost,
         title: string,
@@ -342,6 +342,25 @@ class AlternateHamerModifier extends Modifier {
 
     public override modify_hammer(hammer: Hammer): Hammer {
         return hammer.get_hammer_type() === HammerType.LIGHT ? ALTERNATE_LIGHT_HAMMER : ALTERNATE_HEAVY_HAMMER
+    }
+}
+
+class StrongHammersModifier extends Modifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, title, button_class, GameStateAvailability.BOTH, true)
+    }
+
+    public override modify_hammer(hammer: Hammer): Hammer {
+        const hammer_area = hammer.get_mining_area()
+        const new_hammer = new Hammer()
+        new_hammer.get_damage = hammer.get_damage.bind(hammer)
+        new_hammer.get_hammer_type = hammer.get_hammer_type.bind(hammer)
+        new_hammer.get_mining_area = (): Array<[Vector2, number]> => hammer_area.map((value) => [ value[0], value[1] + 1 ])
+        return new_hammer
     }
 }
 
@@ -522,9 +541,14 @@ export class Modifiers {
             , 0.8, 'Reinforce hammers', 'diamond'
         )
 
-        const alternate_hammer_modifier = new AlternateHamerModifier(
+        const alternate_hammer_modifier = new AlternateHammerModifier(
             [ [ "Damp Rock", 1 ], [ "Smooth Rock", 1 ], [ "Sun Stone", 1 ] ],
             'Alternate hammer', 'pearl'
+        )
+
+        const strong_hammers_modifier = new StrongHammersModifier(
+            [ [ "Fire Stone", 1 ], [ "Hard Stone", 2 ], [ "Iron Ball", 1 ], [ "Heart Scale", 1 ] ],
+            'Strong hammers', 'platinum'
         )
 
         return [
@@ -551,7 +575,8 @@ export class Modifiers {
             version === GameVersion.DIAMOND ? increase_light_clay_modifier : increase_iron_ball_modifier,
             ...transmutation_modifiers,
             reinforced_hammers_modifier,
-            alternate_hammer_modifier
+            alternate_hammer_modifier,
+            strong_hammers_modifier
         ]
     }
 }
