@@ -76,6 +76,7 @@ export default [
         "format": ["UPPER_CASE"],
       }
       ],
+      "@typescript-eslint/no-unused-vars": "off",
       "@stylistic/indent": ["warn", 4],
       "@stylistic/nonblock-statement-body-position": ["warn", "beside"],
       "@stylistic/padded-blocks": ["warn", "never"],

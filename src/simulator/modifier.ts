@@ -3,10 +3,11 @@ import { Vector2 } from "../math"
 import { get_weighted_random, Weighted } from "../utils/weighted_randomness"
 import { HammerType } from "./animations"
 import { Collection } from "./collection"
+import { GameState } from "./game_state"
 import { ALTERNATE_HEAVY_HAMMER, ALTERNATE_LIGHT_HAMMER, Hammer } from "./hammer"
 import { ActiveObject, GRID_HEIGHT, GRID_WIDTH, IMiningGrid } from "./iboard"
 import { EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
-import { GameVersion, LootPool, Settings } from "./settings"
+import { GameVersion, LootPool, Progress, Settings } from "./settings"
 
 
 enum GameStateAvailability {
@@ -36,7 +37,6 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         mining_grid.generate_terrain()
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public pre_object_placement(mining_grid: IMiningGrid): void {
     }
 
@@ -48,7 +48,6 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         mining_grid.place_bedrock()
     }
 
-    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     public get_intro_messages(item_count: number): string[] | undefined {
         return undefined
     }
@@ -128,6 +127,10 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         this.cost.forEach((value) => Collection.remove_item(value[0], value[1]))
     }
 
+    public on_game_over(game_state: GameState): { gain_items?: boolean, message?: string[] } {
+        return { gain_items: true }
+    }
+
     public modify_loot_pool(loot_pool: LootPool): LootPool {
         return loot_pool
     }
@@ -140,12 +143,10 @@ export class Modifier implements Weighted<ModifierWeightParams> {
         return item_amount
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public modify_terrain_noise(noise_value: number, x_index: number, y_index: number): number {
         return noise_value
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public modify_terrain_level(cell_level: number, x_index: number, y_index: number): number {
         return cell_level
     }
@@ -272,7 +273,7 @@ class FillSphereModifier extends Modifier {
         return added_items
     }
 
-    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+
     public override get_intro_messages(item_count: number): string[] | undefined {
         return [ "Something pinged in the wall!\n??? confirmed?" ]
     }
@@ -392,6 +393,165 @@ class NarrowSearchModifier extends Modifier {
     }
 }
 
+export class BadgeModifier extends Modifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string,
+        private _badge_number: number
+    ) {
+        const is_retry = Progress.badges_attempted === _badge_number
+        super(
+            is_retry ? retry_cost : modifier_cost,
+            title + (is_retry ? " (retry)" : ""),
+            button_class,
+            _badge_number > 4 ? GameStateAvailability.POSTGAME : GameStateAvailability.BOTH,
+            false,
+            is_retry ? 1000 : 100,
+            undefined,
+            () => Progress.badge_count === (this._badge_number - 1) // Only show if the badge hasn't been collected yet
+        )
+    }
+
+    public override purchase(): void {
+        super.purchase()
+        Progress.badges_attempted = this._badge_number
+    }
+
+    public override on_game_over(game_state: GameState): { gain_items?: boolean; message?: string[] } {
+        if (!game_state.failed) {
+            Progress.badge_count = this._badge_number
+        }
+
+        return {
+            gain_items: !game_state.failed,
+            message: game_state.failed
+                ? [
+                    "Bad luck!\nYou failed the badge challenge!",
+                    "Better luck next time!"
+                ]
+                : [
+                    `Congratulations!\nYou have earned badge #${this._badge_number}!`
+                ]
+        }
+    }
+}
+
+class BadgeOneModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 1)
+    }
+
+    public override modify_item_amount(item_amount: number): number {
+        return 3
+    }
+
+    public override modify_terrain_level(cell_level: number, x_index: number, y_index: number): number {
+        return 2
+    }
+
+    public override get_intro_messages(item_count: number): string[] | undefined {
+        return [ "Welcome to your first badge challenge!",
+            "Your goal:\nDig up 3 items, getting a perfect clear",
+            "If you fail, you can try again.\nAnd the cost will decrease",
+            "Good luck!" ]
+    }
+}
+
+class BadgeTwoModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 2)
+    }
+}
+
+class BadgeThreeModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 3)
+    }
+}
+
+class BadgeFourModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 4)
+    }
+}
+
+class BadgeFiveModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 5)
+    }
+}
+
+class BadgeSixModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 6)
+    }
+}
+
+class BadgeSevenModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 7)
+    }
+}
+
+class BadgeEightModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 8)
+    }
+}
+
+class EliteFourModifier extends BadgeModifier {
+    constructor(
+        modifier_cost: ModifierCost,
+        retry_cost: ModifierCost,
+        title: string,
+        button_class: string
+    ) {
+        super(modifier_cost, retry_cost, title, button_class, 9)
+    }
+}
+
 export function create_active_modifier_element(modifier: Modifier): HTMLElement {
     const element = document.createElement('div')
     element.id = 'active-modifier'
@@ -448,6 +608,7 @@ export class Modifiers {
 
         const version = Settings.get_squashed_version()
         const opposing_button_class = version === GameVersion.DIAMOND ? 'pearl' : 'diamond'
+        const same_button_class = version === GameVersion.DIAMOND ? 'diamond' : 'pearl'
         const small_opposing_sphere: ItemName = version === GameVersion.DIAMOND ? "Small Pale Sphere" : "Small Prism Sphere"
         const large_opposing_sphere: ItemName = version === GameVersion.DIAMOND ? "Large Pale Sphere" : "Large Prism Sphere"
         const version_modifier_small = new VersionChangeModifier([ [ small_opposing_sphere, 3 ] ], loot_pool_mapping, 'Space-time rift?', opposing_button_class)
@@ -584,6 +745,60 @@ export class Modifiers {
             'Narrow search', 'platinum'
         )
 
+        const badge_one_modifier = new BadgeOneModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "Badge 1", same_button_class
+        )
+
+        const badge_two_modifier = new BadgeTwoModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "Badge 2", same_button_class
+        )
+
+        const badge_three_modifier = new BadgeThreeModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "Badge 3", same_button_class
+        )
+
+        const badge_four_modifier = new BadgeFourModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "Badge 4", same_button_class
+        )
+
+        const badge_five_modifier = new BadgeFiveModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "Badge 5", same_button_class
+        )
+
+        const badge_six_modifier = new BadgeSixModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "Badge 6", same_button_class
+        )
+
+        const badge_seven_modifier = new BadgeSevenModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "Badge 7", same_button_class
+        )
+
+        const badge_eight_modifier = new BadgeEightModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "Badge 8", same_button_class
+        )
+
+        const elite_four_modifier = new EliteFourModifier(
+            [ [ "Heart Scale", 2 ], [ version === GameVersion.DIAMOND ? "Small Prism Sphere" : "Small Pale Sphere", 2 ] ],
+            [ [ "Heart Scale", 1 ] ],
+            "The League", same_button_class
+        )
+
         return [
             plate_modifier,
             version_modifier_small,
@@ -610,7 +825,16 @@ export class Modifiers {
             reinforced_hammers_modifier,
             alternate_hammer_modifier,
             strong_hammers_modifier,
-            narrow_search_modifier
+            narrow_search_modifier,
+            badge_one_modifier,
+            badge_two_modifier,
+            badge_three_modifier,
+            badge_four_modifier,
+            badge_five_modifier,
+            badge_six_modifier,
+            badge_seven_modifier,
+            badge_eight_modifier,
+            elite_four_modifier
         ]
     }
 }
