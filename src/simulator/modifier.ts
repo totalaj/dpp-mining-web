@@ -6,7 +6,7 @@ import { Collection } from "./collection"
 import { GameState } from "./game_state"
 import { ALTERNATE_HEAVY_HAMMER, ALTERNATE_LIGHT_HAMMER, Hammer } from "./hammer"
 import { ActiveObject, GRID_HEIGHT, GRID_WIDTH, IMiningGrid } from "./iboard"
-import { EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
+import { BEDROCK_OBJECTS, EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { GameVersion, LootPool, Progress, Settings } from "./settings"
 
 
@@ -448,6 +448,10 @@ class BadgeOneModifier extends BadgeModifier {
         super(modifier_cost, retry_cost, title, button_class, 1)
     }
 
+    public override modify_rate(object: GridObject, rate: number): number {
+        return object.name === "Heart Scale" ? 1 : 0
+    }
+
     public override modify_item_amount(item_amount: number): number {
         return 3
     }
@@ -472,6 +476,26 @@ class BadgeTwoModifier extends BadgeModifier {
         button_class: string
     ) {
         super(modifier_cost, retry_cost, title, button_class, 2)
+    }
+
+    public override modify_item_amount(item_amount: number): number {
+        return 1
+    }
+
+    public override modify_rate(object: GridObject, rate: number): number {
+        return object.name === "Heart Scale" ? 1 : 0
+    }
+
+    public override place_bedrock(mining_grid: IMiningGrid): void {
+        const bedrock = BEDROCK_OBJECTS
+        while (mining_grid.try_add_object_at_random_valid_position(get_weighted_random(bedrock)));
+    }
+
+    public override get_intro_messages(item_count: number): string[] | undefined {
+        return [ "Welcome to your second badge challenge!",
+            "Your goal:\nFind the heart scale.",
+            "But beware of all the bedrock!",
+            "Good luck!" ]
     }
 }
 
