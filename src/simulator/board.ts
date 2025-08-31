@@ -12,7 +12,7 @@ import { GameVersion, LootPool, Progress, Settings, Statistics } from "./setting
 import { Collection } from "./collection"
 import { create_version_selector } from "./version_selector"
 import { ProgressBar } from "../components/progress_bar"
-import { BadgeOneModifier, BadgeThreeModifier, BadgeTwoModifier, create_active_modifier_element, Modifier, Modifiers, PlateModifier } from "./modifier"
+import { create_active_modifier_element, Modifier, Modifiers, PlateModifier } from "./modifier"
 import { GameState, HealthBar } from "./game_state"
 import { MessageBox } from "../components/message_box"
 import { get_weighted_random } from "../utils/weighted_randomness"
@@ -422,7 +422,7 @@ export class MiningGrid implements IMiningGrid {
         if (!this._active_modifier) {
             // const guaranteed_modifiers = Modifiers.get_guaranteed_modifiers()
             const random_modifiers = Modifiers.get_optional_modifiers()
-            const added_modifiers: Modifier[] = [new BadgeThreeModifier([['Small Green Sphere', 1]],[['Small Green Sphere', 1]], 'badge 1', 'pearl')]
+            const added_modifiers: Modifier[] = []
 
             random_modifiers.forEach((modifier) => { if (modifier.can_afford()) affordable_modifier_count++ })
 

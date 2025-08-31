@@ -6,7 +6,7 @@ import { Collection } from "./collection"
 import { GameState } from "./game_state"
 import { ALTERNATE_HEAVY_HAMMER, ALTERNATE_LIGHT_HAMMER, Hammer } from "./hammer"
 import { ActiveObject, GRID_HEIGHT, GRID_WIDTH, IMiningGrid } from "./iboard"
-import { BEDROCK_OBJECTS, EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
+import { EVOLUTION_STONES, FOSSILS, get_item_by_name, GridObject, ItemName, ITEMS, LARGE_SPHERES, LootPoolWeightParameter, PLATES, SHARDS, SMALL_SPHERES, WEATHER_STONES } from "./objects"
 import { GameVersion, LootPool, Progress, Settings } from "./settings"
 
 
@@ -438,7 +438,7 @@ export class BadgeModifier extends Modifier {
     }
 }
 
-export class BadgeOneModifier extends BadgeModifier {
+class BadgeOneModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -446,10 +446,6 @@ export class BadgeOneModifier extends BadgeModifier {
         button_class: string
     ) {
         super(modifier_cost, retry_cost, title, button_class, 1)
-    }
-
-    public override modify_rate(object: GridObject, rate: number): number {
-        return object.name === "Heart Scale" ? 1 : 0
     }
 
     public override modify_item_amount(item_amount: number): number {
@@ -468,7 +464,7 @@ export class BadgeOneModifier extends BadgeModifier {
     }
 }
 
-export class BadgeTwoModifier extends BadgeModifier {
+class BadgeTwoModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -477,42 +473,9 @@ export class BadgeTwoModifier extends BadgeModifier {
     ) {
         super(modifier_cost, retry_cost, title, button_class, 2)
     }
-
-    public override modify_item_amount(item_amount: number): number {
-        return 1
-    }
-
-    public override modify_rate(object: GridObject, rate: number): number {
-        return object.name === "Heart Scale" ? 1 : 0
-    }
-
-    public override place_bedrock(mining_grid: IMiningGrid): void {
-        const bedrock = BEDROCK_OBJECTS
-
-        // Keep tryna add until we can't
-        let some_added = false
-        do {
-            some_added = false
-
-            for (const rock of bedrock) {
-                const result = mining_grid.try_add_object_at_random_valid_position(rock)
-
-                if (result) {
-                    some_added = true
-                }
-            }
-        } while (some_added)
-    }
-
-    public override get_intro_messages(item_count: number): string[] | undefined {
-        return [ "Welcome to your second badge challenge!",
-            "Your goal:\nFind the heart scale.",
-            "But beware of all the bedrock!",
-            "Good luck!" ]
-    }
 }
 
-export class BadgeThreeModifier extends BadgeModifier {
+class BadgeThreeModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -523,7 +486,7 @@ export class BadgeThreeModifier extends BadgeModifier {
     }
 }
 
-export class BadgeFourModifier extends BadgeModifier {
+class BadgeFourModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -534,7 +497,7 @@ export class BadgeFourModifier extends BadgeModifier {
     }
 }
 
-export class BadgeFiveModifier extends BadgeModifier {
+class BadgeFiveModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -545,7 +508,7 @@ export class BadgeFiveModifier extends BadgeModifier {
     }
 }
 
-export class BadgeSixModifier extends BadgeModifier {
+class BadgeSixModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -556,7 +519,7 @@ export class BadgeSixModifier extends BadgeModifier {
     }
 }
 
-export class BadgeSevenModifier extends BadgeModifier {
+class BadgeSevenModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -567,7 +530,7 @@ export class BadgeSevenModifier extends BadgeModifier {
     }
 }
 
-export class BadgeEightModifier extends BadgeModifier {
+class BadgeEightModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,

@@ -188,7 +188,7 @@ export function create_settings_element(): HTMLElement {
     const screen_shake = create_boolean_input(settings_element, !!Settings.screen_shake, "Screen shake")
     screen_shake.oninput = (): void => { Settings.screen_shake = screen_shake.checked }
 
-    // return settings_element
+    return settings_element
     const reset_version = create_button_input(settings_element, 'Reset version')
     reset_version.onclick = (): void => { window.localStorage.removeItem("Progress.started") }
 
