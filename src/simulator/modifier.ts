@@ -566,7 +566,7 @@ export class Modifiers {
 
         const reinforced_hammers_modifier = new HammerDamageModifier(
             [ [ "Heat Rock", 1 ], [ "Icy Rock", 1 ], [ "Moon stone", 1 ] ]
-            , 0.8, 'Reinforce hammers', 'diamond'
+            , 0.7, 'Tougher cave wall', 'diamond'
         )
 
         const alternate_hammer_modifier = new AlternateHammerModifier(
