@@ -177,12 +177,10 @@ export function create_settings_element(): HTMLElement {
     const settings_element = document.createElement('div')
     settings_element.id = "settings"
 
-    // const freeplay = create_boolean_input(settings_element, !!Settings.freeplay, "Freeplay")
-    // freeplay.oninput = (): void => { Settings.freeplay = freeplay.checked }
-
     const screen_shake = create_boolean_input(settings_element, !!Settings.screen_shake, "Screen shake")
     screen_shake.oninput = (): void => { Settings.screen_shake = screen_shake.checked }
 
+    return settings_element
     const reset_version = create_button_input(settings_element, 'Reset version')
     reset_version.onclick = (): void => { window.localStorage.removeItem("Progress.started") }
 
