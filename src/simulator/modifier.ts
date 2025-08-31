@@ -438,7 +438,7 @@ export class BadgeModifier extends Modifier {
     }
 }
 
-class BadgeOneModifier extends BadgeModifier {
+export class BadgeOneModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -468,7 +468,7 @@ class BadgeOneModifier extends BadgeModifier {
     }
 }
 
-class BadgeTwoModifier extends BadgeModifier {
+export class BadgeTwoModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -488,7 +488,20 @@ class BadgeTwoModifier extends BadgeModifier {
 
     public override place_bedrock(mining_grid: IMiningGrid): void {
         const bedrock = BEDROCK_OBJECTS
-        while (mining_grid.try_add_object_at_random_valid_position(get_weighted_random(bedrock)));
+
+        // Keep tryna add until we can't
+        let some_added = false
+        do {
+            some_added = false
+
+            for (const rock of bedrock) {
+                const result = mining_grid.try_add_object_at_random_valid_position(rock)
+
+                if (result) {
+                    some_added = true
+                }
+            }
+        } while (some_added)
     }
 
     public override get_intro_messages(item_count: number): string[] | undefined {
@@ -499,7 +512,7 @@ class BadgeTwoModifier extends BadgeModifier {
     }
 }
 
-class BadgeThreeModifier extends BadgeModifier {
+export class BadgeThreeModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -510,7 +523,7 @@ class BadgeThreeModifier extends BadgeModifier {
     }
 }
 
-class BadgeFourModifier extends BadgeModifier {
+export class BadgeFourModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -521,7 +534,7 @@ class BadgeFourModifier extends BadgeModifier {
     }
 }
 
-class BadgeFiveModifier extends BadgeModifier {
+export class BadgeFiveModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -532,7 +545,7 @@ class BadgeFiveModifier extends BadgeModifier {
     }
 }
 
-class BadgeSixModifier extends BadgeModifier {
+export class BadgeSixModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -543,7 +556,7 @@ class BadgeSixModifier extends BadgeModifier {
     }
 }
 
-class BadgeSevenModifier extends BadgeModifier {
+export class BadgeSevenModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
@@ -554,7 +567,7 @@ class BadgeSevenModifier extends BadgeModifier {
     }
 }
 
-class BadgeEightModifier extends BadgeModifier {
+export class BadgeEightModifier extends BadgeModifier {
     constructor(
         modifier_cost: ModifierCost,
         retry_cost: ModifierCost,
