@@ -19,7 +19,6 @@ import { get_weighted_random } from "../utils/weighted_randomness"
 import { get_flavour_text as create_flavour_text_element } from "../components/flavour_text"
 import { ActiveObject, GRID_HEIGHT, GRID_WIDTH, IMiningGrid } from "./iboard"
 import { HEAVY_HAMMER, LIGHT_HAMMER } from "./hammer"
-import { create_badge_sprite } from "./badges"
 
 enum HitResult {
     NORMAL,
@@ -113,8 +112,6 @@ export class MiningGrid implements IMiningGrid {
     private _hammer_type: HammerType = HammerType.LIGHT
     private _health_bar: HealthBar
     private _transition_element?: HTMLElement | undefined
-    private _badge_element?: HTMLElement | undefined
-    private _previous_badge_count: number = 0
 
     private _active_modifier_element?: HTMLElement | undefined
     private _active_modifier?: Modifier
@@ -139,13 +136,8 @@ export class MiningGrid implements IMiningGrid {
         this._transition_element = value
     }
     private game_over_internal(): void {
-        const active_modifier = this.get_active_modifier()
         this.on_game_end?.(this.game_state)
         Statistics.rounds_played++
-
-        const end_of_game_result = active_modifier.on_game_over(this.game_state)
-
-        console.log("End of game result", end_of_game_result)
 
         // Only reset if you failed last time
         if (this.game_state.failed || !this._active_modifier?.repeatable) {
@@ -154,20 +146,12 @@ export class MiningGrid implements IMiningGrid {
         this.clear_screen_shakes()
 
         const item_obtained_messages: string[] = []
-        if (end_of_game_result.message) {
-            item_obtained_messages.push(...end_of_game_result.message)
-        }
-
-        if (end_of_game_result.gain_items) {
-            this.added_items.forEach((item) => {
-                if (item.has_been_found) {
-                    Collection.add_item(item.object_ref)
-                    item_obtained_messages.push(`You obtained ${item.object_ref.genus} ${item.object_ref.name}!`)
-                }
-            })
-        }
-
-        console.log("Item obtained messages", item_obtained_messages)
+        this.added_items.forEach((item) => {
+            if (item.has_been_found) {
+                Collection.add_item(item.object_ref)
+                item_obtained_messages.push(`You obtained ${item.object_ref.genus} ${item.object_ref.name}!`)
+            }
+        })
 
         let on_new_game = (): void => {
             this.reset_board()
@@ -232,9 +216,7 @@ export class MiningGrid implements IMiningGrid {
             this._game_over_timeout = setTimeout(() => {
                 this.transition_element = shutter_animation(this._background_sprite.element, true)
                 setTimeout(() => {
-                    const display_messages_result = this.display_messages([ "The wall collapsed!", ...item_obtained_messages ])
-                    display_messages_result.on_completed = (): void => {
-                        this.recreate_badge_element()
+                    this.display_messages([ "The wall collapsed!", ...item_obtained_messages ]).on_completed = (): void => {
                         setTimeout(() => {
                             on_new_game()
                         }, 8 * GLOBAL_FRAME_RATE)
@@ -245,8 +227,7 @@ export class MiningGrid implements IMiningGrid {
         else {
             Statistics.full_clears++
             this._game_over_timeout = setTimeout(() => {
-                const display_messages_result = this.display_messages([ "Everything was dug up!", ...item_obtained_messages ])
-                display_messages_result.on_completed = (): void => {
+                this.display_messages([ "Everything was dug up!", ...item_obtained_messages ]).on_completed = (): void => {
                     this.transition_element = circle_animation(this._background_sprite.element, true)
                     setTimeout(() => {
                         on_new_game()
@@ -357,28 +338,6 @@ export class MiningGrid implements IMiningGrid {
 
         // Setup dummy state
         this.game_state = new GameState(this._health_bar)
-
-        this._previous_badge_count = Progress.badge_count
-        this.recreate_badge_element()
-    }
-
-
-    private recreate_badge_element(): void {
-        if (this._badge_element) this._badge_element.remove()
-
-        this._badge_element = this._parent.appendChild(document.createElement('div'))
-        this._badge_element.id = 'badge-container'
-
-        for (let index = 0; index < Progress.badge_count; index++) {
-            const badge_id = index + 1
-            const badge_sprite = create_badge_sprite(badge_id, this._badge_element)
-            if (badge_id > this._previous_badge_count) {
-                badge_sprite.element.classList.add('new-badge')
-            }
-            badge_sprite.element.id = 'badge'
-        }
-
-        this._previous_badge_count = Progress.badge_count
     }
 
     private clear_screen_shakes(): void {
@@ -508,7 +467,6 @@ export class MiningGrid implements IMiningGrid {
 
     public reset_board(): void {
         clearTimeout(this._game_over_timeout)
-        this.recreate_badge_element()
 
         const modifier_interface = this.create_modifier_interface()
         this._background_sprite.element.appendChild(modifier_interface.element)
@@ -660,8 +618,8 @@ export class MiningGrid implements IMiningGrid {
         this.display_messages(active_modifier.get_intro_messages(this.added_items.length) ?? [ `Something pinged in the wall!\n${this.added_items.length} confirmed!` ])
     }
 
-    private display_messages(messages: string[], instant: boolean = false): { on_completed?: () => void, on_next_message?: (index: number) => void } {
-        const return_value: { on_completed?: () => void, on_next_message?: (index: number) => void } = { on_completed: undefined, on_next_message: undefined }
+    private display_messages(messages: string[], instant: boolean = false): { on_completed?: () => void } {
+        const return_value: { on_completed?: () => void } = { on_completed: undefined }
         const overlay = this._background_sprite.element.appendChild(document.createElement('div'))
         overlay.style.zIndex = '10'
         overlay.id = 'message-overlay'
@@ -685,7 +643,6 @@ export class MiningGrid implements IMiningGrid {
             else {
                 if (current_message) current_message.dispose()
                 current_message = new MessageBox(overlay, messages[index], GridObject.object_sheet)
-                return_value.on_next_message?.(index)
                 if (instant) current_message.animated_text.skip()
                 index += 1
             }

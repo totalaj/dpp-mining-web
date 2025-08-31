@@ -70,12 +70,6 @@ export class Progress {
 
     @Saveable('Progress.finished_collection', false)
     public static finished_collection: boolean
-
-    @Saveable('Progress.badge_count', 0)
-    public static badge_count: number
-
-    @Saveable('Progress.badges_attempted', 0)
-    public static badges_attempted: number
 }
 
 export class Statistics {
@@ -185,10 +179,10 @@ export function create_settings_element(): HTMLElement {
 
     // const freeplay = create_boolean_input(settings_element, !!Settings.freeplay, "Freeplay")
     // freeplay.oninput = (): void => { Settings.freeplay = freeplay.checked }
+
     const screen_shake = create_boolean_input(settings_element, !!Settings.screen_shake, "Screen shake")
     screen_shake.oninput = (): void => { Settings.screen_shake = screen_shake.checked }
 
-    return settings_element
     const reset_version = create_button_input(settings_element, 'Reset version')
     reset_version.onclick = (): void => { window.localStorage.removeItem("Progress.started") }
 
